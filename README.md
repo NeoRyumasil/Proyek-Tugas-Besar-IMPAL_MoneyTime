@@ -66,6 +66,6 @@ pip install requests
 ### Step 6 
 - Ctrl + Click localhost link on the terminal to access the website.
 
-## 📋 Requirements (optional)
+## 📋 Requirements
 - Python Flask Framework
 - Microsoft Azure Database
