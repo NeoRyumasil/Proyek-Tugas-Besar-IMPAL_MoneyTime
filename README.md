@@ -39,7 +39,7 @@ notifikasi mengenai status keuangan mereka.
 ### Step 1. Clone the Repository
 ```bash
 https://github.com/NeoRyumasil/Proyek-Tugas-Besar-IMPAL_MoneyTime.git
-cd Proyek-Tugas-Besar-IMPAL_MoneyTime
+cd Proyek-Tugas-Besar-IMPAL_MoneyTime/MoneyTime
 ```
 
 ### Step 2. Install Depedencies
