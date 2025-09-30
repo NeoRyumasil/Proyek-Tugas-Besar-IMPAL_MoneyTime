@@ -4,8 +4,7 @@
 
 ## Description
 MoneyTime adalah aplikasi manajemen waktu dan keuangan. Dalam aplikasi ini pengguna dapat memanajemen waktu mereka
-seperti, penjadwalan, hingga perhitungan waktu. Pengguna juga dapat memanajemen keuangan mereka, seperti mencatat pemasukkan atau pengeluaran sehari-hari, perhitungan budget keuangan, hingga mendapatkan 
-notifikasi mengenai status keuangan mereka.
+seperti, penjadwalan, hingga perhitungan waktu. Pengguna juga dapat memanajemen keuangan mereka, seperti mencatat pemasukkan atau pengeluaran sehari-hari dan perhitungan budget keuangan.
 
 ## 🧑‍💻 Team
 
