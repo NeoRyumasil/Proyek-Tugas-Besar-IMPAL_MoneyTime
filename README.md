@@ -52,7 +52,10 @@ pip install requests
 - Make .env file
 - Add this code on .env
   ```bash
-  INSERT ENVIRONTMENT CODES HERE
+  FLASK_APP=main.py
+  FLASK_DEBUG=1
+  FLASK_ENV=development
+  FLASK_RUN_PORT=8080
   ```
   
 ### Step 4 Access Azure Database
