@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoneyTime - Login & Register</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleRegisLogin.css') }}">
+</head>
+<body>
+
+    <div class="container" id="main-container">
+        
+        <div class="form-container sign-up-container">
+            <form action="#">
+                <h1>Register</h1>
+                <p class="subtitle">Create your account</p>
+                <div class="input-group">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" placeholder="username" name = "register_username" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" placeholder="Email" name = "register_email" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" name="register_password" placeholder="Password" id="register-password" required>
+                    <i class="fa-regular fa-eye-slash password-toggle" id="toggle-register-password"></i>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" name="register_confirm" placeholder="Confirm Password" id="confirm-password" required>
+                    <i class="fa-regular fa-eye-slash password-toggle" id="toggle-confirm-password"></i>
+                </div>
+                <div class="terms">
+                    <input type="checkbox" id="terms" required>
+                    <label for="terms">I agree to the Terms & Condition</label>
+                </div>
+                <button type="submit" class="submit-btn">Register</button>
+            </form>
+        </div>
+        
+        <div class="form-container sign-in-container">
+            <form action="#">
+                <h1>Login</h1>
+                <p class="subtitle">Login to your account</p>
+                 <div class="input-group">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" name="login_username" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" name="login_password" placeholder="Password" id="login-password" required>
+                    <i class="fa-regular fa-eye-slash password-toggle" id="toggle-login-password"></i>
+                </div>
+                <button type="submit" class="submit-btn">Login</button>
+            </form>
+        </div>
+        
+        <div class="overlay-container">
+            <div class="overlay">
+                <div class="overlay-panel overlay-left">
+                    <div class="logo"><img src="{{ url_for('static', filename='logo_moneytime.png') }}" alt="MoneyTime Logo"></div>
+                    <h2>Welcome to MoneyTime</h2>
+                    <p>The smart way to manage your time and money.</p>
+                    <div class="switch-section">
+                        <p>Already have an account?</p>
+                        <button class="switch-btn" id="show-login-btn">Login</button>
+                    </div>
+                </div>
+                <div class="overlay-panel overlay-right">
+                    <div class="logo"><img src="{{ url_for('static', filename='logo_moneytime.png') }}" alt="MoneyTime Logo"></div>
+                    <h2>Welcome Back to MoneyTime</h2>
+                    <p>Let's continue where you left off. Efficient as always.</p>
+                    <div class="switch-section">
+                        <p>Don't have an account?</p>
+                        <button class="switch-btn" id="show-register-btn">Register</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <script src="{{ url_for('static', filename='scriptRegisLogin.js') }}"></script>
+</body>
+</html>
