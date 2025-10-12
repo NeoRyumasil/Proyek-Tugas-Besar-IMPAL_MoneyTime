@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from markupsafe import escape
 
+# ada bebberapa kode yang mungkin bisa dihapus dan tidak, ubah saja, beberapa kode dibawah hnya untuk testing auth
+
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 
