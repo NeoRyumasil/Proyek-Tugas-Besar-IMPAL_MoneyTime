@@ -39,6 +39,7 @@
                     <input type="checkbox" id="terms" required>
                     <label for="terms">I agree to the Terms & Condition</label>
                 </div>
+                <div id="register-error" class="error-message" style="display: none;"></div>
                 <button type="submit" class="submit-btn">Register</button>
             </form>
         </div>
@@ -48,14 +49,15 @@
                 <h1>Login</h1>
                 <p class="subtitle">Login to your account</p>
                  <div class="input-group">
-                    <i class="fa-solid fa-user"></i>
-                    <input type="text" name="login_username" placeholder="Username" required>
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" name="login_email" placeholder="Email" required>
                 </div>
                 <div class="input-group">
                     <i class="fa-solid fa-lock"></i>
                     <input type="password" name="login_password" placeholder="Password" id="login-password" required>
                     <i class="fa-regular fa-eye-slash password-toggle" id="toggle-login-password"></i>
                 </div>
+                <div id="login-error" class="error-message" style="display: none;"></div>
                 <button type="submit" class="submit-btn">Login</button>
             </form>
         </div>
@@ -83,6 +85,20 @@
             </div>
         </div>
         
+    </div>
+
+    <!-- Success Popup for Register -->
+    <div id="register-success-popup" class="success-popup" style="display: none;">
+        <div class="popup-box">
+            <img src="{{ url_for('static', filename='contreng (2).png') }}" alt="Success">
+        </div>
+    </div>
+
+    <!-- Success Popup for Login -->
+    <div id="login-success-popup" class="success-popup" style="display: none;">
+        <div class="popup-box">
+            <img src="{{ url_for('static', filename='contreng (2).png') }}" alt="Success">
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='scriptRegisLogin.js') }}"></script>

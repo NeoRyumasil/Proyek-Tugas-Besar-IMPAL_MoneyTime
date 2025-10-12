@@ -33,4 +33,94 @@ document.addEventListener('DOMContentLoaded', () => {
     setupPasswordToggle('login-password', 'toggle-login-password');
     setupPasswordToggle('register-password', 'toggle-register-password');
     setupPasswordToggle('confirm-password', 'toggle-confirm-password');
+
+    // Popup handling
+    const registerSuccessPopup = document.getElementById('register-success-popup');
+    const loginSuccessPopup = document.getElementById('login-success-popup');
+
+    // Handle register form submission
+    const registerForm = document.querySelector('.sign-up-container form');
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const password = document.getElementById('register-password').value;
+        const confirm = document.getElementById('confirm-password').value;
+        const errorDiv = document.getElementById('register-error');
+
+        if (password !== confirm) {
+            errorDiv.textContent = 'Passwords do not match';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        // Hide error if previously shown
+        errorDiv.style.display = 'none';
+
+        // Send data to backend
+        const formData = new FormData(registerForm);
+        try {
+            const response = await fetch('/register', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (result.success) {
+                registerSuccessPopup.style.display = 'flex';
+                setTimeout(() => {
+                    registerSuccessPopup.style.opacity = '1';
+                    registerSuccessPopup.style.transform = 'scale(1)';
+                }, 10);
+                setTimeout(() => {
+                    registerSuccessPopup.style.opacity = '0';
+                    registerSuccessPopup.style.transform = 'scale(0.5)';
+                    setTimeout(() => {
+                        registerSuccessPopup.style.display = 'none';
+                        container.classList.remove('right-panel-active'); // Switch to login
+                    }, 500);
+                }, 1000);
+            } else {
+                errorDiv.textContent = result.message;
+                errorDiv.style.display = 'block';
+            }
+        } catch (error) {
+            errorDiv.textContent = 'An error occurred. Please try again.';
+            errorDiv.style.display = 'block';
+        }
+    });
+
+    // Handle login form submission (optional, but for completeness)
+    const loginForm = document.querySelector('.sign-in-container form');
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errorDiv = document.getElementById('login-error');
+        errorDiv.style.display = 'none'; // Hide previous errors
+        const formData = new FormData(loginForm);
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (result.success) {
+                loginSuccessPopup.style.display = 'flex';
+                setTimeout(() => {
+                    loginSuccessPopup.style.opacity = '1';
+                    loginSuccessPopup.style.transform = 'scale(1)';
+                }, 10);
+                setTimeout(() => {
+                    loginSuccessPopup.style.opacity = '0';
+                    loginSuccessPopup.style.transform = 'scale(0.5)';
+                    setTimeout(() => {
+                        loginSuccessPopup.style.display = 'none';
+                        window.location.href = '/dashboard';
+                    }, 500);
+                }, 1000);
+            } else {
+                errorDiv.textContent = result.message;
+                errorDiv.style.display = 'block';
+            }
+        } catch (error) {
+            errorDiv.textContent = 'An error occurred. Please try again.';
+            errorDiv.style.display = 'block';
+        }
+    });
 });
