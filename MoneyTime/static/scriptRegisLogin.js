@@ -111,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     loginSuccessPopup.style.transform = 'scale(0.5)';
                     setTimeout(() => {
                         loginSuccessPopup.style.display = 'none';
+                        // Setelah popup sukses login hilang, redirect ke dashboard
                         window.location.href = '/dashboard';
                     }, 500);
                 }, 1000);
