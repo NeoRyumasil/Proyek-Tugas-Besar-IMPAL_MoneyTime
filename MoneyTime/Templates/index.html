@@ -1,11 +1,149 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <link rel="stylesheet" href="/static/styleLandingPage.css" />
+    <script src="static/scriptLandingPage.js"></script>
+    <title>MoneyTime</title>
 </head>
 <body>
-    <h1>Hello, MoneyTime!</h1>
+    <div class="header-guest">
+        <div class="header-guest-container">
+            <div class="name-and-logo">
+                <img class="image-13-icon" alt="" src="img/logoMoneyTime.svg">
+                <div class="name">
+                    <div class="logo">MoneyTime</div>
+                </div>
+            </div>
+            <div class="page-switch">
+                <a href="#home" class="page-link">
+                    <div class="page-1">
+                        <b class="page-text">Home</b>
+                    </div>
+                </a>
+
+                <a href="#features" class="page-link">
+                    <div class="page-1">
+                        <b class="page-text">Features</b>
+                    </div>
+                </a>
+                
+                <a href="#about" class="page-link">
+                    <div class="page-1">
+                        <b class="page-text">About</b>
+                    </div>
+                </a>
+
+                <a href="#contact" class="page-link">
+                    <div class="page-1">
+                        <b class="page-text">Contact</b>
+                    </div>
+                </a>
+                
+            </div>
+            <div class="get-started" id="getStartedContainer">
+                <div class="home">Get Started</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header-Guest -->
+    <div class="hero" id="home">
+        <div class="hero-background">
+            <img class="jon-moore-1pxgp8kkqyk-unsplash-icon" alt="">
+            <div class="jon-moore-1pxgp8kkqyk-unsplash">
+            </div>
+        </div>
+        <div class="hero-container">
+            <div class="chevron-circle-left-parent">
+                <img class="chevron-circle-left-icon" alt="" src="img/chevron-circle-left.svg">
+                <div class="hero-textimg">
+                    <div class="welcome-to-moneytime-parent">
+                        <b class="welcome-to-moneytime">Welcome to MoneyTime!</b>
+                        <div class="lorem-ipsum-dolor">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+                            eiusmod tempor incididunt ut labore et dolore magna aliqua.</div>
+                    </div>
+                    <img class="velocity-of-money-1-icon" alt="" src="img/Velocity-of-money 1.svg">
+                </div>
+                <img class="chevron-circle-left-icon" alt="" src="img/chevron-circle-right.svg">
+            </div>
+            <div class="hero-pagination">
+                <div class="current-page">
+                </div>
+                <div class="a">
+                </div>
+                <div class="a">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Component -->
+    <div class="features-component" id="features">
+        <div class="features-container">
+            <div class="title">
+                <b class="key-features">Key Features</b>
+                <div class="lorem-ipsum-dolor">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+                    tempor incididunt ut labore et dolore magna aliqua.</div>
+            </div>
+            <div class="features-card">
+                <div class="money-card">
+                    <div class="card">
+                        <div class="card-container">
+                            <div class="features--title">
+                                <div class="logo-card">
+                                    <div class="div">💵</div>
+                                </div>
+                                <div class="money">Money</div>
+                            </div>
+                            <div class="features--lorem-ipsum-dolor">Lorem ipsum dolor sit amet, consectetur adipiscing
+                                elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="money-card">
+                    <div class="card">
+                        <div class="card-container">
+                            <div class="features--title">
+                                <div class="logo-card">
+                                    <div class="div">⏱️</div>
+                                </div>
+                                <div class="money">Time</div>
+                            </div>
+                            <div class="features--lorem-ipsum-dolor">Lorem ipsum dolor sit amet, consectetur adipiscing
+                                elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const HEADER_OFFSET = 130;
+
+        // Target sections yg dipantau
+        const sections = document.querySelectorAll("#home, #features, #about, #contact");
+        const links = document.querySelectorAll(".page-link");
+
+        const io = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    const id = entry.target.getAttribute("id");
+                    const link = document.querySelector(`.page-link[href="#${id}"]`);
+                    if (entry.isIntersecting) {
+                        links.forEach((l) => l.classList.remove("active"));
+                        if (link) link.classList.add("active");
+                    }
+                });
+            },
+            {
+                root: null,
+                rootMargin: `-${HEADER_OFFSET}px 0px -60% 0px`,
+                threshold: 0.25,
+            }
+        );
+
+        sections.forEach((sec) => io.observe(sec));
+    </script>
 </body>
 </html>
