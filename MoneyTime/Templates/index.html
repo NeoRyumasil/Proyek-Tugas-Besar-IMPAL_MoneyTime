@@ -2,15 +2,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/styleLandingPage.css" />
-    <script src="static/scriptLandingPage.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleLandingPage.css') }}" />
+    <script src="{{ url_for('static', filename='scriptLandingPage.js') }}" defer></script>
     <title>MoneyTime</title>
 </head>
 <body>
     <div class="header-guest">
         <div class="header-guest-container">
             <div class="name-and-logo">
-                <img class="image-13-icon" alt="" src="img/logoMoneyTime.svg">
+                <img class="image-13-icon" alt="" src="{{ url_for('static', filename='logo_moneytime.png') }}">
                 <div class="name">
                     <div class="logo">MoneyTime</div>
                 </div>
@@ -41,9 +41,9 @@
                 </a>
                 
             </div>
-            <div class="get-started" id="getStartedContainer">
+            <a href="{{ url_for('auth') }}?tab=register" class="get-started" id="getStartedContainer">
                 <div class="home">Get Started</div>
-            </div>
+            </a>
         </div>
     </div>
 
@@ -56,16 +56,16 @@
         </div>
         <div class="hero-container">
             <div class="chevron-circle-left-parent">
-                <img class="chevron-circle-left-icon" alt="" src="img/chevron-circle-left.svg">
+                <img class="chevron-circle-left-icon" alt=""src="{{ url_for('static', filename='chevron-circle-left.svg') }}">
                 <div class="hero-textimg">
                     <div class="welcome-to-moneytime-parent">
                         <b class="welcome-to-moneytime">Welcome to MoneyTime!</b>
                         <div class="lorem-ipsum-dolor">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
                             eiusmod tempor incididunt ut labore et dolore magna aliqua.</div>
                     </div>
-                    <img class="velocity-of-money-1-icon" alt="" src="img/Velocity-of-money 1.svg">
+                    <img class="velocity-of-money-1-icon" alt="" src="{{ url_for('static', filename='Velocity-of-money 1.svg') }}">
                 </div>
-                <img class="chevron-circle-left-icon" alt="" src="img/chevron-circle-right.svg">
+                <img class="chevron-circle-left-icon" alt="" src="{{ url_for('static', filename='chevron-circle-right.svg') }}">
             </div>
             <div class="hero-pagination">
                 <div class="current-page">
@@ -118,32 +118,5 @@
             </div>
         </div>
     </div>
-    <script>
-        const HEADER_OFFSET = 130;
-
-        // Target sections yg dipantau
-        const sections = document.querySelectorAll("#home, #features, #about, #contact");
-        const links = document.querySelectorAll(".page-link");
-
-        const io = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    const id = entry.target.getAttribute("id");
-                    const link = document.querySelector(`.page-link[href="#${id}"]`);
-                    if (entry.isIntersecting) {
-                        links.forEach((l) => l.classList.remove("active"));
-                        if (link) link.classList.add("active");
-                    }
-                });
-            },
-            {
-                root: null,
-                rootMargin: `-${HEADER_OFFSET}px 0px -60% 0px`,
-                threshold: 0.25,
-            }
-        );
-
-        sections.forEach((sec) => io.observe(sec));
-    </script>
 </body>
 </html>

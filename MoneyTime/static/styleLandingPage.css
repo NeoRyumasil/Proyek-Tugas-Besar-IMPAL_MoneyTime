@@ -115,6 +115,13 @@ body{
     cursor: pointer;
     font-size: 18px;
     color: #000;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.get-started:hover{
+    background-color: #DADADA;
+    color: #000;
 }
 
 .hero {
