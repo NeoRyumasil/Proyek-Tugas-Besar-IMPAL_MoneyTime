@@ -1,11 +1,14 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from markupsafe import escape
+from Controller.databaseController import db_connect
 import os
 import secrets
 
 # ada bebberapa kode yang mungkin bisa dihapus dan tidak, ubah saja, beberapa kode dibawah hnya untuk testing auth
 
-app = Flask(__name__)
+app = Flask(__name__,
+    template_folder='View/Templates',
+    static_folder='View/static')
 
 # mengamankan aplikasi Flask dengan secret key yang diambil dari environment variable atau secara otomatis digenerate jika tidak ada
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))

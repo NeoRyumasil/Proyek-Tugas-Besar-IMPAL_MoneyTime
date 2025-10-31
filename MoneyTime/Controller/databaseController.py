@@ -1,5 +1,5 @@
 import pypyodbc as odbc
-from credentials import username, password, server, database
+from Controller.credentials import username, password, server, database
 
 # Membuat koneksi ke database SQL Server menggunakan pypyodbc
 def db_connect():
