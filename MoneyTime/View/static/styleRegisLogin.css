@@ -97,6 +97,10 @@ h1 {
     font-size: 12px;
 }
 
+
+
+
+
 .terms {
     display: flex;
     align-items: center;
@@ -266,3 +270,56 @@ h1 {
 .container.right-panel-active .overlay { transform: translateX(50%); }
 .container.right-panel-active .overlay-left { transform: translateX(0); }
 .container.right-panel-active .overlay-right { transform: translateX(20%); }
+
+.remember-forgot-section {
+    align-self: stretch;
+    justify-content: space-between;
+    align-items: center;
+    display: inline-flex;
+    margin-bottom: 20px;
+}
+
+.remember-me-section {
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+    display: flex;
+}
+
+.remember-me-section input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    border: 1px rgba(0, 0, 0, 0.20) solid;
+}
+
+.remember-me-section div {
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    color: black;
+    font-size: 12px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    line-height: 16.17px;
+    word-wrap: break-word;
+}
+
+.forgot-password-section {
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+    display: flex;
+}
+
+.forgot-password-link {
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    color: rgba(0, 0, 0, 0.20);
+    font-size: 12px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    word-wrap: break-word;
+    text-decoration: none;
+}

@@ -50,12 +50,21 @@
                 <p class="subtitle">Login to your account</p>
                  <div class="input-group">
                     <i class="fa-solid fa-envelope"></i>
-                    <input type="email" name="login_email" placeholder="Email" required>
+                    <input type="email" name="login_email" id="login_email" placeholder="Email" required>
                 </div>
                 <div class="input-group">
                     <i class="fa-solid fa-lock"></i>
                     <input type="password" name="login_password" placeholder="Password" id="login-password" required>
                     <i class="fa-regular fa-eye-slash password-toggle" id="toggle-login-password"></i>
+                </div>
+                <div class="remember-forgot-section">
+                    <div class="remember-me-section">
+                        <input type="checkbox" id="remember-me" name="remember_me">
+                        <div>Remember Me?</div>
+                    </div>
+                    <div class="forgot-password-section">
+                        <a href="{{ url_for('forgot_password') }}" class="forgot-password-link">Forgot Password</a>
+                    </div>
                 </div>
                 <div id="login-error" class="error-message" style="display: none;"></div>
                 <button type="submit" class="submit-btn">Login</button>
@@ -65,7 +74,7 @@
         <div class="overlay-container">
             <div class="overlay">
                 <div class="overlay-panel overlay-left">
-                    <div class="logo"><img src="{{ url_for('static', filename='logo_moneytime.png') }}" alt="MoneyTime Logo"></div>
+                    <div class="logo"><img src="{{ url_for('static', filename='logo moneytime aga gedean.svg') }}" alt="MoneyTime Logo"></div>
                     <h2>Welcome to MoneyTime</h2>
                     <p>The smart way to manage your time and money.</p>
                     <div class="switch-section">
@@ -74,7 +83,7 @@
                     </div>
                 </div>
                 <div class="overlay-panel overlay-right">
-                    <div class="logo"><img src="{{ url_for('static', filename='logo_moneytime.png') }}" alt="MoneyTime Logo"></div>
+                    <div class="logo"><img src="{{ url_for('static', filename='logo moneytime aga gedean.svg') }}" alt="MoneyTime Logo"></div>
                     <h2>Welcome Back to MoneyTime</h2>
                     <p>Let's continue where you left off. Efficient as always.</p>
                     <div class="switch-section">

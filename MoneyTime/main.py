@@ -57,15 +57,27 @@ def register():
 def login():
     email = request.form.get('login_email')
     password = request.form.get('login_password')
+    remember_me = request.form.get('remember_me')  # This will be 'on' if checked, 'off' if not
 
-     # inform pada form auth FE
+    print(f"Login attempt: email={email}, password={password}, remember_me={remember_me}")  # Debug log
+    print(f"Users in DB: {users}")  # Debug log
+
+    # inform pada form auth FE
     if email in users and users[email]['password'] == password:
         # Setelah login berhasil, simpan data pengguna di session untuk melacak status login
         session['user'] = {'username': users[email]['username'], 'email': email}
 
-        # Kembalikan respons JSON sukses; frontend (JavaScript) akan menangani redirect ke /dashboard (scriptRegisLogin.js line 115)        
+        # Handle remember me: set session to permanent if checked
+        if remember_me == 'on':
+            session.permanent = True
+            # You can also store additional data in session or database for longer persistence
+            # For now, we rely on session.permanent for cookie-based persistence
+
+        print("Login successful")  # Debug log
+        # Kembalikan respons JSON sukses; frontend (JavaScript) akan menangani redirect ke /dashboard (scriptRegisLogin.js line 115)
         return jsonify({'success': True, 'message': 'Login successful'})
     else:
+        print("Login failed: Invalid credentials")  # Debug log
         return jsonify({'success': False, 'message': 'Invalid email or password'})
 
 # Route dashboard: hanya bisa diakses jika user sudah login (ada di session)
@@ -82,6 +94,31 @@ def dashboard():
 def logout():
     session.pop('user', None)
     return redirect(url_for('auth'))
+
+@app.route('/forgot-password')
+def forgot_password():
+    return render_template('forgot_password.html')
+
+@app.route('/send-otp', methods=['POST'])
+def send_otp():
+    email = request.form.get('email')
+    # For now, just simulate success
+    # In real implementation, send OTP to email
+    return jsonify({'success': True, 'message': 'OTP sent to your email'})
+
+@app.route('/verify-otp', methods=['POST'])
+def verify_otp():
+    otp = request.form.get('otp')
+    # For now, just simulate success
+    # In real implementation, verify OTP
+    return jsonify({'success': True, 'message': 'OTP verified'})
+
+@app.route('/update-password', methods=['POST'])
+def update_password():
+    new_password = request.form.get('new_password')
+    # For now, just simulate success
+    # In real implementation, update password in DB
+    return jsonify({'success': True, 'message': 'Password updated'})
 
 if __name__ == '__main__':
     app.run(debug=True)
