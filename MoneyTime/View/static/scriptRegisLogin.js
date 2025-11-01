@@ -94,13 +94,39 @@ document.addEventListener('DOMContentLoaded', () => {
         const errorDiv = document.getElementById('login-error');
         errorDiv.style.display = 'none'; // Hide previous errors
         const formData = new FormData(loginForm);
+
+        // Log the form data for debugging (optional)
+        for (let [key, value] of formData.entries()) {
+            console.log(key, value);
+        }
+
+        // Ensure remember_me is included in form data even if unchecked
+        if (!formData.has('remember_me')) {
+            formData.append('remember_me', 'off');
+        }
+
         try {
             const response = await fetch('/login', {
                 method: 'POST',
                 body: formData
             });
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
             const result = await response.json();
+            console.log('Response result:', result);
             if (result.success) {
+                // Handle remember me: store in localStorage if checked
+                const rememberMe = document.getElementById('remember-me').checked;
+                if (rememberMe) {
+                    localStorage.setItem('rememberMe', 'true');
+                    // Optionally store email or other data
+                    const email = document.getElementById('login_email').value;
+                    localStorage.setItem('email', email);
+                } else {
+                    localStorage.removeItem('rememberMe');
+                    localStorage.removeItem('email');
+                }
+
                 loginSuccessPopup.style.display = 'flex';
                 setTimeout(() => {
                     loginSuccessPopup.style.opacity = '1';
