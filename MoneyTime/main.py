@@ -1,8 +1,11 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from markupsafe import escape
 from Controller.databaseController import db_connect
+from Controller.userController import UserController
 import os
 import secrets
+
+user_controller = UserController()
 
 # ada bebberapa kode yang mungkin bisa dihapus dan tidak, ubah saja, beberapa kode dibawah hnya untuk testing auth
 
@@ -57,27 +60,19 @@ def register():
 def login():
     email = request.form.get('login_email')
     password = request.form.get('login_password')
-    remember_me = request.form.get('remember_me')  # This will be 'on' if checked, 'off' if not
+    remember_me = request.form.get('remember_me')
 
-    print(f"Login attempt: email={email}, password={password}, remember_me={remember_me}")  # Debug log
-    print(f"Users in DB: {users}")  # Debug log
-
-    # inform pada form auth FE
-    if email in users and users[email]['password'] == password:
-        # Setelah login berhasil, simpan data pengguna di session untuk melacak status login
-        session['user'] = {'username': users[email]['username'], 'email': email}
-
-        # Handle remember me: set session to permanent if checked
+    if user_controller.login(email, password):
+        user = user_controller.get_current_user()
+        session['user'] = {
+            'id': user.get_user_id(),
+            'username': user.username,
+            'email': user.email_address
+        }
         if remember_me == 'on':
             session.permanent = True
-            # You can also store additional data in session or database for longer persistence
-            # For now, we rely on session.permanent for cookie-based persistence
-
-        print("Login successful")  # Debug log
-        # Kembalikan respons JSON sukses; frontend (JavaScript) akan menangani redirect ke /dashboard (scriptRegisLogin.js line 115)
         return jsonify({'success': True, 'message': 'Login successful'})
     else:
-        print("Login failed: Invalid credentials")  # Debug log
         return jsonify({'success': False, 'message': 'Invalid email or password'})
 
 # Route dashboard: hanya bisa diakses jika user sudah login (ada di session)
