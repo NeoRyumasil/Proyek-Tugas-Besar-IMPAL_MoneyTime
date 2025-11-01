@@ -1,11 +1,13 @@
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styleLandingPage.css') }}" />
-    <script src="{{ url_for('static', filename='scriptLandingPage.js') }}" defer></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleLandingPage.css') }}">
+    <script src="{{ url_for('static', filename='scriptLandingPage.js') }}"></script>
     <title>MoneyTime</title>
 </head>
+
 <body>
     <div class="header-guest">
         <div class="header-guest-container">
@@ -15,56 +17,47 @@
                     <div class="logo">MoneyTime</div>
                 </div>
             </div>
-            <div class="page-switch">
+            <nav class="page-switch" id="mainNav" aria-label="Primary">
                 <a href="#home" class="page-link">
-                    <div class="page-1">
-                        <b class="page-text">Home</b>
-                    </div>
+                    <div class="page-1"><b class="page-text">Home</b></div>
                 </a>
-
                 <a href="#features" class="page-link">
-                    <div class="page-1">
-                        <b class="page-text">Features</b>
-                    </div>
+                    <div class="page-1"><b class="page-text">Features</b></div>
                 </a>
-                
                 <a href="#about" class="page-link">
-                    <div class="page-1">
-                        <b class="page-text">About</b>
-                    </div>
+                    <div class="page-1"><b class="page-text">About</b></div>
                 </a>
-
                 <a href="#contact" class="page-link">
-                    <div class="page-1">
-                        <b class="page-text">Contact</b>
-                    </div>
+                    <div class="page-1"><b class="page-text">Contact</b></div>
                 </a>
-                
-            </div>
+            </nav>
+
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false"
+                aria-controls="mainNav">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
             <a href="{{ url_for('auth') }}?tab=register" class="get-started" id="getStartedContainer">
                 <div class="home">Get Started</div>
             </a>
         </div>
     </div>
 
-    <!-- Header-Guest -->
     <div class="hero" id="home">
         <div class="hero-background">
-            <img class="jon-moore-1pxgp8kkqyk-unsplash-icon" alt="">
-            <div class="jon-moore-1pxgp8kkqyk-unsplash">
-            </div>
+            <img class="hero-background-img" alt="" src="{{ url_for('static', filename='hero background.png') }}">
         </div>
         <div class="hero-container">
             <div class="chevron-circle-left-parent">
-                <img class="chevron-circle-left-icon" alt=""src="{{ url_for('static', filename='chevron-circle-left.svg') }}">
+                <img class="chevron-circle-left-icon" alt="" src="{{ url_for('static', filename='chevron-circle-left.svg') }}">
                 <div class="hero-textimg">
                     <div class="welcome-to-moneytime-parent">
                         <b class="welcome-to-moneytime">Welcome to MoneyTime!</b>
-                        <div class="lorem-ipsum-dolor">
-                            Aplikasi yang Membantu Manajemen Waktu dan Keuangan Anda 🥰.
+                        <div class="lorem-ipsum-dolor">Aplikasi yang Membantu Manajemen Waktu dan Keuangan Anda 🥰.
                         </div>
                     </div>
-                    <img class="velocity-of-money-1-icon" alt="" src="{{ url_for('static', filename='Velocity-of-money 1.svg') }}">
+                    <img class="hero-image" alt="" src="{{ url_for('static', filename='Velocity-of-money 1.svg') }}">
                 </div>
                 <img class="chevron-circle-left-icon" alt="" src="{{ url_for('static', filename='chevron-circle-right.svg') }}">
             </div>
@@ -79,14 +72,11 @@
         </div>
     </div>
 
-    <!-- Features Component -->
     <div class="features-component" id="features">
         <div class="features-container">
             <div class="title">
                 <b class="key-features">Key Features</b>
-                <div class="lorem-ipsum-dolor">
-                    Berikut Adalah Fitur-Fitur Utama yang Kami Tawarkan.
-                </div>
+                <div class="lorem-ipsum-dolor">Berikut Adalah Fitur-Fitur Utama yang Kami Tawarkan.</div>
             </div>
             <div class="features-card">
                 <div class="money-card">
@@ -98,11 +88,10 @@
                                 </div>
                                 <div class="money">Keuangan</div>
                             </div>
-                            <div class="features--lorem-ipsum-dolor">
-                                Disini Anda bisa mengatur keuangan Anda dengan mudah dan praktis.
-                                Dengan fitur pencatatan pengeluaran dan pemasukan, Anda dapat memantau arus kas
-                                Anda secara real-time dan membuat anggaran yang sesuai dengan kebutuhan Anda.
-                            </div>
+                            <div class="features--lorem-ipsum-dolor">Di sini Anda bisa mengatur keuangan Anda dengan
+                                mudah dan praktis. Dengan fitur pencatatan pengeluaran dan pemasukan,
+                                Anda dapat memantau arus kas Anda secara real-time dan membuat anggaran yang sesuai
+                                dengan kebutuhan Anda.</div>
                         </div>
                     </div>
                 </div>
@@ -115,17 +104,152 @@
                                 </div>
                                 <div class="money">Waktu</div>
                             </div>
-                            <div class="features--lorem-ipsum-dolor">
-                                Disini Anda bisa mengatur waktu Anda dengan efisien.
-                                Dengan fitur pengingat dan penjadwalan, Anda dapat mengelola tugas-tugas
-                                harian Anda dengan lebih baik dan memastikan bahwa Anda tidak melewatkan
-                                tenggat waktu penting.
-                            </div>
+                            <div class="features--lorem-ipsum-dolor">Di sini Anda bisa mengatur waktu Anda dengan
+                                efisien. Dengan fitur pengingat dan penjadwalan, Anda dapat mengelola
+                                tugas-tugas harian Anda dengan lebih baik dan memastikan bahwa Anda tidak melewatkan
+                                tenggat waktu penting.</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="about-us-component" id="about">
+        <img class="about-us--about-us-component" alt="" src="{{ url_for('static', filename='About Us Component.png') }}">
+        <div class="about-moneytime-parent">
+            <b class="about-moneytime">About MoneyTime</b>
+            <div class="cyclefy-is-a">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+                incididunt ut labore
+                et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+                incididunt ut labore
+                et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+                incididunt ut labore
+                et dolore magna aliqua. </div>
+            <div class="cyclefy-is-a">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+                incididunt ut labore
+                et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+                incididunt ut labore
+                et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+                incididunt ut labore
+                et dolore magna aliqua.</div>
+        </div>
+    </div>
+
+    <div class="contact-component" id="contact">
+        <div class="contact--contact-component">
+            <div class="contact-us-parent">
+                <b class="contact-us">Contact Us</b>
+                <div class="have-questions-or">Have questions or need help? Get in touch with us!</div>
+            </div>
+            <div class="frame-parent">
+                <div class="form-parent">
+                    <form class="form">
+                        <div class="item-name">
+                            <label class="name" for="name">Name</label>
+                            <div class="enter-your-name-wrapper">
+                                <input type="text" id="name" name="name" placeholder="Enter your name..." required>
+                            </div>
+                        </div>
+
+                        <div class="item-name">
+                            <label class="name" for="email">Email</label>
+                            <div class="enter-your-name-wrapper">
+                                <input type="email" id="email" name="email" placeholder="Enter your email..." required>
+                            </div>
+                        </div>
+
+                        <div class="item-name">
+                            <label class="name" for="contact">Contact Number</label>
+                            <div class="enter-your-name-wrapper">
+                                <input type="tel" id="contact" name="contact"
+                                    placeholder="Enter your contact number...">
+                            </div>
+                        </div>
+
+                        <div class="item-name">
+                            <label class="name" for="message">Message</label>
+                            <div class="enter-your-message-wrapper">
+                                <textarea id="message" name="message" placeholder="Enter your message..."
+                                    rows="5"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="submit">
+                            <button type="submit" class="button">
+                                <div class="text">Send Message</div>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="frame-wrapper">
+                    <div class="kobu-agency-fyve6xps5gk-unspla-parent">
+                        <img class="kobu-agency-fyve6xps5gk-unspla-icon" alt="" src="{{ url_for('static', filename='maps img.png') }}">
+                        <div class="frame-group">
+                            <img class="frame-child" alt="" src="{{ url_for('static', filename='location.svg') }}">
+                            <div class="text">Jl. Lorem Ipsum No. 123</div>
+                        </div>
+                        <div class="frame-group">
+                            <img class="frame-item" alt="" src="{{ url_for('static', filename='phone.svg') }}">
+                            <div class="text">+6281234567890</div>
+                        </div>
+                        <div class="frame-group">
+                            <img class="frame-item" alt="" src="{{ url_for('static', filename='message.svg') }}">
+                            <div class="text">moneytime@gmail.com</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="footer-wrapper">
+            <div class="footer-top">
+                <div class="footer-about">
+                    <div class="footer-logo">
+                        <b class="footer-brand">
+                            <span>Money</span><span class="footer-brand-highlight">Time</span>
+                        </b>
+                    </div>
+                    <div class="footer-desc">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+                        labore
+                        et dolore magna aliqua.
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <b class="footer-title">Features</b>
+                    <div class="footer-links">
+                        <div>Money</div>
+                        <div>Time</div>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <b class="footer-title">Customer Service</b>
+                    <div class="footer-links">
+                        <div>Contact Us</div>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <b class="footer-title">Follow Us</b>
+                    <div class="footer-socials">
+                        <img class="footer-icon" alt="" src="{{ url_for('static', filename='google.svg') }}">
+                        <img class="footer-icon" alt="" src="{{ url_for('static', filename='facebook.png') }}">
+                        <img class="footer-icon" alt="" src="{{ url_for('static', filename='x-twitter.png') }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-divider"></div>
+            <b class="footer-copy">© 2025 MoneyTime. All rights reserved.</b>
+        </div>
+    </div>
+
+
 </body>
+
 </html>

@@ -1,17 +1,19 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap");
+
 html {
     scroll-behavior: smooth;
 }
 
-body{
+body {
     padding: 0;
     margin: 0;
-    font-family: Arial;
+    font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     background-color: #f0f5ff;
 }
 
 .header-guest {
     width: 100%;
-    height: 13vh;
+    height: 123px;
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -19,30 +21,30 @@ body{
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 3vh 7.8vw;
+    padding: 25px 150px;
     box-sizing: border-box;
     text-align: center;
-    font-size: 1.25vw;
+    font-size: 24px;
     color: #fff;
 }
 
 .header-guest-container {
-    width: 84vw;
+    width: 1620px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1vw;
+    gap: 20px;
 }
 
 .name-and-logo {
     display: flex;
     align-items: center;
-    gap: 0.5vw;
+    gap: 8px;
     text-align: left;
 }
 
 .image-13-icon {
-    width: 2.4vw;
+    width: 47px;
     position: relative;
     max-height: 100%;
     object-fit: cover;
@@ -57,13 +59,15 @@ body{
 .logo {
     position: relative;
     font-weight: 600;
+    font-size: 24px;
+    color: #fff;
 }
 
 .page-switch {
     display: flex;
     align-items: center;
-    gap: 0.625vw;
-    font-size: clamp(16px, 1.04vw, 20px);
+    gap: 12px;
+    font-size: 20px;
 }
 
 .page-link {
@@ -78,25 +82,25 @@ body{
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 0.625vh 1.25vw;
+    padding: 12px 24px;
     cursor: pointer;
 }
 
 .page-link::after {
     content: "";
     position: absolute;
-    left: 0.625vw;
-    right: 0.625vw;
-    bottom: 0.3vh;
-    height: 0.1vh;
+    left: 12px;
+    right: 12px;
+    bottom: 6px;
+    height: 2px;
     width: 0%;
     background: #ffffff;
     transition: width 0.25s ease;
     border-radius: 1px;
 }
 
-.page-link:hover::after{
-    width: calc(100% - 1.04vw);
+.page-link:hover::after {
+    width: calc(100% - 20px);
 }
 
 .page-text {
@@ -104,22 +108,22 @@ body{
 }
 
 .get-started {
-    height: 6vh;                    
-    border-radius: 3vh;  
+    height: 50px;
+    border-radius: 27px;
     background-color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1.5vh 0.83vw;
+    padding: 13px 16px;
     box-sizing: border-box;
     cursor: pointer;
-    font-size: 0.94vw;
+    font-size: 18px;
     color: #000;
     text-decoration: none;
     transition: background-color 0.3s ease;
 }
 
-.get-started:hover{
+.get-started:hover {
     background-color: #DADADA;
     color: #000;
 }
@@ -132,22 +136,21 @@ body{
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 15vh;
+    padding: 150px;
     box-sizing: border-box;
     text-align: center;
-    font-size: 2.1vw;
+    font-size: 40px;
     color: #000;
 }
 
-.jon-moore-1pxgp8kkqyk-unsplash {
+.hero-background {
+    align-items: center;
+    display: flex;
     position: absolute;
-    top: 0;
-    left: 20.3vw;
+    top: 0px;
     background: linear-gradient(168.04deg, rgba(240, 245, 255, 0), #f0f5ff);
-    width: 80.8vw;
-    height: 81.3vh;
-    transform: rotate(30deg);
     transform-origin: 0 0;
+    z-index: 1;
 }
 
 .hero-container {
@@ -155,35 +158,35 @@ body{
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: clamp(40px, 7vw, 140px);
+    gap: 133px;
     z-index: 1;
 }
 
 .chevron-circle-left-parent {
     width: 100%;
-    max-width: 84vw;       
-    gap: 2.1vw;           
+    max-width: 1620px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 40px;
 }
 
 .chevron-circle-left-icon {
-    height: 7.3vh;         
-    width: 3.65vw;         
+    height: 70px;
+    width: 70px;
     position: relative;
 }
-
 
 .hero-textimg {
     display: flex;
     align-items: center;
-    gap: 3.3vw;
+    gap: 63px;
 }
 
 .welcome-to-moneytime-parent {
-    width: 13vw;
+    width: 250px;
     display: flex;
+    gap: 8px;
     flex-direction: column;
     align-items: flex-start;
 }
@@ -194,16 +197,17 @@ body{
     line-height: 134.77%;
 }
 
+
 .lorem-ipsum-dolor {
     align-self: stretch;
     position: relative;
-    font-size: clamp(14px, 0.94vw, 20px);
+    font-size: 18px;
 }
 
-.velocity-of-money-1-icon {
-    width: 26vw;        
-    border-radius: 2.6vw; 
+.hero-image {
+    width: 800px;
     position: relative;
+    border-radius: 50px;
     max-height: 100%;
     object-fit: cover;
 }
@@ -211,22 +215,22 @@ body{
 .hero-pagination {
     display: flex;
     align-items: center;
-    gap: 0.52vw;
+    gap: 10px;
 }
 
 .current-page {
-    height: 2.1vh;           
-    width: 2.24vw;           
-    border-radius: 1.04vh;   
+    height: 20px;
+    width: 43px;
     position: relative;
+    border-radius: 10px;
     background-color: #1a3e7f;
 }
 
 .a {
-    height: 2.1vh;
-    width: 1.04vw;           
-    border-radius: 1.04vh;
+    height: 20px;
+    width: 20px;
     position: relative;
+    border-radius: 10px;
     background-color: #969ba2;
 }
 
@@ -237,12 +241,11 @@ body{
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 15.6vh;         
+    padding: 150px;
     box-sizing: border-box;
     text-align: center;
-    font-size: clamp(20px, 1.88vw, 40px);       
+    font-size: 36px;
     color: #000;
-
 }
 
 .features-container {
@@ -250,14 +253,14 @@ body{
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.56vw;
+    gap: 30px;
 }
 
 .title {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.52vw;
+    gap: 10px;
 }
 
 .key-features {
@@ -267,7 +270,7 @@ body{
 
 .lorem-ipsum-dolor {
     position: relative;
-    font-size: clamp(14px, 0.94vw, 20px);
+    font-size: 18px;
 }
 
 .features-card {
@@ -275,40 +278,39 @@ body{
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 1.67vw;        
+    gap: 32px;
     text-align: center;
-    font-size: clamp(18px, 1.46vw, 32px);  
+    font-size: 28px;
 }
 
 .money-card {
-    width: 41.4vw;      
+    width: 795px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     position: relative;
-    gap: 0;
+    gap: 0px;
 }
 
 .card {
-    height: 35vh;
+    height: 310px;
     flex: 1;
-    border-radius: 0.78vw;         
+    border-radius: 15px;
     background-color: #1a3e7f;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 3vh;
+    padding: 30px;
     box-sizing: border-box;
     z-index: 1;
     flex-shrink: 0;
-    box-shadow: -0.52vw 0.52vw 0 #102853; 
+    box-shadow: -10px 10px 0 #102853;
     transition: ease-out 0.3s;
-
 }
 
 .card:hover {
-    box-shadow: -1.04vw 1.04vw 0 #102853;
+    box-shadow: -20px 20px 0 #102853;
 }
 
 .card-container {
@@ -316,26 +318,26 @@ body{
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 1.56vw; /* 30px ≈ 1.56vw */
+    gap: 30px;
 }
 
 .features--title {
     align-self: stretch;
     display: flex;
     align-items: center;
-    gap: 0.52vw;
+    gap: 10px;
 }
 
 .logo-card {
-    height: 7.3vh;           
-    width: 3.55vw;           
-    border-radius: 3.65vh;   
+    height: 70px;
+    width: 68.2px;
+    border-radius: 35px;
     background-color: #f7f6f3;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 1.35vh 0.63vw;  
+    padding: 13px 12px;
     box-sizing: border-box;
 }
 
@@ -355,6 +357,695 @@ body{
 .features--lorem-ipsum-dolor {
     align-self: stretch;
     position: relative;
-    font-size: clamp(14px, 0.94vw, 20px);
+    font-size: 18px;
+    font-weight: 400;
     color: #f7f6f3;
+    text-align: left;
+}
+
+.about-us-component {
+    display: grid;
+    grid-template-columns: minmax(0, 600px) minmax(0, 520px);
+    justify-content: center;
+    align-items: center;
+    gap: clamp(24px, 6vw, 80px);
+    width: 100%;
+    min-height: 800px;
+    background: #f0f5ff;
+    padding: 100px 24px;
+    box-sizing: border-box;
+    text-align: left;
+    font-size: 18px;
+    color: #000;
+}
+
+.about-us--about-us-component,
+.about-moneytime-parent {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+}
+
+.about-us--about-us-component {
+    max-width: 600px;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+.about-moneytime-parent {
+    max-width: 520px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.about-moneytime {
+    font-size: 36px;
+    font-weight: 700;
+    color: #000000;
+}
+
+.cyclefy-is-a {
+    align-self: stretch;
+    position: relative;
+}
+
+.contact-component {
+    width: 100%;
+    padding-top: 100px;
+    background: linear-gradient(180deg, #102853, #1a3e7f);
+    border-radius: 150px 150px 0 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #f0f5ff;
+    text-align: center;
+}
+
+.contact--contact-component {
+    width: 100%;
+    max-width: 1200px;
+    padding: 120px 24px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.contact-us-parent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.contact-us {
+    font-size: 36px;
+    font-weight: 800;
+}
+
+.have-questions-or {
+    font-size: 18px;
+    opacity: .9;
+}
+
+.frame-parent {
+    width: 100%;
+    background: #fff;
+    border-radius: 24px;
+    padding: 32px;
+    box-sizing: border-box;
+    text-align: left;
+    color: #0d0f12;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+.frame-wrapper {
+    order: 1;
+    position: static !important;
+    display: flex;
+    height: 100%;
+}
+
+.kobu-agency-fyve6xps5gk-unspla-parent {
+    width: 100%;
+    background: #f0f5ff;
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.kobu-agency-fyve6xps5gk-unspla-icon {
+    border-radius: 16px;
+    object-fit: cover;
+}
+
+.frame-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.frame-child,
+.frame-item {
+    width: 28px;
+    height: 28px;
+}
+
+.form-parent {
+    order: 2;
+    position: static !important;
+    width: 100%;
+    height: auto;
+    border-radius: 16px;
+    padding: 8px;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.form {
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.item-name {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.name {
+    font-weight: 700;
+    color: #1a3e7f;
+    font-size: 16px;
+    height: auto;
+}
+
+.enter-your-name-wrapper,
+.enter-your-message-wrapper {
+    border-radius: 10px;
+    background-color: #f0f5ff;
+    border: 1.5px solid #cacccf;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+
+.enter-your-name-wrapper input {
+    width: 100%;
+    height: 48px;
+    border: 0;
+    background: transparent;
+    outline: none;
+    font: 16px/1.4 "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color: #0d0f12;
+}
+
+.enter-your-message-wrapper {
+    padding: 0 12px;
+}
+
+.enter-your-message-wrapper textarea {
+    width: 100%;
+    min-height: 120px;
+    border: 0;
+    background: transparent;
+    outline: none;
+    font: 16px/1.5 "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color: #0d0f12;
+    padding: 12px 0;
+    resize: vertical;
+}
+
+.enter-your-name-wrapper input::placeholder,
+.enter-your-message-wrapper textarea::placeholder {
+    color: #9aa3ad;
+}
+
+.enter-your-name-wrapper:focus-within,
+.enter-your-message-wrapper:focus-within {
+    border-color: #1a3e7f;
+    box-shadow: 0 0 0 3px rgba(26, 62, 127, .12);
+    background-color: #eaf1ff;
+}
+
+.submit {
+    margin-top: 8px;
+}
+
+.button {
+    width: 100%;
+    border-radius: 10px;
+    background-color: #1a3e7f;
+    border: none;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color .25s ease, transform .05s ease-in-out;
+}
+
+.button:hover {
+    background-color: #153061;
+}
+
+.button:active {
+    transform: translateY(1px);
+}
+
+.button .text {
+    color: #fff;
+    font-weight: 700;
+}
+
+.footer {
+    width: 100%;
+    background-color: #1a3e7f;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 50px 135px;
+    box-sizing: border-box;
+    text-align: left;
+    font-size: 20px;
+    color: #fff;
+}
+
+.footer-wrapper {
+    width: 1620px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 54px;
+}
+
+.footer-top {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.footer-about {
+    width: 295px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    font-size: 50px;
+    color: #f0f5ff;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+}
+
+.footer-brand {
+    font-weight: 700;
+}
+
+.footer-brand-highlight {
+    color: #2f70e5;
+}
+
+.footer-desc {
+    font-size: 18px;
+    color: #fff;
+}
+
+.footer-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.footer-title {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 16px;
+}
+
+.footer-socials {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.footer-icon {
+    width: 47px;
+    height: 47px;
+    border-radius: 40px;
+    object-fit: cover;
+}
+
+.footer-divider {
+    width: 100%;
+    height: 1px;
+    background-color: #f0f5ff;
+    opacity: 0.6;
+}
+
+.footer-copy {
+    font-size: 18px;
+    color: #f0f5ff;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+img,
+video {
+    max-width: 100%;
+    height: auto;
+}
+
+.header-guest-container,
+.features-container,
+.footer-wrapper,
+.hero .chevron-circle-left-parent {
+    width: 100%;
+    max-width: 1200px;
+    margin-inline: auto;
+}
+
+.nav-toggle {
+    display: none;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-direction: column;
+}
+
+.nav-toggle .bar {
+    display: block;
+    width: 24px;
+    height: 2.5px;
+    background: #fff;
+    border-radius: 2px;
+    transition: transform .25s ease, opacity .25s ease;
+}
+
+.menu-open .nav-toggle .bar:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.menu-open .nav-toggle .bar:nth-child(2) {
+    opacity: 0;
+}
+
+.menu-open .nav-toggle .bar:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+@media (max-width: 1200px) {
+    .hero {
+        padding: 100px 32px;
+    }
+
+    .features-component {
+        padding: 100px 32px;
+    }
+
+    .footer {
+        padding: 50px 32px;
+    }
+
+    .header-guest {
+        padding: 20px 24px;
+    }
+
+    .hero-textimg {
+        gap: 40px;
+    }
+
+    .hero-image {
+        width: 640px;
+        border-radius: 36px;
+    }
+}
+
+@media (max-width: 992px) {
+    .logo {
+        font-size: 20px;
+    }
+
+    .get-started {
+        height: 44px;
+        font-size: 16px;
+        padding: 10px 14px;
+    }
+
+    .hero {
+        padding: 80px 24px;
+    }
+
+    .chevron-circle-left-icon {
+        height: 56px;
+        width: 56px;
+    }
+
+    .hero-textimg {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .welcome-to-moneytime-parent {
+        width: 100%;
+        max-width: 640px;
+        align-items: center;
+    }
+
+    .welcome-to-moneytime {
+        font-size: 34px;
+    }
+
+    .features-card {
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .money-card {
+        width: 100%;
+    }
+
+    .card {
+        height: auto;
+        padding: 24px;
+    }
+
+    .about-us-component {
+        grid-template-columns: 1fr;
+        min-height: unset;
+        padding: 80px 24px;
+    }
+
+    .about-us--about-us-component {
+        max-width: 720px;
+        margin-inline: auto;
+    }
+
+    .about-moneytime-parent {
+        max-width: 720px;
+        margin-inline: auto;
+    }
+
+    .frame-parent {
+        grid-template-columns: 1fr;
+    }
+
+    .form {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .nav-toggle {
+        display: inline-flex;
+    }
+
+    .page-switch {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        background: #1a3e7f;
+        padding: 8px 12px 12px;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+        transform: translateY(-10px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .2s ease, transform .2s ease;
+    }
+
+    .menu-open .page-switch {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .page-1 {
+        align-items: flex-start;
+        padding: 10px 8px;
+    }
+
+    .page-link::after {
+        display: none;
+    }
+
+    .header-guest-container {
+        gap: 10px;
+    }
+
+    .get-started {
+        display: none;
+    }
+
+    .hero {
+        padding: 64px 16px;
+    }
+
+    .hero-container {
+        gap: 64px;
+    }
+
+    .chevron-circle-left-parent {
+        gap: 16px;
+    }
+
+    .chevron-circle-left-icon {
+        height: 44px;
+        width: 44px;
+    }
+
+    .welcome-to-moneytime {
+        font-size: 28px;
+    }
+
+    .lorem-ipsum-dolor {
+        font-size: 16px;
+    }
+
+    .hero-image {
+        width: 100%;
+        border-radius: 24px;
+    }
+
+    .features-component {
+        padding: 64px 16px;
+    }
+
+    .key-features {
+        font-size: 28px;
+    }
+
+    .money {
+        font-size: 22px;
+    }
+
+    .features--lorem-ipsum-dolor {
+        font-size: 16px;
+    }
+
+    .about-moneytime {
+        font-size: 28px;
+    }
+
+    .contact-component {
+        border-radius: 48px 48px 0 0;
+    }
+
+    .contact--contact-component {
+        padding: 64px 16px;
+    }
+
+    .footer {
+        padding: 40px 16px;
+    }
+
+    .footer-top {
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .footer-about {
+        width: 100%;
+        font-size: 36px;
+    }
+
+    .footer-title {
+        font-size: 18px;
+    }
+
+    .footer-links {
+        font-size: 16px;
+    }
+
+    .footer-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .footer-copy {
+        font-size: 14px;
+        text-align: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .logo {
+        font-size: 18px;
+    }
+
+    .image-13-icon {
+        width: 40px;
+    }
+
+    .header-guest {
+        height: auto;
+        padding: 16px;
+    }
+
+    .current-page,
+    .a {
+        height: 12px;
+        width: 12px;
+        border-radius: 6px;
+    }
+
+    .current-page {
+        width: 28px;
+    }
+
+    .logo-card {
+        height: 56px;
+        width: 56px;
+        border-radius: 28px;
+    }
+
+    .div {
+        font-size: 22px;
+    }
+}
+
+.hero-background-img {
+    width: 100%;
+    height: auto;
+    display: block;
 }
