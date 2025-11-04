@@ -15,11 +15,6 @@ app = Flask(__name__,
 # Secret key untuk session management
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 
-
-# db sementara
-users = {
-}
-
 # Route untuk landing page
 @app.route('/')
 def index():
