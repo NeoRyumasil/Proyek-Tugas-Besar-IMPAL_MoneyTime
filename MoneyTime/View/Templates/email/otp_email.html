@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style type="text/css">
+        {{ css_style|safe }}
+    </style>
+</head>
+<body>
+    <div class="preheader">Gunakan kode {{ otp_code }} untuk mereset password akun MoneyTime Anda.</div>
+    <div class="container">
+        <div class="email-box">
+            <div class="header">
+                <h1>MoneyTime</h1>
+            </div>
+            <div class="body-content">
+                <p>Halo,</p>
+                <p>Kami menerima permintaan reset password. Masukkan kode berikut:</p>
+                <div class="otp-box">
+                    <span class="otp-code">{{ otp_code }}</span>
+                </div>
+                <p style="font-size: 14px; color: #666; margin-top: 20px;">Kode ini bersifat rahasia. Abaikan jika Anda tidak memintanya.</p>
+            </div>
+            <div class="footer">
+                &copy; 2025 MoneyTime. All rights reserved.<br>Pesan otomatis, jangan dibalas.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (rememberMe) {
                     localStorage.setItem('rememberMe', 'true');
                     // Optionally store email or other data
-                    const email = document.getElementById('login_email').value;
+                    const email = document.getElementById('login_username').value;
                     localStorage.setItem('email', email);
                 } else {
                     localStorage.removeItem('rememberMe');
