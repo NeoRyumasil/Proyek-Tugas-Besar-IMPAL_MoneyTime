@@ -46,6 +46,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const confirm = document.getElementById('confirm-password').value;
         const errorDiv = document.getElementById('register-error');
 
+        if (password.length < 8) {
+            errorDiv.textContent = 'Password must be at least 8 characters long';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
         if (password !== confirm) {
             errorDiv.textContent = 'Passwords do not match';
             errorDiv.style.display = 'block';

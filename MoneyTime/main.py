@@ -34,6 +34,7 @@ def register():
     password = request.form.get('register_password')
     confirm = request.form.get('register_confirm')
 
+    # Validasi password udah bener, kalau udah auto regis
     if password == confirm:
         if user_controller.registrasi(username, password, email):
             return jsonify({'success': True, 'message': 'Registration successful'})
