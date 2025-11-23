@@ -82,30 +82,48 @@ def logout():
 def forgot_password():
     return render_template('forgot_password.html')
 
-# Route untuk mengirim OTP
 @app.route('/send-otp', methods=['POST'])
 def send_otp():
     email = request.form.get('email')
-    # For now, just simulate success
-    # In real implementation, send OTP to email
-    return jsonify({'success': True, 'message': 'OTP sent to your email'})
+    
+    # Cek Email
+    if not user_controller.check_email_exists(email):
+        return jsonify({'success': False, 'message': 'Email tidak terdaftar.'})
 
-# Route untuk verifikasi OTP
+    # Kirim OTP
+    otp = user_controller.send_otp(email)
+    
+    if otp:
+        session['reset_otp'] = otp
+        session['reset_email'] = email
+        return jsonify({'success': True, 'message': 'OTP terkirim.'})
+    else:
+        return jsonify({'success': False, 'message': 'Gagal mengirim email.'})
+
 @app.route('/verify-otp', methods=['POST'])
 def verify_otp():
-    otp = request.form.get('otp')
-    # For now, just simulate success
-    # In real implementation, verify OTP
-    return jsonify({'success': True, 'message': 'OTP verified'})
+    user_otp = request.form.get('otp')
+    server_otp = session.get('reset_otp')
+    
+    if server_otp and user_otp == server_otp:
+        return jsonify({'success': True, 'message': 'OTP Valid.'})
+    else:
+        return jsonify({'success': False, 'message': 'Kode OTP salah.'})
 
-# Route untuk update password baru
 @app.route('/update-password', methods=['POST'])
 def update_password():
     new_password = request.form.get('new_password')
-    # For now, just simulate success
-    # In real implementation, update password in DB
-    return jsonify({'success': True, 'message': 'Password updated'})
+    email = session.get('reset_email')
+    
+    if not email:
+        return jsonify({'success': False, 'message': 'Sesi habis, ulangi proses.'})
 
-# Menjalankan aplikasi
+    if user_controller.update_password(email, new_password):
+        session.pop('reset_otp', None)
+        session.pop('reset_email', None)
+        return jsonify({'success': True, 'message': 'Password berhasil diubah.'})
+    else:
+        return jsonify({'success': False, 'message': 'Gagal update password.'})
+
 if __name__ == '__main__':
     app.run(debug=True)
