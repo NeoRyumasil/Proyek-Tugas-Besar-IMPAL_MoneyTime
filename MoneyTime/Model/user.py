@@ -1,4 +1,6 @@
-class User:
+from Controller.databaseController import db_connect
+
+class User ():
     def __init__(self, user_id: str, username: str, password: str, email_address: str):
         self.__user_id = user_id
         self.username = username
