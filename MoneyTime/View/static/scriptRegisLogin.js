@@ -62,25 +62,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 body: formData
             });
-            const result = await response.json();
-            if (result.success) {
-                registerSuccessPopup.style.display = 'flex';
+        const result = await response.json();
+        // Debug log for registration response
+        console.log('Registration response:', result);
+        if (result.success) {
+            registerSuccessPopup.style.display = 'flex';
+            setTimeout(() => {
+                registerSuccessPopup.style.opacity = '1';
+                registerSuccessPopup.style.transform = 'scale(1)';
+            }, 10);
+            setTimeout(() => {
+                registerSuccessPopup.style.opacity = '0';
+                registerSuccessPopup.style.transform = 'scale(0.5)';
                 setTimeout(() => {
-                    registerSuccessPopup.style.opacity = '1';
-                    registerSuccessPopup.style.transform = 'scale(1)';
-                }, 10);
-                setTimeout(() => {
-                    registerSuccessPopup.style.opacity = '0';
-                    registerSuccessPopup.style.transform = 'scale(0.5)';
-                    setTimeout(() => {
-                        registerSuccessPopup.style.display = 'none';
-                        container.classList.remove('right-panel-active'); // Switch to login
-                    }, 500);
-                }, 1000);
-            } else {
-                errorDiv.textContent = result.message;
-                errorDiv.style.display = 'block';
-            }
+                    registerSuccessPopup.style.display = 'none';
+                    container.classList.remove('right-panel-active'); // Switch to login
+                }, 500);
+            }, 1000);
+        } else {
+            errorDiv.textContent = result.message;
+            errorDiv.style.display = 'block';
+        }
         } catch (error) {
             errorDiv.textContent = 'An error occurred. Please try again.';
             errorDiv.style.display = 'block';
