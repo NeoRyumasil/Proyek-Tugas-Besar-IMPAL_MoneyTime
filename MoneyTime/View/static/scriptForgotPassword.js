@@ -242,6 +242,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const newPass = document.getElementById('new-password').value;
         const confirmPass = document.getElementById('confirm-password').value;
 
+        // Batasan Minimal Password 8 Huruf
+        if (newPass.length < 8) {
+            errorDiv.textContent = 'Password must be at least 8 characters long';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        // Batasan Harus Mengandung Angka dan Huruf
+        const hasNumber = /\d/.test(newPass);
+        const hasLetter = /[a-zA-Z]/.test(newPass);
+        if (!hasNumber || !hasLetter) {
+            errorDiv.textContent = 'Password must contain both letters and numbers';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        // Batasan Harus Mengandung Simbol
+        const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(newPass);
+        if (!hasSymbol) {
+            errorDiv.textContent = 'Password must contain at least one special character';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
         if (newPass !== confirmPass) {
             error3.textContent = 'Passwords do not match.';
             error3.style.display = 'block';
