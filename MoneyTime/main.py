@@ -35,8 +35,18 @@ def register():
     confirm = request.form.get('register_confirm')
 
     if password == confirm:
-        if user_controller.registrasi(username, password, email):
+        registration_result = user_controller.registrasi(username, password, email)
+        if registration_result == True:
             return jsonify({'success': True, 'message': 'Registration successful'})
+        elif registration_result == "exists":
+            print(f"Registration attempt with existing account: username={username}, email={email}")
+            return jsonify({'success': False, 'message': 'Account already exists, please use a new one.'})
+        elif registration_result == False:
+            print(f"Registration failed unexpectedly for username={username}, email={email}")
+            return jsonify({'success': False, 'message': 'Registration failed. Please try again.'})
+        else:
+            print(f"Registration returned unexpected result: {registration_result}")
+            return jsonify({'success': False, 'message': 'Unexpected error occurred during registration.'})
 
 # Route login
 @app.route('/login', methods=['POST'])
