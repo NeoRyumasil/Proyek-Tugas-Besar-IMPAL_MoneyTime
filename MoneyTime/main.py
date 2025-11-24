@@ -34,6 +34,7 @@ def register():
     password = request.form.get('register_password')
     confirm = request.form.get('register_confirm')
 
+    # Validasi password udah bener, kalau udah auto regis
     if password == confirm:
         registration_result = user_controller.registrasi(username, password, email)
         if registration_result == True:

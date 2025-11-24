@@ -46,6 +46,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const confirm = document.getElementById('confirm-password').value;
         const errorDiv = document.getElementById('register-error');
 
+        // Batasan Minimal Password 8 Huruf
+        if (password.length < 8) {
+            errorDiv.textContent = 'Password must be at least 8 characters long';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        // Batasan Harus Mengandung Angka dan Huruf
+        const hasNumber = /\d/.test(password);
+        const hasLetter = /[a-zA-Z]/.test(password);
+        if (!hasNumber || !hasLetter) {
+            errorDiv.textContent = 'Password must contain both letters and numbers';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        // Batasan Harus Mengandung Simbol
+        const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+        if (!hasSymbol) {
+            errorDiv.textContent = 'Password must contain at least one special character';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        // Cek kecocokan password dan konfirmasi
         if (password !== confirm) {
             errorDiv.textContent = 'Passwords do not match';
             errorDiv.style.display = 'block';
