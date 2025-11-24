@@ -77,8 +77,8 @@ class UserController:
                 print(f"User {username} atau email {email} sudah terdaftar.")
                 return "exists"
               
-             # Hashing password sebelum disimpan
-             hashed_password = generate_password_hash(password)
+            # Hashing password sebelum disimpan
+            hashed_password = generate_password_hash(password)
 
             sql = """
                 INSERT INTO [dbo].[User] (username, password, email, role)
