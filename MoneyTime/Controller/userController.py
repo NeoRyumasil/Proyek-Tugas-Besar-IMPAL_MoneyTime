@@ -68,14 +68,23 @@ class UserController:
             conn = db_connect()
             cursor = conn.cursor()
 
-            # Hashing password sebelum disimpan
-            hashed_password = generate_password_hash(password)
+            # Check if username or email already exists
+            check_sql = "SELECT COUNT(*) FROM [dbo].[User] WHERE username = ? OR email = ?"
+            cursor.execute(check_sql, (username, email))
+            count = cursor.fetchone()[0]
+            
+            if count > 0:
+                print(f"User {username} atau email {email} sudah terdaftar.")
+                return "exists"
+              
+             # Hashing password sebelum disimpan
+             hashed_password = generate_password_hash(password)
 
             sql = """
                 INSERT INTO [dbo].[User] (username, password, email, role)
                 VALUES (?, ?, ?, 'user')
             """
-
+            
             cursor.execute(sql, (username, hashed_password, email))
             conn.commit()
 
