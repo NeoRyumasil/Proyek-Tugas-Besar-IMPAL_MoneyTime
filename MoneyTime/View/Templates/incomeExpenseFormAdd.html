@@ -1,0 +1,80 @@
+<div class="transaction-modal">
+    <div class="transaction-modal-header">
+        <b class="modal-title">Add Transaction</b>
+        <img class="close-icon" alt="" src="{{ url_for('static', filename='exit-icon.svg') }}" id="closeModalIcon">
+
+    </div>
+
+    <div class="transaction-type-toggle">
+        <div class="transaction-type-toggle-item active">
+            <b class="tab-label">Income</b>
+        </div>
+        <div class="transaction-type-toggle-item">
+            <b class="tab-label">Expense</b>
+        </div>
+    </div>
+
+    <div class="transaction-form">
+        <div class="transaction-form-row">
+            <div class="transaction-form-field">
+                <label class="form-label" for="description">Description</label>
+                <div class="form-input">
+                    <div class="text-input">
+                        <input type="text" class="input-field" id="description" placeholder="Enter Description">
+                    </div>
+                </div>
+            </div>
+
+            <div class="transaction-form-field">
+                <label class="form-label" for="amount">Amount</label>
+                <div class="form-input">
+                    <div class="text-input amount-input">
+                        <span class="currency-prefix">Rp</span>
+                        <input type="text" id="amount" class="input-field" placeholder="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="transaction-form-row">
+            <div class="transaction-form-field">
+                <label class="form-label" for="date">Date</label>
+                <div class="form-input">
+                    <div class="date-input">
+                        <input type="date" class="input-field date-field" id="date">
+                        <img class="icon-chevron" src="{{ url_for('static', filename='date-icon.svg') }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="transaction-form-field">
+                <label class="form-label" for="categoryInput">Category</label>
+                <div class="form-input">
+                    <div class="custom-dropdown" id="categoryDropdown">
+                        <div class="dropdown-header">
+                            <input type="text" id="categoryInput" class="dropdown-input"
+                                placeholder="Select or type category">
+                            <img class="dropdown-arrow" src="{{ url_for('static', filename='chevron.svg') }}">
+                        </div>
+
+                        <div class="dropdown-list">
+
+                            <button type="button" class="dropdown-add-btn" id="addCategoryBtn" style="display:none;">
+                                Add new category
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="transaction-actions">
+        <div class="btn-secondary" id="cancelBtn">
+            <div class="btn-label">Cancel</div>
+        </div>
+        <div class="btn-primary">
+            <div class="btn-label">Confirm</div>
+        </div>
+    </div>
+</div>

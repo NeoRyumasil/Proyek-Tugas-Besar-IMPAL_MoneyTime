@@ -1,0 +1,11 @@
+<div id="discard-changes-modal" class="modal">
+    <div class="modal-icon-wrapper">
+        <img class="remove-file-icon discard-anim" alt="" src="{{ url_for('static', filename='discard-icon.svg') }}">
+    </div>
+    <div class="modal-title">Discard Changes</div>
+    <div class="modal-desc">Discard changes? Any unsaved data will be lost.</div>
+    <div class="modal-actions">
+        <button class="modal-btn" id="discardNoBtn"><span class="text">No</span></button>
+        <button class="modal-btn modal-btn-danger" id="discardYesBtn"><span class="text">Yes</span></button>
+    </div>
+</div>
