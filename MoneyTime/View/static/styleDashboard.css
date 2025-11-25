@@ -1,4 +1,3 @@
-
 body {
 	margin: 0;
 	padding: 0;
@@ -16,18 +15,21 @@ body {
 	color: #fff;
 	padding: 0 40px;
 	height: 70px;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
+
 .navbar-logo {
 	height: 40px;
 	margin-right: 12px;
 }
+
 .navbar-title {
 	font-size: 1.5rem;
 	font-weight: 700;
 	margin-right: 30px;
 	color: #fff;
 }
+
 .nav-link {
 	color: #fff;
 	text-decoration: none;
@@ -35,15 +37,19 @@ body {
 	font-weight: 500;
 	transition: color 0.2s;
 }
-.nav-link.active, .nav-link:hover {
+
+.nav-link.active,
+.nav-link:hover {
 	color: #ffd700;
 }
+
 .navbar-center {
 	flex: 1;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 }
+
 .search-bar {
 	padding: 8px 16px;
 	border-radius: 20px 0 0 20px;
@@ -52,6 +58,7 @@ body {
 	width: 220px;
 	font-size: 1rem;
 }
+
 .search-btn {
 	padding: 8px 16px;
 	border-radius: 0 20px 20px 0;
@@ -62,11 +69,13 @@ body {
 	cursor: pointer;
 	font-size: 1rem;
 }
+
 .navbar-right {
 	display: flex;
 	align-items: center;
 	gap: 18px;
 }
+
 .user-dropdown {
 	display: flex;
 	align-items: center;
@@ -82,12 +91,13 @@ body {
 	right: 0;
 	background: #fff;
 	min-width: 140px;
-	box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
 	border-radius: 10px;
 	z-index: 100;
 	padding: 8px 0;
 	display: none;
 }
+
 .dropdown-menu .dropdown-item {
 	display: block;
 	padding: 10px 20px;
@@ -98,9 +108,11 @@ body {
 	transition: background 0.2s, color 0.2s;
 	cursor: pointer;
 }
+
 .dropdown-menu .dropdown-item:not(:last-child) {
-    border-bottom: 1px solid #f0f0f0;
+	border-bottom: 1px solid #f0f0f0;
 }
+
 .dropdown-menu .dropdown-item:hover {
 	background: #f4f7fa;
 	color: #e74c3c;
@@ -112,28 +124,32 @@ body {
 	margin: 40px auto 0 auto;
 	padding: 0 20px 40px 20px;
 }
+
 .page-title {
 	font-size: 2rem;
 	font-weight: 700;
 	margin-bottom: 24px;
 	color: #1a3e7f;
 }
+
 .summary-cards {
 	display: flex;
 	gap: 24px;
 	margin-bottom: 32px;
 }
+
 .summary-card {
 	flex: 1;
 	background: #fff;
 	border-radius: 16px;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 	padding: 24px 20px;
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
 	min-width: 200px;
 }
+
 .summary-title {
 	font-size: 1rem;
 	color: #888;
@@ -142,16 +158,20 @@ body {
 	align-items: center;
 	gap: 8px;
 }
+
 .summary-value {
 	font-size: 1.6rem;
 	font-weight: 700;
 }
+
 .summary-card.income {
 	border-top: 5px solid #2ecc71;
 }
+
 .summary-card.expenses {
 	border-top: 5px solid #e74c3c;
 }
+
 .summary-card.balance {
 	border-top: 5px solid #3498db;
 }
@@ -167,26 +187,30 @@ body {
 	flex: 2;
 	background: #fff;
 	border-radius: 16px;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 	padding: 24px 20px;
 	min-width: 350px;
 }
+
 .transactions-header {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	margin-bottom: 18px;
 }
+
 .transactions-title {
 	font-size: 1.2rem;
 	font-weight: 600;
 	color: #1a3e7f;
 }
+
 .transactions-controls {
 	display: flex;
 	align-items: center;
 	gap: 8px;
 }
+
 .arrow-btn {
 	background: #f4f7fa;
 	border: none;
@@ -201,14 +225,17 @@ body {
 	color: #1a3e7f;
 	transition: background 0.2s;
 }
+
 .arrow-btn:hover {
 	background: #e0e7ef;
 }
+
 .month-label {
 	font-weight: 500;
 	color: #1a3e7f;
 	margin: 0 8px;
 }
+
 .add-transaction-btn {
 	background: #2ecc71;
 	color: #fff;
@@ -220,47 +247,57 @@ body {
 	margin-left: 12px;
 	transition: background 0.2s;
 }
+
 .add-transaction-btn:hover {
 	background: #27ae60;
 }
+
 .transactions-list {
 	margin-top: 10px;
 }
+
 .transaction-day {
 	background: #f8f9fa;
 	border-radius: 12px;
 	margin-bottom: 18px;
 	padding: 16px 18px;
-	box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
 }
+
 .transaction-date {
 	display: flex;
 	align-items: baseline;
 	gap: 10px;
 	margin-bottom: 8px;
 }
+
 .date-number {
 	font-size: 1.2rem;
 	font-weight: 700;
 	color: #1a3e7f;
 }
+
 .date-day {
 	font-size: 1rem;
 	color: #888;
 }
+
 .transaction-items {
 	margin-bottom: 8px;
 }
+
 .transaction-item {
 	display: flex;
 	align-items: center;
 	gap: 10px;
 	margin-bottom: 4px;
 }
+
 .transaction-desc {
 	font-weight: 500;
 	color: #222;
 }
+
 .transaction-tag {
 	font-size: 0.85rem;
 	border-radius: 8px;
@@ -269,20 +306,49 @@ body {
 	margin-left: 4px;
 	font-weight: 500;
 }
-.transaction-tag.makan { background: #e67e22; }
-.transaction-tag.jajan { background: #f39c12; }
-.transaction-tag.kos { background: #8e44ad; }
-.transaction-tag.langganan { background: #2980b9; }
-.transaction-tag.gaji { background: #27ae60; }
-.transaction-tag.investasi { background: #16a085; }
-.transaction-tag.transportasi { background: #3498db; }
+
+.transaction-tag.makan {
+	background: #e67e22;
+}
+
+.transaction-tag.jajan {
+	background: #f39c12;
+}
+
+.transaction-tag.kos {
+	background: #8e44ad;
+}
+
+.transaction-tag.langganan {
+	background: #2980b9;
+}
+
+.transaction-tag.gaji {
+	background: #27ae60;
+}
+
+.transaction-tag.investasi {
+	background: #16a085;
+}
+
+.transaction-tag.transportasi {
+	background: #3498db;
+}
+
 .transaction-amount {
 	margin-left: auto;
 	font-weight: 600;
 	font-size: 1rem;
 }
-.transaction-amount.plus { color: #27ae60; }
-.transaction-amount.minus { color: #e74c3c; }
+
+.transaction-amount.plus {
+	color: #27ae60;
+}
+
+.transaction-amount.minus {
+	color: #e74c3c;
+}
+
 .transaction-summary {
 	display: flex;
 	justify-content: flex-end;
@@ -290,34 +356,44 @@ body {
 	font-size: 1rem;
 	font-weight: 600;
 }
-.transaction-income.plus { color: #27ae60; }
-.transaction-expense.minus { color: #e74c3c; }
+
+.transaction-income.plus {
+	color: #27ae60;
+}
+
+.transaction-expense.minus {
+	color: #e74c3c;
+}
 
 /* Stats Section */
 .stats-section {
 	flex: 1;
 	background: #fff;
 	border-radius: 16px;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 	padding: 24px 20px;
 	min-width: 320px;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 }
+
 .stats-header {
 	font-size: 1.2rem;
 	font-weight: 600;
 	color: #1a3e7f;
 	margin-bottom: 12px;
 }
+
 #stats-piechart {
 	margin-bottom: 18px;
 }
+
 .stats-legend {
 	width: 100%;
 	margin-top: 8px;
 }
+
 .legend-item {
 	display: flex;
 	align-items: center;
@@ -325,6 +401,7 @@ body {
 	font-size: 1rem;
 	margin-bottom: 6px;
 }
+
 .legend-color {
 	display: inline-block;
 	width: 16px;
@@ -332,11 +409,27 @@ body {
 	border-radius: 4px;
 	margin-right: 8px;
 }
-.legend-color.kos { background: #8e44ad; }
-.legend-color.makan { background: #e67e22; }
-.legend-color.langganan { background: #2980b9; }
-.legend-color.jajan { background: #f39c12; }
-.legend-color.transportasi { background: #3498db; }
+
+.legend-color.kos {
+	background: #8e44ad;
+}
+
+.legend-color.makan {
+	background: #e67e22;
+}
+
+.legend-color.langganan {
+	background: #2980b9;
+}
+
+.legend-color.jajan {
+	background: #f39c12;
+}
+
+.legend-color.transportasi {
+	background: #3498db;
+}
+
 .legend-value {
 	font-weight: 600;
 	color: #222;
@@ -354,65 +447,80 @@ body {
 	margin-top: 40px;
 	border-radius: 24px 24px 0 0;
 }
+
 .footer-left {
 	max-width: 300px;
 }
+
 .footer-title {
 	font-size: 1.5rem;
 	font-weight: 700;
 	color: #fff;
 }
+
 .footer-title-accent {
 	color: #ffd700;
 }
+
 .footer-center {
 	display: flex;
 	gap: 40px;
 }
+
 .footer-section {
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
 }
+
 .footer-section-title {
 	font-weight: 600;
 	margin-bottom: 6px;
 	color: #ffd700;
 }
+
 .footer-section a {
 	color: #fff;
 	text-decoration: none;
 	font-size: 1rem;
 	transition: color 0.2s;
 }
+
 .footer-section a:hover {
 	color: #ffd700;
 }
+
 .footer-right {
 	display: flex;
 	flex-direction: column;
 	align-items: flex-end;
 	gap: 10px;
 }
+
 .footer-socials a {
 	color: #fff;
 	font-size: 1.3rem;
 	margin-right: 10px;
 	transition: color 0.2s;
 }
+
 .footer-socials a:hover {
 	color: #ffd700;
 }
 
 @media (max-width: 900px) {
-	.main-content, .footer {
+
+	.main-content,
+	.footer {
 		padding-left: 10px;
 		padding-right: 10px;
 	}
+
 	.dashboard-flex {
 		flex-direction: column;
 		gap: 24px;
 	}
+
 	.footer {
 		flex-direction: column;
 		gap: 24px;

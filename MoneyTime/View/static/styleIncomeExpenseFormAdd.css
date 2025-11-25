@@ -1,0 +1,292 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap");
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    margin: 0;
+    padding: 0;
+    font-family: "Inter", sans-serif;
+    background-color: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.transaction-modal {
+    width: min(1080px, 100% - 64px);
+    border-radius: 16px;
+    background: #fff;
+    padding: 32px;
+    display: flex;
+    gap: 24px;
+    flex-direction: column;
+}
+
+.transaction-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.close-icon {
+    width: 29px;
+    cursor: pointer;
+}
+
+.transaction-type-toggle {
+    display: flex;
+    gap: 16px;
+}
+
+.transaction-type-toggle-item {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    background: #3f82ff;
+    color: #fff;
+    cursor: pointer;
+    transition: background 300ms ease;
+}
+
+.transaction-type-toggle-item:hover {
+    background: #2f70e5;
+}
+
+.transaction-type-toggle-item.active {
+    background: #1a3e7f;
+}
+
+.transaction-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.transaction-form-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 28px;
+    row-gap: 12px;
+}
+
+.transaction-form-field {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.form-label {
+    width: 90px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.form-input {
+    flex: 1;
+}
+
+.text-input,
+.date-input,
+.select-input {
+    width: 100%;
+    height: 50px;
+    border-radius: 8px;
+    border: 2px solid #dadada;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+}
+
+.amount-input {
+    gap: 8px;
+}
+
+.currency-prefix {
+    font-weight: 600;
+}
+
+.input-field {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 15px;
+}
+
+.date-field::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    display: block;
+}
+
+.date-field::-webkit-calendar-picker-indicator {
+    opacity: 0;
+}
+
+.input-select {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 15px;
+    appearance: none;
+}
+
+.icon-chevron {
+    width: 20px;
+    pointer-events: none;
+}
+
+.transaction-actions {
+    display: flex;
+    gap: 16px;
+}
+
+.btn-secondary,
+.btn-primary {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    background: #fff;
+    border: 1px solid #dadada;
+}
+
+.btn-primary {
+    background: #1a3e7f;
+    color: #fff;
+}
+
+.btn-label {
+    font-weight: 600;
+}
+
+.btn-primary:hover {
+    background-color: #102853;
+}
+
+.btn-secondary:hover {
+    background-color: #dadada;
+}
+
+.close-icon:hover {
+    filter: brightness(0) saturate(100%) invert(14%) sepia(73%) saturate(7470%) hue-rotate(356deg) brightness(74%) contrast(98%);
+    cursor: pointer;
+}
+
+.custom-dropdown {
+    width: 100%;
+    position: relative;
+    font-size: 15px;
+}
+
+.dropdown-header {
+    height: 50px;
+    border-radius: 8px;
+    border: 2px solid #dadada;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: space-between;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 200ms ease;
+}
+
+.dropdown-header:hover {
+    border-color: #b8b8b8;
+}
+
+.dropdown-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 15px;
+}
+
+.dropdown-arrow {
+    width: 20px;
+    height: 20px;
+    transition: transform 200ms ease;
+}
+
+.dropdown-list {
+    position: absolute;
+    width: 100%;
+    top: 56px;
+    left: 0;
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #dadada;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    padding: 8px 0;
+    display: none;
+    z-index: 99;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.dropdown-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background-color 150ms ease;
+}
+
+.dropdown-item:hover {
+    background-color: #f2f2f2;
+}
+
+.dropdown-add-btn {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: #f5f5f5;
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border-top: 1px solid #e0e0e0;
+    transition: background-color 200ms ease;
+}
+
+.dropdown-add-btn:hover {
+    background-color: #e5e5e5;
+}
+
+.custom-dropdown.active .dropdown-list {
+    display: block;
+}
+
+.custom-dropdown.active .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+@media (max-width: 768px) {
+    .transaction-form-row {
+        grid-template-columns: 1fr;
+    }
+}

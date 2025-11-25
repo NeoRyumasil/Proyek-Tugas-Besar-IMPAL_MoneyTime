@@ -1,10 +1,15 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap");
 
+
 html {
     scroll-behavior: smooth;
+    height: 100%;
 }
 
 body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     padding: 0;
     margin: 0;
     font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -13,7 +18,7 @@ body {
 
 .header-guest {
     width: 100%;
-    height: 123px;
+    height: 100px;
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -205,7 +210,7 @@ body {
 }
 
 .hero-image {
-    width: 800px;
+    width: 600px;
     position: relative;
     border-radius: 50px;
     max-height: 100%;
@@ -612,6 +617,7 @@ body {
     font-weight: 700;
 }
 
+
 .footer {
     width: 100%;
     background-color: #1a3e7f;
@@ -623,6 +629,7 @@ body {
     text-align: left;
     font-size: 20px;
     color: #fff;
+    flex-shrink: 0;
 }
 
 .footer-wrapper {
@@ -770,19 +777,19 @@ video {
 
 @media (max-width: 1200px) {
     .hero {
-        padding: 100px 32px;
+        padding: 100px 48px;
     }
 
     .features-component {
-        padding: 100px 32px;
+        padding: 100px 48px;
     }
 
     .footer {
-        padding: 50px 32px;
+        padding: 50px 48px;
     }
 
     .header-guest {
-        padding: 20px 24px;
+        padding: 20px 40px;
     }
 
     .hero-textimg {
@@ -807,7 +814,7 @@ video {
     }
 
     .hero {
-        padding: 80px 24px;
+        padding: 80px 36px;
     }
 
     .chevron-circle-left-icon {
@@ -848,7 +855,7 @@ video {
     .about-us-component {
         grid-template-columns: 1fr;
         min-height: unset;
-        padding: 80px 24px;
+        padding: 80px 36px;
     }
 
     .about-us--about-us-component {
@@ -918,7 +925,7 @@ video {
     }
 
     .hero {
-        padding: 64px 16px;
+        padding: 64px 28px;
     }
 
     .hero-container {
@@ -948,7 +955,7 @@ video {
     }
 
     .features-component {
-        padding: 64px 16px;
+        padding: 64px 28px;
     }
 
     .key-features {
@@ -972,11 +979,11 @@ video {
     }
 
     .contact--contact-component {
-        padding: 64px 16px;
+        padding: 64px 28px;
     }
 
     .footer {
-        padding: 40px 16px;
+        padding: 40px 28px;
     }
 
     .footer-top {
@@ -1019,7 +1026,7 @@ video {
 
     .header-guest {
         height: auto;
-        padding: 16px;
+        padding: 16px 18px;
     }
 
     .current-page,
