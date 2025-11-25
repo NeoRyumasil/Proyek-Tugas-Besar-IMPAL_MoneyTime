@@ -4,93 +4,194 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - MoneyTime</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styleRegisLogin.css') }}">
-    <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Poppins', sans-serif;
-        }
-        .dashboard-container {
-            background: #fff;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            padding: 40px;
-            text-align: center;
-            max-width: 500px;
-            width: 100%;
-        }
-        .logo {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
-            border-radius: 50%;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        .logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 16px;
-        }
-        .user-info {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 30px;
-        }
-        .user-info p {
-            margin: 10px 0;
-            font-size: 16px;
-            color: #333;
-        }
-        .user-info strong {
-            color: #1a3e7f;
-        }
-        .logout-btn {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-            color: #fff;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .logout-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleDashboard.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
-    <div class="dashboard-container">
-        <div class="logo">
-            <img src="{{ url_for('static', filename='logo_moneytime.png') }}" alt="MoneyTime Logo">
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <img src="{{ url_for('static', filename='logoMoneyTime.svg') }}" class="navbar-logo" alt="MoneyTime Logo">
+            <span class="navbar-title">MoneyTime</span>
+            <a href="#" class="nav-link active">Dashboard</a>
+            <a href="#" class="nav-link">Money</a>
+            <a href="#" class="nav-link">Time</a>
         </div>
-        <h1>Welcome to MoneyTime</h1>
-        <p class="subtitle">Your personal finance and time management hub</p>
-        <div class="user-info">
-            <p><strong>Username:</strong> {{ user.username }}</p>
-            <p><strong>Email:</strong> {{ user.email }}</p>
+        <div class="navbar-center">
+            <input type="text" class="search-bar" placeholder="Type here...">
+            <button class="search-btn"><i class="fa fa-search"></i></button>
         </div>
-        <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
-    </div>
+        <div class="navbar-right">
+            <i class="fa fa-bell"></i>
+            <div class="user-dropdown" id="user-dropdown">
+                <i class="fa fa-user-circle"></i>
+                <span>Welcome, {{ user.username|capitalize }}</span>
+                <div class="dropdown-menu" id="profile-dropdown" style="display: none;">
+                    <a href="#" class="dropdown-item">Profil</a>
+                    <a href="{{ url_for('logout') }}" class="dropdown-item">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <h2 class="page-title">Money</h2>
+        <div class="summary-cards">
+            <div class="summary-card income">
+                <div class="summary-title"><i class="fa fa-arrow-up"></i> Monthly Income</div>
+                <div class="summary-value" id="monthly-income">Rp7.200.000</div>
+            </div>
+            <div class="summary-card expenses">
+                <div class="summary-title"><i class="fa fa-arrow-down"></i> Monthly Expenses</div>
+                <div class="summary-value" id="monthly-expenses">Rp1.400.000</div>
+            </div>
+            <div class="summary-card balance">
+                <div class="summary-title"><i class="fa fa-wallet"></i> Total Balance</div>
+                <div class="summary-value" id="total-balance">Rp5.800.000</div>
+            </div>
+        </div>
+
+        <div class="dashboard-flex">
+            <!-- Transactions List -->
+            <section class="transactions-section">
+                <div class="transactions-header">
+                    <span class="transactions-title"><i class="fa fa-list"></i> Transactions</span>
+                    <div class="transactions-controls">
+                        <button class="arrow-btn"><i class="fa fa-chevron-left"></i></button>
+                        <span class="month-label">August, <span class="year-label">2025</span></span>
+                        <button class="arrow-btn"><i class="fa fa-chevron-right"></i></button>
+                        <button class="add-transaction-btn">+ Add Transaction</button>
+                    </div>
+                </div>
+                <div class="transactions-list">
+                    <!-- Example Transaction Days -->
+                    <div class="transaction-day">
+                        <div class="transaction-date">
+                            <span class="date-number">23</span>
+                            <span class="date-day">Tuesday (Today)</span>
+                        </div>
+                        <div class="transaction-items">
+                            <div class="transaction-item">
+                                <span class="transaction-desc">Sarapan</span>
+                                <span class="transaction-tag makan">Makan</span>
+                                <span class="transaction-amount minus">- Rp30.000</span>
+                            </div>
+                            <div class="transaction-item">
+                                <span class="transaction-desc">Makan malam</span>
+                                <span class="transaction-tag makan">Makan</span>
+                                <span class="transaction-amount minus">- Rp20.000</span>
+                            </div>
+                        </div>
+                        <div class="transaction-summary">
+                            <span class="transaction-income plus">Rp0</span>
+                            <span class="transaction-expense minus">Rp50.000</span>
+                        </div>
+                    </div>
+                    <div class="transaction-day">
+                        <div class="transaction-date">
+                            <span class="date-number">19</span>
+                            <span class="date-day">Friday</span>
+                        </div>
+                        <div class="transaction-items">
+                            <div class="transaction-item">
+                                <span class="transaction-desc">Kopi + jajan sore</span>
+                                <span class="transaction-tag jajan">Jajan</span>
+                                <span class="transaction-amount minus">- Rp25.000</span>
+                            </div>
+                        </div>
+                        <div class="transaction-summary">
+                            <span class="transaction-income plus">Rp0</span>
+                            <span class="transaction-expense minus">Rp25.000</span>
+                        </div>
+                    </div>
+                    <div class="transaction-day">
+                        <div class="transaction-date">
+                            <span class="date-number">10</span>
+                            <span class="date-day">Wednesday</span>
+                        </div>
+                        <div class="transaction-items">
+                            <div class="transaction-item">
+                                <span class="transaction-desc">Bayar sewa kos</span>
+                                <span class="transaction-tag kos">Kos</span>
+                                <span class="transaction-amount minus">- Rp1.200.000</span>
+                            </div>
+                            <div class="transaction-item">
+                                <span class="transaction-desc">Spotify + YT Premium</span>
+                                <span class="transaction-tag langganan">Langganan</span>
+                                <span class="transaction-amount minus">- Rp80.000</span>
+                            </div>
+                        </div>
+                        <div class="transaction-summary">
+                            <span class="transaction-income plus">Rp0</span>
+                            <span class="transaction-expense minus">Rp1.280.000</span>
+                        </div>
+                    </div>
+                    <div class="transaction-day">
+                        <div class="transaction-date">
+                            <span class="date-number">1</span>
+                            <span class="date-day">Monday</span>
+                        </div>
+                        <div class="transaction-items">
+                            <div class="transaction-item">
+                                <span class="transaction-desc">Gaji</span>
+                                <span class="transaction-tag gaji">Gaji Utama</span>
+                                <span class="transaction-amount plus">+ Rp7.000.000</span>
+                            </div>
+                            <div class="transaction-item">
+                                <span class="transaction-desc">Return Rekadana</span>
+                                <span class="transaction-tag investasi">Investasi</span>
+                                <span class="transaction-amount plus">+ Rp200.000</span>
+                            </div>
+                            <div class="transaction-item">
+                                <span class="transaction-desc">Makan Siang</span>
+                                <span class="transaction-tag makan">Makan</span>
+                                <span class="transaction-amount minus">- Rp30.000</span>
+                            </div>
+                            <div class="transaction-item">
+                                <span class="transaction-desc">Naik ojek ke kampus</span>
+                                <span class="transaction-tag transportasi">Transportasi</span>
+                                <span class="transaction-amount minus">- Rp15.000</span>
+                            </div>
+                        </div>
+                        <div class="transaction-summary">
+                            <span class="transaction-income plus">Rp7.200.000</span>
+                            <span class="transaction-expense minus">Rp45.000</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats Section -->
+            <section class="stats-section">
+                <div class="stats-header">Stats</div>
+                <canvas id="stats-piechart" width="300" height="300"></canvas>
+                <div class="stats-legend">
+                    <div class="legend-item"><span class="legend-color kos"></span>Kos <span class="legend-value">Rp1.200.000</span></div>
+                    <div class="legend-item"><span class="legend-color makan"></span>Makan <span class="legend-value">Rp80.000</span></div>
+                    <div class="legend-item"><span class="legend-color langganan"></span>Langganan <span class="legend-value">Rp80.000</span></div>
+                    <div class="legend-item"><span class="legend-color jajan"></span>Jajan <span class="legend-value">Rp25.000</span></div>
+                    <div class="legend-item"><span class="legend-color transportasi"></span>Transportasi <span class="legend-value">Rp15.000</span></div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-left">
+            <span class="footer-title">Money<span class="footer-title-accent">Time</span></span>
+        </div>
+        <div class="footer-center">
+            <div class="footer-section">
+                <span class="footer-section-title">Features</span>
+                <a href="#">Money</a>
+                <a href="#">Time</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='scriptDashboard.js') }}"></script>
 </body>
 </html>
