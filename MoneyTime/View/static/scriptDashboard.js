@@ -1,6 +1,6 @@
 
 // Pie chart for stats section
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 	const ctx = document.getElementById('stats-piechart');
 	if (ctx && window.Chart) {
 		new Chart(ctx, {
@@ -30,10 +30,12 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 
 	// Add Transaction button (example interaction)
+	// Add Transaction button
 	const addBtn = document.querySelector('.add-transaction-btn');
-	if (addBtn) {
-		addBtn.addEventListener('click', function() {
-			alert('Add Transaction feature coming soon!');
+	const transactionModalOverlay = document.getElementById('add-transaction-modal-overlay');
+	if (addBtn && transactionModalOverlay) {
+		addBtn.addEventListener('click', function () {
+			transactionModalOverlay.style.display = 'flex';
 		});
 	}
 
@@ -41,17 +43,17 @@ document.addEventListener('DOMContentLoaded', function() {
 	const userDropdown = document.getElementById('user-dropdown');
 	const profileDropdown = document.getElementById('profile-dropdown');
 	if (userDropdown && profileDropdown) {
-		userDropdown.addEventListener('click', function(e) {
+		userDropdown.addEventListener('click', function (e) {
 			e.stopPropagation();
 			profileDropdown.style.display = (profileDropdown.style.display === 'block') ? 'none' : 'block';
 		});
-		document.addEventListener('click', function() {
+		document.addEventListener('click', function () {
 			profileDropdown.style.display = 'none';
 		});
 		// Optional: handle Profil click
 		const profilItem = profileDropdown.querySelector('.dropdown-item');
 		if (profilItem) {
-			profilItem.addEventListener('click', function(e) {
+			profilItem.addEventListener('click', function (e) {
 				e.preventDefault();
 				alert('Profil feature coming soon!');
 				profileDropdown.style.display = 'none';
