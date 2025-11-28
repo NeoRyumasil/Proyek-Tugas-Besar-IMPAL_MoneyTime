@@ -2,11 +2,13 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 from markupsafe import escape
 from Controller.databaseController import db_connect
 from Controller.userController import UserController
+from Controller.finansialController import FinansialController
 import os
 import secrets
 
 # Inisialisasi Objek
 user_controller = UserController()
+finansial_controller = FinansialController()
 
 app = Flask(__name__,
     template_folder='View/Templates',
@@ -81,6 +83,54 @@ def dashboard():
         return redirect(url_for('auth'))
     
     return render_template('dashboard.html', user=session['user'])
+
+
+# Endpoint for frontend transaction modal
+@app.route('/add-transaction', methods=['POST'])
+def add_transaction():
+    if 'user' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+
+    data = request.get_json() or {}
+    ttype = data.get('type')  # 'Income' or 'Expense'
+    description = data.get('description')
+    amount = data.get('amount')
+    date = data.get('date')
+    category = data.get('category') or 'Other'
+
+    if not ttype or not description or not amount:
+        return jsonify({'success': False, 'message': 'Missing fields'}), 400
+
+    user = session['user']
+    user_id = user.get('id')
+
+    # get or create finansial record
+    finansial_id = finansial_controller.get_or_create_finansial(user_id, category)
+    if not finansial_id:
+        return jsonify({'success': False, 'message': 'Failed to create finansial record'}), 500
+
+    try:
+        nominal = int(amount)
+    except Exception:
+        return jsonify({'success': False, 'message': 'Invalid amount'}), 400
+
+    if str(ttype).lower() == 'income':
+        ok = finansial_controller.add_pemasukan(finansial_id, description, nominal, date)
+    else:
+        ok = finansial_controller.add_pengeluaran(finansial_id, description, nominal, date)
+
+    if ok:
+        return jsonify({'success': True, 'message': 'Transaction added'})
+    return jsonify({'success': False, 'message': 'Failed to add transaction'}), 500
+
+
+@app.route('/api/transactions', methods=['GET'])
+def api_transactions():
+    if 'user' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    user_id = session['user'].get('id')
+    transactions = finansial_controller.get_transactions(user_id)
+    return jsonify({'success': True, 'transactions': transactions})
 
 # Route logout
 @app.route('/logout')

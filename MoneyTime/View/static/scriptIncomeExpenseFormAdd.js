@@ -205,13 +205,51 @@ if (cancelBtn) {
     cancelBtn.addEventListener("click", handleClose);
 }
 if (confirmBtn) {
-    confirmBtn.addEventListener("click", () => {
+    confirmBtn.addEventListener("click", async () => {
         const type = document.querySelector(".transaction-type-toggle-item.active .tab-label")?.textContent;
         const description = document.getElementById("description")?.value;
         const amount = document.getElementById("amount")?.value.replace(/\./g, "");
         const date = document.getElementById("date")?.value;
         const category = document.getElementById("categoryInput")?.value;
-        console.log({ type, description, amount, date, category });
-        closeModal();
+
+        if (!description || !amount) {
+            alert('Please enter description and amount');
+            return;
+        }
+
+        const payload = { type, description, amount, date, category };
+
+        try {
+            const res = await fetch('/add-transaction', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(payload)
+            });
+
+            // --- BAGIAN PERBAIKAN HANDLING RESPONSE ---
+            const contentType = res.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                // Proses JSON jika header benar
+                const body = await res.json();
+                if (res.ok && body.success) {
+                    alert('Transaction added');
+                    clearForm();
+                    closeModal();
+                    // Optional: Refresh halaman agar data baru muncul
+                    location.reload(); 
+                } else {
+                    alert(body.message || 'Failed to add transaction');
+                }
+            } else {
+                // Jika server mengembalikan HTML (misal error 500)
+                const text = await res.text();
+                console.error("Server Error (Non-JSON Response):", text);
+                alert("Terjadi kesalahan pada server. Cek console browser untuk detail.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Network error while adding transaction');
+        }
     });
 }
