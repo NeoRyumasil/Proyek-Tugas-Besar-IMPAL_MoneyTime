@@ -28,6 +28,7 @@ class FinansialController:
         try:
             conn = db_connect()
             cursor = conn.cursor()
+            # Pastikan nama tabel konsisten: [dbo].[Pemasukkan]
             if tanggal:
                 cursor.execute("INSERT INTO [dbo].[Pemasukkan] (deskripsi, nominal, FinansialID, tanggal) VALUES (?, ?, ?, ?)", (deskripsi, nominal, finansial_id, tanggal))
             else:
@@ -56,17 +57,36 @@ class FinansialController:
         try:
             conn = db_connect()
             cursor = conn.cursor()
-            cursor.execute("SELECT p.deskripsi, p.nominal, p.tanggal, f.kategori, 'Income' as tipe FROM [dbo].[Pemasukan] p JOIN [dbo].[Finansial] f ON p.FinansialID = f.FinansialID WHERE f.UserID = ?", (user_id,))
+            
+            # PERBAIKAN: Mengubah [dbo].[Pemasukan] menjadi [dbo].[Pemasukkan] (double k)
+            cursor.execute("SELECT p.deskripsi, p.nominal, p.tanggal, f.kategori, 'Income' as tipe FROM [dbo].[Pemasukkan] p JOIN [dbo].[Finansial] f ON p.FinansialID = f.FinansialID WHERE f.UserID = ?", (user_id,))
             incomes = cursor.fetchall()
+            
             cursor.execute("SELECT q.deskripsi, q.nominal, q.tanggal, f.kategori, 'Expense' as tipe FROM [dbo].[Pengeluaran] q JOIN [dbo].[Finansial] f ON q.FinansialID = f.FinansialID WHERE f.UserID = ?", (user_id,))
             expenses = cursor.fetchall()
+            
             results: List[Dict[str, Any]] = []
+            
             for row in incomes:
                 deskripsi, nominal, tanggal, kategori, tipe = row
-                results.append({'type': tipe, 'deskripsi': deskripsi, 'nominal': int(nominal), 'tanggal': str(tanggal) if tanggal is not None else None, 'kategori': kategori})
+                results.append({
+                    'type': tipe, 
+                    'deskripsi': deskripsi, 
+                    'nominal': int(nominal), 
+                    'tanggal': str(tanggal) if tanggal is not None else None, 
+                    'kategori': kategori
+                })
+                
             for row in expenses:
                 deskripsi, nominal, tanggal, kategori, tipe = row
-                results.append({'type': tipe, 'deskripsi': deskripsi, 'nominal': int(nominal), 'tanggal': str(tanggal) if tanggal is not None else None, 'kategori': kategori})
+                results.append({
+                    'type': tipe, 
+                    'deskripsi': deskripsi, 
+                    'nominal': int(nominal), 
+                    'tanggal': str(tanggal) if tanggal is not None else None, 
+                    'kategori': kategori
+                })
+                
             try:
                 results.sort(key=lambda r: r.get('tanggal') or '', reverse=True)
             except Exception:
