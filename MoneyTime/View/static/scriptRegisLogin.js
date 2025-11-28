@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorDiv.style.display = 'block';
             }
         } catch (error) {
-            errorDiv.textContent = 'An error occurred. Please try again.';
+            errorDiv.textContent = 'An error occurred. Please try again.' + error;
             errorDiv.style.display = 'block';
         }
     });
