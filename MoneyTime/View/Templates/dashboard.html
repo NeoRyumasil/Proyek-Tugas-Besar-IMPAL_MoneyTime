@@ -14,6 +14,7 @@
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
         }
+
         .fade-active {
             opacity: 1;
         }
@@ -25,9 +26,9 @@
         <div class="navbar-left">
             <img src="{{ url_for('static', filename='logoMoneyTime.svg') }}" class="navbar-logo" alt="MoneyTime Logo">
             <span class="navbar-title">MoneyTime</span>
-            <a href="#" class="nav-link active">Dashboard</a>
-            <a href="#" class="nav-link">Money</a>
-            <a href="#" class="nav-link">Time</a>
+            <a href="{{ url_for('dashboard') }}" class="nav-link active">Dashboard</a>
+            <a href="{{ url_for('money') }}" class="nav-link">Money</a>
+            <a href="{{ url_for('time') }}" class="nav-link">Time</a>
         </div>
         <div class="navbar-center">
             <input type="text" class="search-bar" placeholder="Type here...">
@@ -48,7 +49,7 @@
 
     <main class="main-content">
         <h2 class="page-title">Money</h2>
-        
+
         <div class="summary-cards">
             <div class="summary-card income">
                 <div class="summary-title"><i class="fa fa-arrow-up"></i> Monthly Income</div>
@@ -72,7 +73,7 @@
                         <button class="arrow-btn" id="prevMonthBtn"><i class="fa fa-chevron-left"></i></button>
                         <span class="month-label" id="currentMonthLabel">Loading...</span>
                         <button class="arrow-btn" id="nextMonthBtn"><i class="fa fa-chevron-right"></i></button>
-                        
+
                         <button class="add-transaction-btn">+ Add Transaction</button>
                     </div>
                 </div>
@@ -87,7 +88,7 @@
                     <canvas id="stats-piechart" width="300" height="300"></canvas>
                 </div>
                 <div class="stats-legend" id="statsLegend">
-                    </div>
+                </div>
             </section>
         </div>
     </main>
