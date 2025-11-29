@@ -84,6 +84,25 @@ def dashboard():
     
     return render_template('dashboard.html', user=session['user'])
 
+# [UPDATED] Route untuk halaman Money
+@app.route('/money')
+def money():
+    # Sekarang halaman ini butuh login untuk menampilkan profil
+    if 'user' not in session:
+        return redirect(url_for('auth'))
+    
+    # Kirim data user ke template
+    return render_template('money.html', user=session['user'])
+
+# [UPDATED] Route untuk halaman Time
+@app.route('/time')
+def time():
+    # Sekarang halaman ini butuh login untuk menampilkan profil
+    if 'user' not in session:
+        return redirect(url_for('auth'))
+    
+    # Kirim data user ke template
+    return render_template('time.html', user=session['user'])
 
 # Endpoint for frontend transaction modal
 @app.route('/add-transaction', methods=['POST'])
