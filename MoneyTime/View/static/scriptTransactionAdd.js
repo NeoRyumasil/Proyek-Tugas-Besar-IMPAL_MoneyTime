@@ -109,7 +109,7 @@ if (amountInput) {
 }
 
 const modal = document.getElementById("add-transaction-modal-overlay");
-const exitBtn = document.querySelector(".close-icon");
+const exitBtn = document.getElementById("closeModalIcon");
 const cancelBtn = document.querySelector(".btn-secondary");
 const confirmBtn = document.querySelector(".btn-primary");
 
@@ -237,7 +237,7 @@ if (confirmBtn) {
                     clearForm();
                     closeModal();
                     // Optional: Refresh halaman agar data baru muncul
-                    location.reload(); 
+                    location.reload();
                 } else {
                     alert(body.message || 'Failed to add transaction');
                 }

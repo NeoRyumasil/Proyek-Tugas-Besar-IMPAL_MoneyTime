@@ -1,0 +1,58 @@
+<div class="detail-modal-card">
+
+    <div class="detail-header">
+        <b class="detail-title">Transaction Detail</b>
+        <div class="detail-header-icons">
+            <div class="detail-icon-btn" id="detailEditBtn">
+                <i class="fa-regular fa-pen-to-square" style="color: #2563EB;"></i>
+            </div>
+            <div class="detail-icon-btn" id="closeDetailModalIcon">
+                <i class="fa-solid fa-xmark" style="color: #b91c1c; font-size: 32px;"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-tabs-container">
+        <div class="detail-tab-item" id="detailTypeIncome">Income</div>
+        <div class="detail-tab-item" id="detailTypeExpense">Expense</div>
+    </div>
+
+    <div class="detail-form-content">
+        <div class="detail-form-row">
+            <div class="detail-form-group">
+                <label class="detail-label">Description</label>
+                <div class="detail-input-box">
+                    <input type="text" class="detail-input-text" id="detailDescription" readonly>
+                </div>
+            </div>
+
+            <div class="detail-form-group">
+                <label class="detail-label">Amount</label>
+                <div class="detail-input-box">
+                    <input type="text" class="detail-input-text" id="detailAmount" readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-form-row">
+            <div class="detail-form-group">
+                <label class="detail-label">Date</label>
+                <div class="detail-input-box detail-date-box">
+                    <input type="text" class="detail-input-text" id="detailDate" readonly>
+                    <i class="fa-solid fa-calendar-days detail-calendar-icon"></i>
+                </div>
+            </div>
+
+            <div class="detail-form-group">
+                <label class="detail-label">Category</label>
+                <div class="detail-input-box">
+                    <input type="text" class="detail-input-text" id="detailCategory" readonly>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-footer">
+        <div class="detail-btn-delete" id="detailDeleteBtn">Delete</div>
+    </div>
+</div>

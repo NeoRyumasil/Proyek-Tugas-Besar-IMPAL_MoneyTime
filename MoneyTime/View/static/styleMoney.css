@@ -613,7 +613,14 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 0;
+    padding: 10px 12px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.t-item:hover {
+    background-color: #DADADA;
 }
 
 .t-desc {

@@ -1,8 +1,10 @@
 <div class="transaction-modal">
     <div class="transaction-modal-header">
         <b class="modal-title">Add Transaction</b>
-        <img class="close-icon" alt="" src="{{ url_for('static', filename='exit-icon.svg') }}" id="closeModalIcon">
 
+        <div class="modal-close-btn" id="closeModalIcon">
+            <i class="fa-solid fa-xmark"></i>
+        </div>
     </div>
 
     <div class="transaction-type-toggle">
@@ -58,7 +60,6 @@
                         </div>
 
                         <div class="dropdown-list">
-
                             <button type="button" class="dropdown-add-btn" id="addCategoryBtn" style="display:none;">
                                 Add new category
                             </button>

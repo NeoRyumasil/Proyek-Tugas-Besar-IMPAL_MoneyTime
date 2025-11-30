@@ -180,14 +180,15 @@ document.addEventListener('DOMContentLoaded', function () {
         const isInc = t.type === 'Income';
         const sign = isInc ? '+' : '-';
         const valClass = isInc ? 'val-green' : 'val-red';
+        const transactionString = encodeURIComponent(JSON.stringify(t));
 
         itemsHtml += `
-                    <div class="t-item">
-                        <span class="t-desc">${t.deskripsi}</span>
-                        <span class="t-badge" style="background-color: ${color}">${t.kategori}</span>
-                        <span class="t-val ${valClass}">${sign} ${formatRupiah(t.nominal)}</span>
-                    </div>
-                `;
+            <div class="t-item" onclick="openTransactionDetail(JSON.parse(decodeURIComponent('${transactionString}')))">
+                <span class="t-desc">${t.deskripsi}</span>
+                <span class="t-badge" style="background-color: ${color}">${t.kategori}</span>
+                <span class="t-val ${valClass}">${sign} ${formatRupiah(t.nominal)}</span>
+            </div>
+        `;
       });
 
       const cardHtml = `

@@ -1,0 +1,157 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+.detail-modal-card {
+    width: min(1080px, 100% - 64px);
+    background: #fff;
+    padding: 32px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    font-family: 'Inter', sans-serif;
+    box-sizing: border-box;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #000;
+}
+
+.detail-header-icons {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.detail-icon-btn {
+    font-size: 24px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+}
+
+.detail-icon-btn:hover {
+    transform: scale(1.1);
+}
+
+.detail-tabs-container {
+    display: flex;
+    gap: 16px;
+}
+
+.detail-tab-item {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    color: #fff;
+    cursor: default;
+    transition: background 0.3s;
+    font-size: 16px;
+}
+
+.tab-active-blue {
+    background-color: #1a3e7f !important;
+}
+
+.tab-inactive-grey {
+    background-color: #9aaec9 !important;
+}
+
+.detail-form-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.detail-form-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 28px;
+    row-gap: 12px;
+}
+
+.detail-form-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.detail-label {
+    width: 90px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #000;
+    flex-shrink: 0;
+}
+
+.detail-input-box {
+    flex: 1;
+    height: 50px;
+    border: 2px solid #dadada;
+    border-radius: 8px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+}
+
+.detail-input-text {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 15px;
+    color: #000;
+    font-family: 'Inter', sans-serif;
+    cursor: default;
+}
+
+.detail-date-box {
+    position: relative;
+}
+
+.detail-calendar-icon {
+    color: #1a3e7f;
+    font-size: 20px;
+    pointer-events: none;
+}
+
+.detail-footer {
+    display: flex;
+}
+
+.detail-btn-delete {
+    flex: 1;
+    background-color: #a60000;
+    color: #fff;
+    font-weight: 600;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.2s;
+}
+
+.detail-btn-delete:hover {
+    background-color: #850000;
+}
+
+@media (max-width: 768px) {
+    .detail-form-row {
+        grid-template-columns: 1fr;
+    }
+}
