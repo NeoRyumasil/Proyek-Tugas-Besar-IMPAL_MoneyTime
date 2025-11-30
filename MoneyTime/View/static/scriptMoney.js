@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+  // --- NAVBAR & UI UTILS ---
   const navToggle = document.getElementById('navToggle');
   const header = document.querySelector('.header-guest');
 
@@ -53,17 +54,29 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // --- CORE LOGIC ---
   let allTransactions = [];
   let currentViewDate = new Date();
   let chartInstance = null;
+  let currentStatsType = 'Expense'; // Default stats view
 
+  // Elements
   const prevBtn = document.getElementById('prevMonthBtn');
   const nextBtn = document.getElementById('nextMonthBtn');
   const monthLabel = document.getElementById('currentMonthLabel');
+  const monthPicker = document.getElementById('monthPickerInput');
+
+  // Stats Toggles
+  const statsIncomeBtn = document.getElementById('statsIncomeBtn');
+  const statsExpenseBtn = document.getElementById('statsExpenseBtn');
+
+  // Dashboard Cards
   const listContainer = document.getElementById('transactionListContainer');
   const incomeEl = document.getElementById('monthly-income');
   const expenseEl = document.getElementById('monthly-expenses');
   const balanceEl = document.getElementById('total-balance');
+
+  // Chart Elements
   const legendContainer = document.getElementById('statsLegend');
   const chartCanvas = document.getElementById('moneyPieChart');
 
@@ -74,25 +87,22 @@ document.addEventListener('DOMContentLoaded', function () {
     'jajan': '#eab308',
     'transportasi': '#0ea5e9',
     'gaji': '#16a34a',
-    'investasi': '#15803d'
+    'investasi': '#15803d',
+    'bonus': '#10b981',
+    'other': '#64748b'
   };
 
   function getColor(cat) {
     if (!cat) return '#999999';
-
     const lowerCat = cat.toLowerCase();
-
     if (categoryColors[lowerCat]) {
       return categoryColors[lowerCat];
     }
-
     let hash = 0;
     for (let i = 0; i < lowerCat.length; i++) {
       hash = lowerCat.charCodeAt(i) + ((hash << 5) - hash);
     }
-
     const h = Math.abs(hash % 360);
-
     return `hsl(${h}, 65%, 55%)`;
   }
 
@@ -100,6 +110,7 @@ document.addEventListener('DOMContentLoaded', function () {
     style: 'currency', currency: 'IDR', minimumFractionDigits: 0
   }).format(num);
 
+  // --- API FETCH ---
   async function fetchTransactions() {
     try {
       const response = await fetch('/api/transactions');
@@ -116,18 +127,26 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  // --- UPDATE DASHBOARD ---
   function updateDashboard() {
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-    if (monthLabel) monthLabel.innerHTML = `${monthNames[month]} ${year}`;
+    if (monthLabel) monthLabel.textContent = `${monthNames[month]} ${year}`;
 
+    if (monthPicker) {
+      const fmtMonth = String(month + 1).padStart(2, '0');
+      monthPicker.value = `${year}-${fmtMonth}`;
+    }
+
+    // Filter transaksi bulan ini
     const monthlyData = allTransactions.filter(t => {
       const d = new Date(t.tanggal);
       return d.getFullYear() === year && d.getMonth() === month;
     });
 
+    // Hitung Summary
     let totalIncome = 0;
     let totalExpense = 0;
     let totalBalance = allTransactions.reduce((acc, t) => {
@@ -144,9 +163,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (balanceEl) balanceEl.textContent = formatRupiah(totalBalance);
 
     renderList(monthlyData);
-    renderChart(monthlyData);
+    renderChart(monthlyData); // Render chart berdasarkan toggle aktif
   }
 
+  // --- RENDER LIST ---
   function renderList(transactions) {
     if (!listContainer) return;
     listContainer.innerHTML = '';
@@ -210,71 +230,136 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // --- RENDER CHART ---
   function renderChart(transactions) {
     if (!chartCanvas) return;
 
-    const expenses = transactions.filter(t => t.type === 'Expense');
+    // Filter berdasarkan toggle (Income / Expense)
+    const filteredTrans = transactions.filter(t => t.type === currentStatsType);
+
+    // Agregasi Kategori
     const catTotals = {};
-    let totalExp = 0;
+    let totalAmount = 0;
 
-    expenses.forEach(t => {
-
+    filteredTrans.forEach(t => {
       const catName = t.kategori;
-
       if (!catTotals[catName]) catTotals[catName] = 0;
       catTotals[catName] += t.nominal;
-      totalExp += t.nominal;
+      totalAmount += t.nominal;
     });
 
     const labels = Object.keys(catTotals);
     const dataVal = Object.values(catTotals);
     const colors = labels.map(l => getColor(l));
 
+    // Render Legend Custom
     if (legendContainer) {
       legendContainer.innerHTML = '';
-      labels.forEach((cat, idx) => {
-        const pct = totalExp > 0 ? ((dataVal[idx] / totalExp) * 100).toFixed(2) + '%' : '0%';
-        legendContainer.innerHTML += `
-                    <div class="l-item">
-                        <div class="l-left">
-                            <span class="l-pct" style="background-color: ${colors[idx]}">${pct}</span>
-                            <span class="l-name">${cat}</span>
-                        </div>
-                        <span class="l-val">${formatRupiah(dataVal[idx])}</span>
-                    </div>
-                `;
-      });
+      if (labels.length === 0) {
+        legendContainer.innerHTML = '<div style="text-align:center; color:#888; font-size:14px;">No data available</div>';
+      } else {
+        labels.forEach((cat, idx) => {
+          const pct = totalAmount > 0 ? ((dataVal[idx] / totalAmount) * 100).toFixed(2) + '%' : '0%';
+          legendContainer.innerHTML += `
+              <div class="l-item">
+                  <div class="l-left">
+                      <span class="l-pct" style="background-color: ${colors[idx]}">${pct}</span>
+                      <span class="l-name">${cat}</span>
+                  </div>
+                  <span class="l-val">${formatRupiah(dataVal[idx])}</span>
+              </div>
+          `;
+        });
+      }
     }
 
     if (chartInstance) chartInstance.destroy();
 
+    // Setup ChartJS
     if (labels.length > 0) {
       chartInstance = new Chart(chartCanvas, {
-        type: 'doughnut',
+        type: 'pie', // Pie chart sesuai gambar
         data: {
           labels: labels,
           datasets: [{
             data: dataVal,
             backgroundColor: colors,
             borderWidth: 0,
-            hoverOffset: 4
+            hoverOffset: 6
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          cutout: '0%'
+          plugins: {
+            legend: { display: false }, // Kita pakai custom legend
+            tooltip: {
+              // --- KUSTOMISASI TOOLTIP (TAMBAH RP) ---
+              callbacks: {
+                label: function (context) {
+                  let label = context.label || '';
+                  if (label) {
+                    label += ': ';
+                  }
+                  if (context.parsed !== null) {
+                    // Format rupiah di dalam tooltip
+                    label += formatRupiah(context.parsed);
+                  }
+                  return label;
+                }
+              }
+            }
+          },
+          cutout: '0%' // Full Pie
         }
       });
     } else {
+      // Clear canvas jika tidak ada data
       const ctx = chartCanvas.getContext('2d');
       ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
     }
   }
 
+  // --- STATS TOGGLE EVENT LISTENERS ---
+  if (statsIncomeBtn && statsExpenseBtn) {
+    statsIncomeBtn.addEventListener('click', () => {
+      if (currentStatsType !== 'Income') {
+        currentStatsType = 'Income';
+        statsIncomeBtn.classList.add('active');
+        statsExpenseBtn.classList.remove('active');
+        updateDashboard(); // Re-render chart
+      }
+    });
+
+    statsExpenseBtn.addEventListener('click', () => {
+      if (currentStatsType !== 'Expense') {
+        currentStatsType = 'Expense';
+        statsExpenseBtn.classList.add('active');
+        statsIncomeBtn.classList.remove('active');
+        updateDashboard(); // Re-render chart
+      }
+    });
+  }
+
+  // --- DATE NAVIGATION ---
   if (prevBtn) prevBtn.addEventListener('click', () => { currentViewDate.setMonth(currentViewDate.getMonth() - 1); updateDashboard(); });
   if (nextBtn) nextBtn.addEventListener('click', () => { currentViewDate.setMonth(currentViewDate.getMonth() + 1); updateDashboard(); });
+
+  if (monthPicker) {
+    monthPicker.addEventListener('change', (e) => {
+      if (e.target.value) {
+        const [yearStr, monthStr] = e.target.value.split('-');
+        currentViewDate = new Date(parseInt(yearStr), parseInt(monthStr) - 1, 1);
+        updateDashboard();
+      }
+    });
+
+    monthPicker.addEventListener('click', () => {
+      if ('showPicker' in HTMLInputElement.prototype) {
+        try { monthPicker.showPicker(); } catch (err) { }
+      }
+    });
+  }
 
   const addBtn = document.getElementById('openTransactionModalBtn');
   const popup = document.getElementById('add-transaction-modal-overlay');
