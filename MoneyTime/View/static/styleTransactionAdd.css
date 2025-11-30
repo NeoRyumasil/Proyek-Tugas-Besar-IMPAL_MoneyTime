@@ -22,6 +22,8 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
+    overflow-y: auto;
+    padding: 20px;
 }
 
 /* --- MODAL CARD --- */
@@ -33,6 +35,8 @@
     display: flex;
     gap: 24px;
     flex-direction: column;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    margin: auto;
 }
 
 .transaction-modal-header {
@@ -93,7 +97,7 @@
 .transaction-form {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
 }
 
 .transaction-form-row {
@@ -107,22 +111,25 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    position: relative;
 }
 
 .form-label {
     width: 90px;
     font-size: 16px;
     font-weight: 600;
+    flex-shrink: 0;
 }
 
 .form-input {
     flex: 1;
+    position: relative;
 }
 
 /* --- INPUT FIELDS --- */
 .text-input,
-.date-input,
-.select-input {
+.date-input-display,
+.dropdown-header {
     width: 100%;
     height: 50px;
     border-radius: 8px;
@@ -130,6 +137,14 @@
     padding: 10px 16px;
     display: flex;
     align-items: center;
+    background: #fff;
+    transition: border-color 0.2s;
+}
+
+.text-input:hover,
+.date-input-display:hover,
+.dropdown-header:hover {
+    border-color: #b8b8b8;
 }
 
 .amount-input {
@@ -140,18 +155,22 @@
     font-weight: 600;
 }
 
-.input-field {
+.input-field,
+.dropdown-input {
     flex: 1;
     border: none;
     outline: none;
     background: transparent;
     font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    color: #000;
 }
 
 /* --- ACTION BUTTONS --- */
 .transaction-actions {
     display: flex;
     gap: 16px;
+    margin-top: 20px;
 }
 
 .btn-secondary,
@@ -161,20 +180,19 @@
     border-radius: 8px;
     text-align: center;
     cursor: pointer;
+    font-weight: 600;
+    font-size: 16px;
 }
 
 .btn-secondary {
     background: #fff;
     border: 1px solid #dadada;
+    color: #000;
 }
 
 .btn-primary {
     background: #1a3e7f;
     color: #fff;
-}
-
-.btn-label {
-    font-weight: 600;
 }
 
 .btn-primary:hover {
@@ -193,41 +211,24 @@
 }
 
 .dropdown-header {
-    height: 50px;
-    border-radius: 8px;
-    border: 2px solid #dadada;
-    padding: 8px 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    justify-content: space-between;
-    background: #fff;
     cursor: pointer;
-    transition: border-color 200ms ease;
-}
-
-.dropdown-header:hover {
-    border-color: #b8b8b8;
-}
-
-.dropdown-input {
-    flex: 1;
-    border: none;
-    outline: none;
-    background: transparent;
-    font-size: 15px;
+    justify-content: space-between;
+    gap: 8px;
 }
 
 .dropdown-arrow {
-    width: 20px;
-    height: 20px;
+    width: 14px;
+    height: 14px;
     transition: transform 200ms ease;
+    /* Menggunakan icon font awesome di HTML, jadi ini untuk reset jika ada img lama */
+    pointer-events: none;
 }
 
 .dropdown-list {
     position: absolute;
     width: 100%;
-    top: 56px;
+    top: 100%;
+    margin-top: 8px;
     left: 0;
     background: #fff;
     border-radius: 10px;
@@ -235,7 +236,7 @@
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     padding: 8px 0;
     display: none;
-    z-index: 99;
+    z-index: 2001;
     max-height: 220px;
     overflow-y: auto;
 }
@@ -273,96 +274,49 @@
     display: block;
 }
 
-.custom-dropdown.active .dropdown-arrow {
-    transform: rotate(180deg);
-}
-
 /* ========================================= */
-/* CUSTOM DATE PICKER (POPUP UP)        */
+/* CUSTOM DATE PICKER                        */
 /* ========================================= */
 
 .custom-date-picker-wrapper {
     position: relative;
     width: 100%;
-    z-index: 105;
 }
 
-.date-input-display {
-    width: 100%;
-    height: 50px;
-    border-radius: 8px;
-    border: 2px solid #dadada;
-    padding: 10px 16px;
-    display: flex;
-    align-items: center;
-    background: #fff;
-    cursor: pointer;
-    transition: border-color 0.2s;
-    position: relative;
-    z-index: 106;
-}
-
-.date-input-display:hover {
-    border-color: #b8b8b8;
-}
-
-.icon-chevron {
-    width: 20px;
-    pointer-events: none;
-}
-
-/* POPUP KALENDER - MUNCUL DI ATAS INPUT */
 .custom-calendar-popup {
     position: absolute;
-
-    /* Ubah posisi ke atas */
-    bottom: calc(100% + 12px);
-    top: auto;
-
-    /* Center horizontal */
+    /* Muncul di atas input (bottom: 100%) */
+    bottom: 100%;
+    margin-bottom: 12px;
     left: 50%;
-    transform: translateX(-50%) scale(0.95);
-
-    width: 320px;
+    transform: translateX(-50%);
+    width: 300px;
     background: #fff;
     border-radius: 16px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
     border: 1px solid #e0e0e0;
     padding: 16px;
     z-index: 2000;
-
     display: none;
-    opacity: 0;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-
-    /* Animasi tumbuh dari bawah */
-    transform-origin: bottom center;
 }
 
 .custom-calendar-popup.active {
     display: block;
-    opacity: 1;
-    transform: translateX(-50%) scale(1);
 }
 
-/* Panah kecil di BAWAH box (Menunjuk ke input) */
 .custom-calendar-popup::before {
     content: "";
     position: absolute;
     bottom: -6px;
-    /* Posisi di bawah box */
     left: 50%;
     transform: translateX(-50%) rotate(45deg);
     width: 12px;
     height: 12px;
     background: #fff;
-
-    /* Border V shape ke bawah */
     border-bottom: 1px solid #e0e0e0;
     border-right: 1px solid #e0e0e0;
 }
 
-/* Header Kalender */
 .calendar-header {
     display: flex;
     justify-content: space-between;
@@ -403,7 +357,7 @@
     color: #1a3e7f;
 }
 
-/* Grid Hari (View 1) */
+/* Grid Hari */
 .calendar-weekdays {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -460,7 +414,7 @@
     color: #fff;
 }
 
-/* Grid Bulan (View 2) */
+/* Grid Bulan */
 .calendar-months-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -494,5 +448,20 @@
 @media (max-width: 768px) {
     .transaction-form-row {
         grid-template-columns: 1fr;
+        row-gap: 20px;
+    }
+
+    .form-label {
+        width: 100%;
+        margin-bottom: 6px;
+    }
+
+    .transaction-form-field {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .form-input {
+        width: 100%;
     }
 }

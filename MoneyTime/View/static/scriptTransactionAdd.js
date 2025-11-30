@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     const typeButtons = document.querySelectorAll(".transaction-type-toggle-item");
+
+    // --- KATEGORI VARS ---
     const categoryDropdown = document.getElementById("categoryDropdown");
     const categoryHeader = categoryDropdown ? categoryDropdown.querySelector(".dropdown-header") : null;
     const categoryInput = document.getElementById("categoryInput");
@@ -15,9 +17,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentType = "Income";
     let categoryItems = [];
 
-    // --- CATEGORY LOGIC ---
-    function setCategoryOptions(type) {
+    // --- CATEGORY LOGIC (UPDATED) ---
+    function renderCategoryList(type) {
         if (!categoryList) return;
+
+        // Hapus item lama (kecuali tombol add)
         Array.from(categoryList.querySelectorAll(".dropdown-item")).forEach(item => item.remove());
 
         if (categories[type]) {
@@ -25,53 +29,73 @@ document.addEventListener('DOMContentLoaded', () => {
                 const item = document.createElement("div");
                 item.className = "dropdown-item";
                 item.textContent = cat;
+
+                // Event saat item dipilih
+                item.onclick = () => {
+                    categoryInput.value = cat;
+                    categoryDropdown.classList.remove("active");
+                    if (addCategoryBtn) addCategoryBtn.style.display = "none";
+                };
+
+                // Insert sebelum tombol Add
                 categoryList.insertBefore(item, addCategoryBtn);
             });
         }
         categoryItems = Array.from(categoryList.querySelectorAll(".dropdown-item"));
-        attachCategoryItemHandlers();
     }
 
+    // Init awal
+    renderCategoryList(currentType);
+
+    // Listener Ganti Tipe (Income/Expense)
     typeButtons.forEach(btn => {
         btn.addEventListener("click", () => {
             typeButtons.forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
             currentType = btn.querySelector(".tab-label").textContent;
-            setCategoryOptions(currentType);
+
+            renderCategoryList(currentType);
             if (categoryInput) categoryInput.value = "";
+            if (addCategoryBtn) addCategoryBtn.style.display = "none";
         });
     });
 
-    if (categoryList) setCategoryOptions(currentType);
-
-    function attachCategoryItemHandlers() {
-        categoryItems.forEach(item => {
-            item.onclick = () => {
-                if (categoryInput) categoryInput.value = item.textContent;
-                if (categoryDropdown) categoryDropdown.classList.remove("active");
-            };
-        });
-    }
-
-    if (categoryHeader) {
-        categoryHeader.addEventListener("click", (e) => {
-            if (e.target === categoryInput) return;
-            categoryDropdown.classList.toggle("active");
-        });
-    }
-
-    document.addEventListener("click", (e) => {
-        if (categoryDropdown && !categoryDropdown.contains(e.target)) {
-            categoryDropdown.classList.remove("active");
-        }
-    });
-
+    // Logic Input Kategori
     if (categoryInput) {
+        // 1. Klik Input -> Buka Dropdown
+        categoryInput.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (categoryDropdown && !categoryDropdown.classList.contains('active')) {
+                categoryDropdown.classList.add('active');
+            }
+        });
+
+        // 2. Ketik Input -> Filter & Show Add Button
         categoryInput.addEventListener("input", () => {
-            const value = categoryInput.value.trim();
+            const val = categoryInput.value.trim();
+            const lowerVal = val.toLowerCase();
+            let hasExactMatch = false;
+
+            // Pastikan dropdown terbuka saat mengetik
+            if (categoryDropdown && !categoryDropdown.classList.contains("active")) {
+                categoryDropdown.classList.add("active");
+            }
+
+            // Filter Item
+            categoryItems.forEach(item => {
+                const text = item.textContent;
+                if (text.toLowerCase().includes(lowerVal)) {
+                    item.style.display = "block";
+                } else {
+                    item.style.display = "none";
+                }
+                if (text.toLowerCase() === lowerVal) hasExactMatch = true;
+            });
+
+            // Tampilkan Tombol Add New
             if (addCategoryBtn) {
-                if (value.length > 0) {
-                    addCategoryBtn.textContent = 'Add "' + value + '" as new category';
+                if (val.length > 0 && !hasExactMatch) {
+                    addCategoryBtn.textContent = `Add "${val}" as new category`;
                     addCategoryBtn.style.display = "block";
                 } else {
                     addCategoryBtn.style.display = "none";
@@ -80,25 +104,36 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Handler Tombol Add New Category
     if (addCategoryBtn) {
-        addCategoryBtn.addEventListener("click", () => {
-            const value = categoryInput.value.trim();
-            if (!value) return;
-            if (categoryItems.some(item => item.textContent.toLowerCase() === value.toLowerCase())) {
+        addCategoryBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const val = categoryInput.value.trim();
+            if (val) {
+                categoryInput.value = val;
                 categoryDropdown.classList.remove("active");
-                return;
+                addCategoryBtn.style.display = "none";
             }
-            const newItem = document.createElement("div");
-            newItem.className = "dropdown-item";
-            newItem.textContent = value;
-            categoryList.insertBefore(newItem, addCategoryBtn);
-            categoryItems = Array.from(categoryList.querySelectorAll(".dropdown-item"));
-            attachCategoryItemHandlers();
-            categoryDropdown.classList.remove("active");
-            categoryInput.value = value;
         });
     }
 
+    // Handler Klik Panah (Header)
+    if (categoryHeader) {
+        categoryHeader.addEventListener("click", (e) => {
+            if (e.target === categoryInput) return;
+            categoryDropdown.classList.toggle("active");
+        });
+    }
+
+    // Close Outside
+    document.addEventListener("click", (e) => {
+        if (categoryDropdown && !categoryDropdown.contains(e.target)) {
+            categoryDropdown.classList.remove("active");
+        }
+    });
+
+
+    // --- AMOUNT FORMATTING ---
     const amountInput = document.getElementById("amount");
     if (amountInput) {
         amountInput.addEventListener("input", function () {
@@ -376,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentType = "Income";
         typeButtons.forEach(b => b.classList.remove("active"));
         if (typeButtons[0]) typeButtons[0].classList.add("active");
-        setCategoryOptions("Income");
+        renderCategoryList("Income");
 
         if (addCategoryBtn) addCategoryBtn.style.display = "none";
     }

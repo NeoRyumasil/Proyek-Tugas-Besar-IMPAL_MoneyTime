@@ -7,10 +7,10 @@
     </div>
 
     <div class="transaction-type-toggle">
-        <div class="transaction-type-toggle-item active">
+        <div class="transaction-type-toggle-item active" id="typeIncomeBtn">
             <b class="tab-label">Income</b>
         </div>
-        <div class="transaction-type-toggle-item">
+        <div class="transaction-type-toggle-item" id="typeExpenseBtn">
             <b class="tab-label">Expense</b>
         </div>
     </div>
@@ -41,13 +41,12 @@
             <div class="transaction-form-field">
                 <label class="form-label" for="dateDisplay">Date</label>
                 <div class="form-input">
-
                     <div class="custom-date-picker-wrapper" id="transactionDatePicker">
                         <div class="date-input-display">
                             <input type="text" class="input-field" id="dateDisplay" placeholder="Select Date" readonly
                                 style="cursor: pointer;">
                             <input type="hidden" id="date" name="date">
-                            <img class="icon-chevron" src="{{ url_for('static', filename='date-icon.svg') }}">
+                            <i class="fa-regular fa-calendar" style="color: #1a3e7f; font-size: 18px;"></i>
                         </div>
 
                         <div class="custom-calendar-popup" id="calendarPopup">
@@ -55,10 +54,8 @@
                                 <button type="button" class="calendar-nav-btn" id="calPrevBtn">
                                     <i class="fa-solid fa-chevron-left"></i>
                                 </button>
-
                                 <span class="calendar-month-label" id="calMonthLabel"
                                     style="cursor: pointer;">Loading...</span>
-
                                 <button type="button" class="calendar-nav-btn" id="calNextBtn">
                                     <i class="fa-solid fa-chevron-right"></i>
                                 </button>
@@ -74,15 +71,12 @@
                                     <div>Fr</div>
                                     <div>Sa</div>
                                 </div>
-                                <div class="calendar-days-grid" id="calDaysGrid">
-                                </div>
+                                <div class="calendar-days-grid" id="calDaysGrid"></div>
                             </div>
 
                             <div id="calendarViewMonths" style="display: none;">
-                                <div class="calendar-months-grid" id="calMonthsGrid">
-                                </div>
+                                <div class="calendar-months-grid" id="calMonthsGrid"></div>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -95,7 +89,8 @@
                         <div class="dropdown-header">
                             <input type="text" id="categoryInput" class="dropdown-input"
                                 placeholder="Select or type category">
-                            <img class="dropdown-arrow" src="{{ url_for('static', filename='chevron.svg') }}">
+                            <i class="fa-solid fa-chevron-down dropdown-arrow"
+                                style="color: #1a3e7f; font-size: 14px;"></i>
                         </div>
 
                         <div class="dropdown-list">
@@ -113,7 +108,7 @@
         <div class="btn-secondary" id="cancelBtn">
             <div class="btn-label">Cancel</div>
         </div>
-        <div class="btn-primary">
+        <div class="btn-primary" id="confirmBtn">
             <div class="btn-label">Confirm</div>
         </div>
     </div>
