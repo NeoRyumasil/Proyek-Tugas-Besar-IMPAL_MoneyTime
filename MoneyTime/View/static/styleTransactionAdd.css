@@ -33,6 +33,8 @@
     flex-direction: column;
 }
 
+/* --- PERBAIKAN HEADER & TOMBOL CLOSE --- */
+
 .transaction-modal-header {
     display: flex;
     justify-content: space-between;
@@ -42,12 +44,32 @@
 .modal-title {
     font-size: 28px;
     font-weight: 700;
+    color: #000;
 }
 
-.close-icon {
-    width: 29px;
+/* Style baru untuk tombol close agar mirip transactionDetail */
+.modal-close-btn {
     cursor: pointer;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
+.modal-close-btn:hover {
+    transform: scale(1.1);
+    /* Efek zoom saat hover */
+}
+
+/* Style khusus icon FontAwesome di dalamnya */
+.modal-close-btn i {
+    color: #b91c1c;
+    /* Warna Merah Tua (sama dengan transactionDetail) */
+    font-size: 32px;
+    /* Ukuran Icon */
+}
+
+/* --- AKHIR PERBAIKAN HEADER --- */
 
 .transaction-type-toggle {
     display: flex;
@@ -59,14 +81,14 @@
     padding: 12px;
     border-radius: 8px;
     text-align: center;
-    background: #3f82ff;
+    background: #9BABC9;
     color: #fff;
     cursor: pointer;
     transition: background 300ms ease;
 }
 
 .transaction-type-toggle-item:hover {
-    background: #2f70e5;
+    background: #1a3e7f;
 }
 
 .transaction-type-toggle-item.active {
@@ -187,11 +209,6 @@
 
 .btn-secondary:hover {
     background-color: #dadada;
-}
-
-.close-icon:hover {
-    filter: brightness(0) saturate(100%) invert(14%) sepia(73%) saturate(7470%) hue-rotate(356deg) brightness(74%) contrast(98%);
-    cursor: pointer;
 }
 
 .custom-dropdown {

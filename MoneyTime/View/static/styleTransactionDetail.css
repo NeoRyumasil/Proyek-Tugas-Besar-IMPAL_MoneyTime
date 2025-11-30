@@ -1,0 +1,201 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+/* --- Main Modal Container --- */
+.detail-modal-card {
+    /* SAMAKAN DENGAN incomeExpenseFormAdd */
+    width: min(1080px, 100% - 64px);
+    background: #fff;
+    padding: 32px;
+    /* Padding sama */
+    border-radius: 16px;
+    /* Radius sama */
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    /* Gap utama sama */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    /* Opsional, agar lebih pop-up */
+    font-family: 'Inter', sans-serif;
+    box-sizing: border-box;
+}
+
+/* --- Header --- */
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* Tidak perlu margin-bottom karena sudah ada gap: 24px di container utama */
+}
+
+.detail-title {
+    font-size: 28px;
+    /* Sama dengan .modal-title */
+    font-weight: 700;
+    color: #000;
+}
+
+.detail-header-icons {
+    display: flex;
+    gap: 16px;
+    /* Sama dengan .transaction-type-toggle gap */
+    align-items: center;
+}
+
+.detail-icon-btn {
+    font-size: 24px;
+    /* Ukuran ikon standar */
+    cursor: pointer;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+}
+
+.detail-icon-btn:hover {
+    transform: scale(1.1);
+}
+
+/* --- Tabs (Income / Expense) --- */
+.detail-tabs-container {
+    display: flex;
+    gap: 16px;
+    /* Sama dengan .transaction-type-toggle */
+}
+
+.detail-tab-item {
+    flex: 1;
+    padding: 12px;
+    /* Sama dengan .transaction-type-toggle-item */
+    border-radius: 8px;
+    /* Sama */
+    text-align: center;
+    font-weight: 600;
+    /* Mengikuti style tombol form add (bold) */
+    color: #fff;
+    cursor: default;
+    transition: background 0.3s;
+    font-size: 16px;
+}
+
+/* Warna Tab Spesifik Detail */
+.tab-active-blue {
+    background-color: #1a3e7f !important;
+    /* Active Color */
+}
+
+.tab-inactive-grey {
+    background-color: #9aaec9 !important;
+    /* Inactive Color */
+}
+
+/* --- Form Layout --- */
+.detail-form-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    /* Sama dengan .transaction-form gap */
+}
+
+.detail-form-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    /* Sama dengan .transaction-form-row */
+    column-gap: 28px;
+    /* Sama */
+    row-gap: 12px;
+    /* Sama */
+}
+
+.detail-form-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    /* Sama dengan .transaction-form-field gap */
+}
+
+.detail-label {
+    width: 90px;
+    /* Lebar label SAMA PERSIS dengan form add */
+    font-size: 16px;
+    /* Ukuran font sama */
+    font-weight: 600;
+    /* Berat font disamakan (600) agar konsisten */
+    color: #000;
+    flex-shrink: 0;
+}
+
+/* --- Input Boxes --- */
+.detail-input-box {
+    flex: 1;
+    height: 50px;
+    /* TINGGI SAMA PERSIS dengan .text-input */
+    border: 2px solid #dadada;
+    /* BORDER SAMA PERSIS dengan .text-input */
+    border-radius: 8px;
+    /* RADIUS SAMA */
+    background: #fff;
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    /* PADDING SAMA */
+}
+
+.detail-input-text {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 15px;
+    /* Sama dengan .input-field */
+    color: #000;
+    font-family: 'Inter', sans-serif;
+    cursor: default;
+}
+
+/* Date Box Special */
+.detail-date-box {
+    position: relative;
+}
+
+.detail-calendar-icon {
+    color: #1a3e7f;
+    font-size: 20px;
+    /* Disesuaikan sedikit agar pas di tengah */
+    pointer-events: none;
+}
+
+/* --- Footer (Delete Button) --- */
+.detail-footer {
+    display: flex;
+    /* Margin top dihapus, biarkan gap container mengaturnya */
+}
+
+.detail-btn-delete {
+    flex: 1;
+    background-color: #a60000;
+    /* Merah Tua */
+    color: #fff;
+    font-weight: 600;
+    /* Sama dengan .btn-label */
+    padding: 12px;
+    /* Sama dengan .btn-primary padding */
+    border-radius: 8px;
+    /* Sama dengan .btn-primary radius */
+    text-align: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.2s;
+}
+
+.detail-btn-delete:hover {
+    background-color: #850000;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    .detail-form-row {
+        grid-template-columns: 1fr;
+        /* Gap row diambil dari row-gap grid */
+    }
+}
