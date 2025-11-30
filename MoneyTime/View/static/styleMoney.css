@@ -831,3 +831,208 @@ body {
         display: flex;
     }
 }
+
+/* --- CUSTOM DATE PICKER STYLING (NEW) --- */
+
+/* Container utama untuk trigger */
+.date-picker-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    margin: 0 10px;
+}
+
+/* Badge Tampilan (Pill Putih) */
+.date-display-badge {
+    background: #ffffff;
+    padding: 6px 16px 6px 8px;
+    border-radius: 50px;
+    box-shadow: 0 4px 12px rgba(26, 62, 127, 0.08);
+    border: 1px solid rgba(26, 62, 127, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+    min-width: 180px;
+    justify-content: space-between;
+}
+
+/* Hover Effect */
+.date-picker-container:hover .date-display-badge {
+    box-shadow: 0 8px 20px rgba(26, 62, 127, 0.15);
+    border-color: rgba(26, 62, 127, 0.3);
+}
+
+/* Ikon Kalender */
+.calendar-icon-box {
+    width: 36px;
+    height: 36px;
+    background-color: #f0f5ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1a3e7f;
+    font-size: 16px;
+}
+
+/* Teks Bulan Tahun */
+.date-text {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: #1a3e7f;
+    flex-grow: 1;
+    text-align: center;
+}
+
+/* Panah Dropdown */
+.dropdown-indicator {
+    font-size: 12px;
+    color: #9aaec9;
+    transition: transform 0.3s ease;
+    margin-right: 4px;
+}
+
+/* Putar panah saat aktif */
+.date-picker-container.active .dropdown-indicator {
+    transform: rotate(180deg);
+    color: #1a3e7f;
+}
+
+/* --- POPUP CARD --- */
+.custom-date-popup {
+    position: absolute;
+    top: 130%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    width: 280px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    padding: 16px;
+    z-index: 999;
+
+    /* Hidden by default */
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(26, 62, 127, 0.1);
+}
+
+/* Show popup */
+.date-picker-container.active .custom-date-popup {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Header Tahun di Popup */
+.picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.picker-year-label {
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: #1a3e7f;
+}
+
+.picker-nav-btn {
+    background: transparent;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #9aaec9;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.picker-nav-btn:hover {
+    background-color: #f0f5ff;
+    color: #1a3e7f;
+}
+
+/* Grid Bulan */
+.picker-months-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.month-item {
+    padding: 10px 4px;
+    text-align: center;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.month-item:hover {
+    background-color: #f0f5ff;
+    color: #1a3e7f;
+}
+
+.month-item.selected {
+    background-color: #1a3e7f;
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(26, 62, 127, 0.3);
+}
+
+@media (max-width: 576px) {
+    .custom-date-popup {
+        width: 260px;
+    }
+}
+
+.stats-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.stats-mini-toggle {
+    display: flex;
+    background-color: #9BABC9;
+    /* Warna dasar abu-biru */
+    border-radius: 6px;
+    padding: 2px;
+    gap: 2px;
+}
+
+.stats-toggle-btn {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    /* Ukuran font lebih kecil */
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.stats-toggle-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* State Aktif (Biru Tua) */
+.stats-toggle-btn.active {
+    background-color: #1a3e7f;
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}

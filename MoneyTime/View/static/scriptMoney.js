@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+  // --- NAVBAR & UI UTILS ---
   const navToggle = document.getElementById('navToggle');
   const header = document.querySelector('.header-guest');
 
@@ -53,19 +54,42 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // --- CORE LOGIC ---
   let allTransactions = [];
   let currentViewDate = new Date();
   let chartInstance = null;
+  let currentStatsType = 'Expense';
 
+  // Elements Dashboard
   const prevBtn = document.getElementById('prevMonthBtn');
   const nextBtn = document.getElementById('nextMonthBtn');
   const monthLabel = document.getElementById('currentMonthLabel');
+
+  // Elements Custom Picker (BARU)
+  const pickerContainer = document.getElementById('datePickerContainer');
+  const pickerPopup = document.getElementById('customDatePicker');
+  const pickerYearLabel = document.getElementById('pickerYearLabel');
+  const pickerMonthsGrid = document.getElementById('pickerMonthsGrid');
+  const pickerPrevYear = document.getElementById('pickerPrevYear');
+  const pickerNextYear = document.getElementById('pickerNextYear');
+
+  // Stats Toggles
+  const statsIncomeBtn = document.getElementById('statsIncomeBtn');
+  const statsExpenseBtn = document.getElementById('statsExpenseBtn');
+
+  // Dashboard Cards
   const listContainer = document.getElementById('transactionListContainer');
   const incomeEl = document.getElementById('monthly-income');
   const expenseEl = document.getElementById('monthly-expenses');
   const balanceEl = document.getElementById('total-balance');
+
+  // Chart Elements
   const legendContainer = document.getElementById('statsLegend');
   const chartCanvas = document.getElementById('moneyPieChart');
+
+  // Variabel internal picker
+  let pickerYearView = currentViewDate.getFullYear();
+  const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
   const categoryColors = {
     'kos': '#5d4037',
@@ -74,25 +98,18 @@ document.addEventListener('DOMContentLoaded', function () {
     'jajan': '#eab308',
     'transportasi': '#0ea5e9',
     'gaji': '#16a34a',
-    'investasi': '#15803d'
+    'investasi': '#15803d',
+    'bonus': '#10b981',
+    'other': '#64748b'
   };
 
   function getColor(cat) {
     if (!cat) return '#999999';
-
     const lowerCat = cat.toLowerCase();
-
-    if (categoryColors[lowerCat]) {
-      return categoryColors[lowerCat];
-    }
-
+    if (categoryColors[lowerCat]) return categoryColors[lowerCat];
     let hash = 0;
-    for (let i = 0; i < lowerCat.length; i++) {
-      hash = lowerCat.charCodeAt(i) + ((hash << 5) - hash);
-    }
-
+    for (let i = 0; i < lowerCat.length; i++) hash = lowerCat.charCodeAt(i) + ((hash << 5) - hash);
     const h = Math.abs(hash % 360);
-
     return `hsl(${h}, 65%, 55%)`;
   }
 
@@ -100,6 +117,97 @@ document.addEventListener('DOMContentLoaded', function () {
     style: 'currency', currency: 'IDR', minimumFractionDigits: 0
   }).format(num);
 
+  // --- LOGIKA CUSTOM PICKER ---
+
+  function renderPicker() {
+    if (!pickerYearLabel || !pickerMonthsGrid) return;
+
+    // Set tahun di header popup
+    pickerYearLabel.textContent = pickerYearView;
+    pickerMonthsGrid.innerHTML = '';
+
+    // Generate bulan
+    shortMonths.forEach((mName, index) => {
+      const monthDiv = document.createElement('div');
+      monthDiv.classList.add('month-item');
+      monthDiv.textContent = mName;
+
+      // Highlight jika sesuai dengan bulan yang sedang aktif di dashboard
+      // (Hanya jika tahun view di picker sama dengan tahun aktif dashboard)
+      if (pickerYearView === currentViewDate.getFullYear() && index === currentViewDate.getMonth()) {
+        monthDiv.classList.add('selected');
+      }
+
+      // Klik bulan -> Update Dashboard & Tutup
+      monthDiv.addEventListener('click', (e) => {
+        e.stopPropagation();
+        currentViewDate.setFullYear(pickerYearView);
+        currentViewDate.setMonth(index);
+        currentViewDate.setDate(1); // Reset ke tanggal 1
+
+        updateDashboard();
+        closePicker();
+      });
+
+      pickerMonthsGrid.appendChild(monthDiv);
+    });
+  }
+
+  function togglePicker() {
+    // Cek apakah class 'active' ada di container
+    if (pickerContainer.classList.contains('active')) {
+      closePicker();
+    } else {
+      openPicker();
+    }
+  }
+
+  function openPicker() {
+    // Sinkronkan tahun picker dengan tahun dashboard saat dibuka
+    pickerYearView = currentViewDate.getFullYear();
+    renderPicker();
+    pickerContainer.classList.add('active');
+  }
+
+  function closePicker() {
+    pickerContainer.classList.remove('active');
+  }
+
+  // Event Listener: Klik container untuk buka/tutup
+  if (pickerContainer) {
+    pickerContainer.addEventListener('click', (e) => {
+      // Pastikan yang diklik BUKAN elemen di dalam popup (header/grid)
+      if (!e.target.closest('.custom-date-popup')) {
+        togglePicker();
+      }
+    });
+  }
+
+  // Event Listener: Navigasi Tahun di Picker
+  if (pickerPrevYear) {
+    pickerPrevYear.addEventListener('click', (e) => {
+      e.stopPropagation(); // Jangan trigger togglePicker
+      pickerYearView--;
+      renderPicker();
+    });
+  }
+
+  if (pickerNextYear) {
+    pickerNextYear.addEventListener('click', (e) => {
+      e.stopPropagation(); // Jangan trigger togglePicker
+      pickerYearView++;
+      renderPicker();
+    });
+  }
+
+  // Event Listener: Klik di luar (Close outside)
+  document.addEventListener('click', (e) => {
+    if (pickerContainer && !pickerContainer.contains(e.target)) {
+      closePicker();
+    }
+  });
+
+  // --- API FETCH ---
   async function fetchTransactions() {
     try {
       const response = await fetch('/api/transactions');
@@ -116,18 +224,22 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  // --- UPDATE DASHBOARD ---
   function updateDashboard() {
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-    if (monthLabel) monthLabel.innerHTML = `${monthNames[month]} ${year}`;
+    // Update Label Utama di Dashboard
+    if (monthLabel) monthLabel.textContent = `${monthNames[month]} ${year}`;
 
+    // Filter transaksi bulan ini
     const monthlyData = allTransactions.filter(t => {
       const d = new Date(t.tanggal);
       return d.getFullYear() === year && d.getMonth() === month;
     });
 
+    // Hitung Summary
     let totalIncome = 0;
     let totalExpense = 0;
     let totalBalance = allTransactions.reduce((acc, t) => {
@@ -147,6 +259,7 @@ document.addEventListener('DOMContentLoaded', function () {
     renderChart(monthlyData);
   }
 
+  // --- RENDER LIST ---
   function renderList(transactions) {
     if (!listContainer) return;
     listContainer.innerHTML = '';
@@ -210,20 +323,19 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // --- RENDER CHART ---
   function renderChart(transactions) {
     if (!chartCanvas) return;
 
-    const expenses = transactions.filter(t => t.type === 'Expense');
+    const filteredTrans = transactions.filter(t => t.type === currentStatsType);
     const catTotals = {};
-    let totalExp = 0;
+    let totalAmount = 0;
 
-    expenses.forEach(t => {
-
+    filteredTrans.forEach(t => {
       const catName = t.kategori;
-
       if (!catTotals[catName]) catTotals[catName] = 0;
       catTotals[catName] += t.nominal;
-      totalExp += t.nominal;
+      totalAmount += t.nominal;
     });
 
     const labels = Object.keys(catTotals);
@@ -232,38 +344,54 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (legendContainer) {
       legendContainer.innerHTML = '';
-      labels.forEach((cat, idx) => {
-        const pct = totalExp > 0 ? ((dataVal[idx] / totalExp) * 100).toFixed(2) + '%' : '0%';
-        legendContainer.innerHTML += `
-                    <div class="l-item">
-                        <div class="l-left">
-                            <span class="l-pct" style="background-color: ${colors[idx]}">${pct}</span>
-                            <span class="l-name">${cat}</span>
-                        </div>
-                        <span class="l-val">${formatRupiah(dataVal[idx])}</span>
-                    </div>
-                `;
-      });
+      if (labels.length === 0) {
+        legendContainer.innerHTML = '<div style="text-align:center; color:#888; font-size:14px;">No data available</div>';
+      } else {
+        labels.forEach((cat, idx) => {
+          const pct = totalAmount > 0 ? ((dataVal[idx] / totalAmount) * 100).toFixed(2) + '%' : '0%';
+          legendContainer.innerHTML += `
+              <div class="l-item">
+                  <div class="l-left">
+                      <span class="l-pct" style="background-color: ${colors[idx]}">${pct}</span>
+                      <span class="l-name">${cat}</span>
+                  </div>
+                  <span class="l-val">${formatRupiah(dataVal[idx])}</span>
+              </div>
+          `;
+        });
+      }
     }
 
     if (chartInstance) chartInstance.destroy();
 
     if (labels.length > 0) {
       chartInstance = new Chart(chartCanvas, {
-        type: 'doughnut',
+        type: 'pie',
         data: {
           labels: labels,
           datasets: [{
             data: dataVal,
             backgroundColor: colors,
             borderWidth: 0,
-            hoverOffset: 4
+            hoverOffset: 6
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  let label = context.label || '';
+                  if (label) label += ': ';
+                  if (context.parsed !== null) label += formatRupiah(context.parsed);
+                  return label;
+                }
+              }
+            }
+          },
           cutout: '0%'
         }
       });
@@ -273,8 +401,37 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  if (prevBtn) prevBtn.addEventListener('click', () => { currentViewDate.setMonth(currentViewDate.getMonth() - 1); updateDashboard(); });
-  if (nextBtn) nextBtn.addEventListener('click', () => { currentViewDate.setMonth(currentViewDate.getMonth() + 1); updateDashboard(); });
+  // --- STATS TOGGLE ---
+  if (statsIncomeBtn && statsExpenseBtn) {
+    statsIncomeBtn.addEventListener('click', () => {
+      if (currentStatsType !== 'Income') {
+        currentStatsType = 'Income';
+        statsIncomeBtn.classList.add('active');
+        statsExpenseBtn.classList.remove('active');
+        updateDashboard();
+      }
+    });
+
+    statsExpenseBtn.addEventListener('click', () => {
+      if (currentStatsType !== 'Expense') {
+        currentStatsType = 'Expense';
+        statsExpenseBtn.classList.add('active');
+        statsIncomeBtn.classList.remove('active');
+        updateDashboard();
+      }
+    });
+  }
+
+  // --- DATE NAVIGATION (Panah Kiri/Kanan) ---
+  if (prevBtn) prevBtn.addEventListener('click', () => {
+    currentViewDate.setMonth(currentViewDate.getMonth() - 1);
+    updateDashboard();
+  });
+
+  if (nextBtn) nextBtn.addEventListener('click', () => {
+    currentViewDate.setMonth(currentViewDate.getMonth() + 1);
+    updateDashboard();
+  });
 
   const addBtn = document.getElementById('openTransactionModalBtn');
   const popup = document.getElementById('add-transaction-modal-overlay');

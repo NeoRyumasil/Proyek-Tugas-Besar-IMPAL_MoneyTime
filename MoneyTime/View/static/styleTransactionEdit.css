@@ -6,26 +6,8 @@
     box-sizing: border-box;
 }
 
-/* --- MODAL OVERLAY --- */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1000;
-    margin: 0;
-    padding: 0;
-    font-family: "Inter", sans-serif;
-    background-color: rgba(0, 0, 0, 0.35);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-}
-
-/* --- MODAL CARD --- */
-.transaction-modal {
+/* --- MODAL CARD (EDIT) --- */
+.edit-transaction-modal {
     width: min(1080px, 100% - 64px);
     border-radius: 16px;
     background: #fff;
@@ -35,19 +17,19 @@
     flex-direction: column;
 }
 
-.transaction-modal-header {
+.edit-transaction-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.modal-title {
+.edit-modal-title {
     font-size: 28px;
     font-weight: 700;
     color: #000;
 }
 
-.modal-close-btn {
+.edit-modal-close-btn {
     cursor: pointer;
     transition: transform 0.2s;
     display: flex;
@@ -55,22 +37,22 @@
     justify-content: center;
 }
 
-.modal-close-btn:hover {
+.edit-modal-close-btn:hover {
     transform: scale(1.1);
 }
 
-.modal-close-btn i {
+.edit-modal-close-btn i {
     color: #b91c1c;
     font-size: 32px;
 }
 
 /* --- TOGGLE BUTTONS --- */
-.transaction-type-toggle {
+.edit-transaction-type-toggle {
     display: flex;
     gap: 16px;
 }
 
-.transaction-type-toggle-item {
+.edit-transaction-type-toggle-item {
     flex: 1;
     padding: 12px;
     border-radius: 8px;
@@ -81,48 +63,48 @@
     transition: background 300ms ease;
 }
 
-.transaction-type-toggle-item:hover {
+.edit-transaction-type-toggle-item:hover {
     background: #1a3e7f;
 }
 
-.transaction-type-toggle-item.active {
+.edit-transaction-type-toggle-item.active {
     background: #1a3e7f;
 }
 
 /* --- FORM LAYOUT --- */
-.transaction-form {
+.edit-transaction-form {
     display: flex;
     flex-direction: column;
     gap: 16px;
 }
 
-.transaction-form-row {
+.edit-transaction-form-row {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     column-gap: 28px;
     row-gap: 12px;
 }
 
-.transaction-form-field {
+.edit-transaction-form-field {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-.form-label {
+.edit-form-label {
     width: 90px;
     font-size: 16px;
     font-weight: 600;
 }
 
-.form-input {
+.edit-form-input {
     flex: 1;
 }
 
 /* --- INPUT FIELDS --- */
-.text-input,
-.date-input,
-.select-input {
+.edit-text-input,
+.edit-date-input-display,
+.edit-select-input {
     width: 100%;
     height: 50px;
     border-radius: 8px;
@@ -130,17 +112,18 @@
     padding: 10px 16px;
     display: flex;
     align-items: center;
+    background: #fff;
 }
 
-.amount-input {
+.edit-amount-input {
     gap: 8px;
 }
 
-.currency-prefix {
+.edit-currency-prefix {
     font-weight: 600;
 }
 
-.input-field {
+.edit-input-field {
     flex: 1;
     border: none;
     outline: none;
@@ -149,13 +132,13 @@
 }
 
 /* --- ACTION BUTTONS --- */
-.transaction-actions {
+.edit-transaction-actions {
     display: flex;
     gap: 16px;
 }
 
-.btn-secondary,
-.btn-primary {
+.edit-btn-secondary,
+.edit-btn-primary {
     flex: 1;
     padding: 12px;
     border-radius: 8px;
@@ -163,36 +146,36 @@
     cursor: pointer;
 }
 
-.btn-secondary {
+.edit-btn-secondary {
     background: #fff;
     border: 1px solid #dadada;
 }
 
-.btn-primary {
+.edit-btn-primary {
     background: #1a3e7f;
     color: #fff;
 }
 
-.btn-label {
+.edit-btn-label {
     font-weight: 600;
 }
 
-.btn-primary:hover {
+.edit-btn-primary:hover {
     background-color: #102853;
 }
 
-.btn-secondary:hover {
+.edit-btn-secondary:hover {
     background-color: #dadada;
 }
 
 /* --- CATEGORY DROPDOWN --- */
-.custom-dropdown {
+.edit-custom-dropdown {
     width: 100%;
     position: relative;
     font-size: 15px;
 }
 
-.dropdown-header {
+.edit-dropdown-header {
     height: 50px;
     border-radius: 8px;
     border: 2px solid #dadada;
@@ -206,11 +189,11 @@
     transition: border-color 200ms ease;
 }
 
-.dropdown-header:hover {
+.edit-dropdown-header:hover {
     border-color: #b8b8b8;
 }
 
-.dropdown-input {
+.edit-dropdown-input {
     flex: 1;
     border: none;
     outline: none;
@@ -218,13 +201,13 @@
     font-size: 15px;
 }
 
-.dropdown-arrow {
+.edit-dropdown-arrow {
     width: 20px;
     height: 20px;
     transition: transform 200ms ease;
 }
 
-.dropdown-list {
+.edit-dropdown-list {
     position: absolute;
     width: 100%;
     top: 56px;
@@ -240,18 +223,18 @@
     overflow-y: auto;
 }
 
-.dropdown-item {
+.edit-dropdown-item {
     padding: 10px 16px;
     cursor: pointer;
     font-size: 15px;
     transition: background-color 150ms ease;
 }
 
-.dropdown-item:hover {
+.edit-dropdown-item:hover {
     background-color: #f2f2f2;
 }
 
-.dropdown-add-btn {
+.edit-dropdown-add-btn {
     width: 100%;
     border: none;
     outline: none;
@@ -265,29 +248,29 @@
     transition: background-color 200ms ease;
 }
 
-.dropdown-add-btn:hover {
+.edit-dropdown-add-btn:hover {
     background-color: #e5e5e5;
 }
 
-.custom-dropdown.active .dropdown-list {
+.edit-custom-dropdown.active .edit-dropdown-list {
     display: block;
 }
 
-.custom-dropdown.active .dropdown-arrow {
+.edit-custom-dropdown.active .edit-dropdown-arrow {
     transform: rotate(180deg);
 }
 
 /* ========================================= */
-/* CUSTOM DATE PICKER (POPUP UP)        */
+/* CUSTOM DATE PICKER (EDIT VERSION)         */
 /* ========================================= */
 
-.custom-date-picker-wrapper {
+.edit-date-picker-wrapper {
     position: relative;
     width: 100%;
     z-index: 105;
 }
 
-.date-input-display {
+.edit-date-input-display {
     width: 100%;
     height: 50px;
     border-radius: 8px;
@@ -302,24 +285,20 @@
     z-index: 106;
 }
 
-.date-input-display:hover {
+.edit-date-input-display:hover {
     border-color: #b8b8b8;
 }
 
-.icon-chevron {
+.edit-icon-chevron {
     width: 20px;
     pointer-events: none;
 }
 
-/* POPUP KALENDER - MUNCUL DI ATAS INPUT */
-.custom-calendar-popup {
+/* POPUP KALENDER */
+.edit-calendar-popup {
     position: absolute;
-
-    /* Ubah posisi ke atas */
     bottom: calc(100% + 12px);
     top: auto;
-
-    /* Center horizontal */
     left: 50%;
     transform: translateX(-50%) scale(0.95);
 
@@ -334,43 +313,39 @@
     display: none;
     opacity: 0;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-
-    /* Animasi tumbuh dari bawah */
     transform-origin: bottom center;
 }
 
-.custom-calendar-popup.active {
+.edit-calendar-popup.active {
     display: block;
     opacity: 1;
     transform: translateX(-50%) scale(1);
 }
 
-/* Panah kecil di BAWAH box (Menunjuk ke input) */
-.custom-calendar-popup::before {
+/* Panah kecil di BAWAH box */
+.edit-calendar-popup::before {
     content: "";
     position: absolute;
     bottom: -6px;
-    /* Posisi di bawah box */
     left: 50%;
     transform: translateX(-50%) rotate(45deg);
+
     width: 12px;
     height: 12px;
     background: #fff;
-
-    /* Border V shape ke bawah */
     border-bottom: 1px solid #e0e0e0;
     border-right: 1px solid #e0e0e0;
 }
 
 /* Header Kalender */
-.calendar-header {
+.edit-calendar-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
 }
 
-.calendar-month-label {
+.edit-calendar-month-label {
     font-weight: 700;
     color: #1a3e7f;
     font-size: 16px;
@@ -380,11 +355,11 @@
     cursor: pointer;
 }
 
-.calendar-month-label:hover {
+.edit-calendar-month-label:hover {
     background-color: #f0f5ff;
 }
 
-.calendar-nav-btn {
+.edit-calendar-nav-btn {
     background: transparent;
     border: none;
     width: 32px;
@@ -398,13 +373,13 @@
     transition: background 0.2s;
 }
 
-.calendar-nav-btn:hover {
+.edit-calendar-nav-btn:hover {
     background-color: #f0f5ff;
     color: #1a3e7f;
 }
 
-/* Grid Hari (View 1) */
-.calendar-weekdays {
+/* Grid Hari */
+.edit-calendar-weekdays {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     text-align: center;
@@ -414,13 +389,13 @@
     margin-bottom: 8px;
 }
 
-.calendar-days-grid {
+.edit-calendar-days-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 4px;
 }
 
-.cal-day {
+.edit-cal-day {
     height: 36px;
     display: flex;
     align-items: center;
@@ -432,43 +407,43 @@
     color: #333;
 }
 
-.cal-day:hover {
+.edit-cal-day:hover {
     background-color: #f0f5ff;
     color: #1a3e7f;
     font-weight: 600;
 }
 
-.cal-day.empty {
+.edit-cal-day.empty {
     cursor: default;
     background: transparent !important;
 }
 
-.cal-day.selected {
+.edit-cal-day.selected {
     background-color: #1a3e7f;
     color: #fff;
     font-weight: 600;
     box-shadow: 0 4px 10px rgba(26, 62, 127, 0.3);
 }
 
-.cal-day.today {
+.edit-cal-day.today {
     border: 1px solid #1a3e7f;
     color: #1a3e7f;
 }
 
-.cal-day.today.selected {
+.edit-cal-day.today.selected {
     background-color: #1a3e7f;
     color: #fff;
 }
 
-/* Grid Bulan (View 2) */
-.calendar-months-grid {
+/* Grid Bulan */
+.edit-calendar-months-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     padding: 10px 0;
 }
 
-.cal-month {
+.edit-cal-month {
     text-align: center;
     padding: 10px;
     border-radius: 8px;
@@ -479,20 +454,20 @@
     transition: all 0.2s;
 }
 
-.cal-month:hover {
+.edit-cal-month:hover {
     background-color: #f0f5ff;
     color: #1a3e7f;
     font-weight: 600;
 }
 
-.cal-month.selected {
+.edit-cal-month.selected {
     background-color: #1a3e7f;
     color: #fff;
     font-weight: 600;
 }
 
 @media (max-width: 768px) {
-    .transaction-form-row {
+    .edit-transaction-form-row {
         grid-template-columns: 1fr;
     }
 }

@@ -1,7 +1,6 @@
 <div class="transaction-modal">
     <div class="transaction-modal-header">
         <b class="modal-title">Add Transaction</b>
-
         <div class="modal-close-btn" id="closeModalIcon">
             <i class="fa-solid fa-xmark"></i>
         </div>
@@ -40,11 +39,51 @@
 
         <div class="transaction-form-row">
             <div class="transaction-form-field">
-                <label class="form-label" for="date">Date</label>
+                <label class="form-label" for="dateDisplay">Date</label>
                 <div class="form-input">
-                    <div class="date-input">
-                        <input type="date" class="input-field date-field" id="date">
-                        <img class="icon-chevron" src="{{ url_for('static', filename='date-icon.svg') }}">
+
+                    <div class="custom-date-picker-wrapper" id="transactionDatePicker">
+                        <div class="date-input-display">
+                            <input type="text" class="input-field" id="dateDisplay" placeholder="Select Date" readonly
+                                style="cursor: pointer;">
+                            <input type="hidden" id="date" name="date">
+                            <img class="icon-chevron" src="{{ url_for('static', filename='date-icon.svg') }}">
+                        </div>
+
+                        <div class="custom-calendar-popup" id="calendarPopup">
+                            <div class="calendar-header">
+                                <button type="button" class="calendar-nav-btn" id="calPrevBtn">
+                                    <i class="fa-solid fa-chevron-left"></i>
+                                </button>
+
+                                <span class="calendar-month-label" id="calMonthLabel"
+                                    style="cursor: pointer;">Loading...</span>
+
+                                <button type="button" class="calendar-nav-btn" id="calNextBtn">
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </button>
+                            </div>
+
+                            <div id="calendarViewDays">
+                                <div class="calendar-weekdays">
+                                    <div>Su</div>
+                                    <div>Mo</div>
+                                    <div>Tu</div>
+                                    <div>We</div>
+                                    <div>Th</div>
+                                    <div>Fr</div>
+                                    <div>Sa</div>
+                                </div>
+                                <div class="calendar-days-grid" id="calDaysGrid">
+                                </div>
+                            </div>
+
+                            <div id="calendarViewMonths" style="display: none;">
+                                <div class="calendar-months-grid" id="calMonthsGrid">
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
             </div>
