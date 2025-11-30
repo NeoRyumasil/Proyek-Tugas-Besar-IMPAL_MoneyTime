@@ -1,0 +1,118 @@
+<div class="edit-transaction-modal">
+    <div class="edit-transaction-modal-header">
+        <b class="edit-modal-title">Edit Transaction</b>
+        <div class="edit-modal-close-btn" id="closeEditModalIcon">
+            <i class="fa-solid fa-xmark"></i>
+        </div>
+    </div>
+
+    <input type="hidden" id="editTransactionId">
+    <input type="hidden" id="editOriginalType">
+
+    <div class="edit-transaction-type-toggle">
+        <div class="edit-transaction-type-toggle-item active" id="editTypeIncome">
+            <b class="edit-tab-label">Income</b>
+        </div>
+        <div class="edit-transaction-type-toggle-item" id="editTypeExpense">
+            <b class="edit-tab-label">Expense</b>
+        </div>
+    </div>
+
+    <div class="edit-transaction-form">
+        <div class="edit-transaction-form-row">
+            <div class="edit-transaction-form-field">
+                <label class="edit-form-label" for="editDescription">Description</label>
+                <div class="edit-form-input">
+                    <div class="edit-text-input">
+                        <input type="text" class="edit-input-field" id="editDescription"
+                            placeholder="Enter Description">
+                    </div>
+                </div>
+            </div>
+
+            <div class="edit-transaction-form-field">
+                <label class="edit-form-label" for="editAmount">Amount</label>
+                <div class="edit-form-input">
+                    <div class="edit-text-input edit-amount-input">
+                        <span class="edit-currency-prefix">Rp</span>
+                        <input type="text" id="editAmount" class="edit-input-field" placeholder="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="edit-transaction-form-row">
+            <div class="edit-transaction-form-field">
+                <label class="edit-form-label" for="editDateDisplay">Date</label>
+                <div class="edit-form-input">
+                    <div class="edit-date-picker-wrapper" id="editTransactionDatePicker">
+                        <div class="edit-date-input-display">
+                            <input type="text" class="edit-input-field" id="editDateDisplay" placeholder="Select Date"
+                                readonly style="cursor: pointer;">
+                            <input type="hidden" id="editDate" name="date">
+                            <img class="edit-icon-chevron" src="{{ url_for('static', filename='date-icon.svg') }}">
+                        </div>
+
+                        <div class="edit-calendar-popup" id="editCalendarPopup">
+                            <div class="edit-calendar-header">
+                                <button type="button" class="edit-calendar-nav-btn" id="editCalPrevBtn">
+                                    <i class="fa-solid fa-chevron-left"></i>
+                                </button>
+                                <span class="edit-calendar-month-label" id="editCalMonthLabel"
+                                    style="cursor: pointer;">Loading...</span>
+                                <button type="button" class="edit-calendar-nav-btn" id="editCalNextBtn">
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </button>
+                            </div>
+
+                            <div id="editCalendarViewDays">
+                                <div class="edit-calendar-weekdays">
+                                    <div>Su</div>
+                                    <div>Mo</div>
+                                    <div>Tu</div>
+                                    <div>We</div>
+                                    <div>Th</div>
+                                    <div>Fr</div>
+                                    <div>Sa</div>
+                                </div>
+                                <div class="edit-calendar-days-grid" id="editCalDaysGrid"></div>
+                            </div>
+
+                            <div id="editCalendarViewMonths" style="display: none;">
+                                <div class="edit-calendar-months-grid" id="editCalMonthsGrid"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="edit-transaction-form-field">
+                <label class="edit-form-label" for="editCategoryInput">Category</label>
+                <div class="edit-form-input">
+                    <div class="edit-custom-dropdown" id="editCategoryDropdown">
+                        <div class="edit-dropdown-header">
+                            <input type="text" id="editCategoryInput" class="edit-dropdown-input"
+                                placeholder="Select or type category">
+                            <img class="edit-dropdown-arrow" src="{{ url_for('static', filename='chevron.svg') }}">
+                        </div>
+                        <div class="edit-dropdown-list">
+                            <button type="button" class="edit-dropdown-add-btn" id="editAddCategoryBtn"
+                                style="display:none;">
+                                Add new category
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="edit-transaction-actions">
+        <div class="edit-btn-secondary" id="editCancelBtn">
+            <div class="edit-btn-label">Cancel</div>
+        </div>
+        <div class="edit-btn-primary" id="editConfirmBtn">
+            <div class="edit-btn-label">Confirm</div>
+        </div>
+    </div>
+</div>
