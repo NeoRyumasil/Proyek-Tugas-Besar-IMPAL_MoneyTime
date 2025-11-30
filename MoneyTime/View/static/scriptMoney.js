@@ -58,13 +58,20 @@ document.addEventListener('DOMContentLoaded', function () {
   let allTransactions = [];
   let currentViewDate = new Date();
   let chartInstance = null;
-  let currentStatsType = 'Expense'; // Default stats view
+  let currentStatsType = 'Expense';
 
-  // Elements
+  // Elements Dashboard
   const prevBtn = document.getElementById('prevMonthBtn');
   const nextBtn = document.getElementById('nextMonthBtn');
   const monthLabel = document.getElementById('currentMonthLabel');
-  const monthPicker = document.getElementById('monthPickerInput');
+
+  // Elements Custom Picker (BARU)
+  const pickerContainer = document.getElementById('datePickerContainer');
+  const pickerPopup = document.getElementById('customDatePicker');
+  const pickerYearLabel = document.getElementById('pickerYearLabel');
+  const pickerMonthsGrid = document.getElementById('pickerMonthsGrid');
+  const pickerPrevYear = document.getElementById('pickerPrevYear');
+  const pickerNextYear = document.getElementById('pickerNextYear');
 
   // Stats Toggles
   const statsIncomeBtn = document.getElementById('statsIncomeBtn');
@@ -79,6 +86,10 @@ document.addEventListener('DOMContentLoaded', function () {
   // Chart Elements
   const legendContainer = document.getElementById('statsLegend');
   const chartCanvas = document.getElementById('moneyPieChart');
+
+  // Variabel internal picker
+  let pickerYearView = currentViewDate.getFullYear();
+  const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
   const categoryColors = {
     'kos': '#5d4037',
@@ -95,13 +106,9 @@ document.addEventListener('DOMContentLoaded', function () {
   function getColor(cat) {
     if (!cat) return '#999999';
     const lowerCat = cat.toLowerCase();
-    if (categoryColors[lowerCat]) {
-      return categoryColors[lowerCat];
-    }
+    if (categoryColors[lowerCat]) return categoryColors[lowerCat];
     let hash = 0;
-    for (let i = 0; i < lowerCat.length; i++) {
-      hash = lowerCat.charCodeAt(i) + ((hash << 5) - hash);
-    }
+    for (let i = 0; i < lowerCat.length; i++) hash = lowerCat.charCodeAt(i) + ((hash << 5) - hash);
     const h = Math.abs(hash % 360);
     return `hsl(${h}, 65%, 55%)`;
   }
@@ -109,6 +116,96 @@ document.addEventListener('DOMContentLoaded', function () {
   const formatRupiah = (num) => new Intl.NumberFormat('id-ID', {
     style: 'currency', currency: 'IDR', minimumFractionDigits: 0
   }).format(num);
+
+  // --- LOGIKA CUSTOM PICKER ---
+
+  function renderPicker() {
+    if (!pickerYearLabel || !pickerMonthsGrid) return;
+
+    // Set tahun di header popup
+    pickerYearLabel.textContent = pickerYearView;
+    pickerMonthsGrid.innerHTML = '';
+
+    // Generate bulan
+    shortMonths.forEach((mName, index) => {
+      const monthDiv = document.createElement('div');
+      monthDiv.classList.add('month-item');
+      monthDiv.textContent = mName;
+
+      // Highlight jika sesuai dengan bulan yang sedang aktif di dashboard
+      // (Hanya jika tahun view di picker sama dengan tahun aktif dashboard)
+      if (pickerYearView === currentViewDate.getFullYear() && index === currentViewDate.getMonth()) {
+        monthDiv.classList.add('selected');
+      }
+
+      // Klik bulan -> Update Dashboard & Tutup
+      monthDiv.addEventListener('click', (e) => {
+        e.stopPropagation();
+        currentViewDate.setFullYear(pickerYearView);
+        currentViewDate.setMonth(index);
+        currentViewDate.setDate(1); // Reset ke tanggal 1
+
+        updateDashboard();
+        closePicker();
+      });
+
+      pickerMonthsGrid.appendChild(monthDiv);
+    });
+  }
+
+  function togglePicker() {
+    // Cek apakah class 'active' ada di container
+    if (pickerContainer.classList.contains('active')) {
+      closePicker();
+    } else {
+      openPicker();
+    }
+  }
+
+  function openPicker() {
+    // Sinkronkan tahun picker dengan tahun dashboard saat dibuka
+    pickerYearView = currentViewDate.getFullYear();
+    renderPicker();
+    pickerContainer.classList.add('active');
+  }
+
+  function closePicker() {
+    pickerContainer.classList.remove('active');
+  }
+
+  // Event Listener: Klik container untuk buka/tutup
+  if (pickerContainer) {
+    pickerContainer.addEventListener('click', (e) => {
+      // Pastikan yang diklik BUKAN elemen di dalam popup (header/grid)
+      if (!e.target.closest('.custom-date-popup')) {
+        togglePicker();
+      }
+    });
+  }
+
+  // Event Listener: Navigasi Tahun di Picker
+  if (pickerPrevYear) {
+    pickerPrevYear.addEventListener('click', (e) => {
+      e.stopPropagation(); // Jangan trigger togglePicker
+      pickerYearView--;
+      renderPicker();
+    });
+  }
+
+  if (pickerNextYear) {
+    pickerNextYear.addEventListener('click', (e) => {
+      e.stopPropagation(); // Jangan trigger togglePicker
+      pickerYearView++;
+      renderPicker();
+    });
+  }
+
+  // Event Listener: Klik di luar (Close outside)
+  document.addEventListener('click', (e) => {
+    if (pickerContainer && !pickerContainer.contains(e.target)) {
+      closePicker();
+    }
+  });
 
   // --- API FETCH ---
   async function fetchTransactions() {
@@ -133,12 +230,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const month = currentViewDate.getMonth();
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
+    // Update Label Utama di Dashboard
     if (monthLabel) monthLabel.textContent = `${monthNames[month]} ${year}`;
-
-    if (monthPicker) {
-      const fmtMonth = String(month + 1).padStart(2, '0');
-      monthPicker.value = `${year}-${fmtMonth}`;
-    }
 
     // Filter transaksi bulan ini
     const monthlyData = allTransactions.filter(t => {
@@ -163,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (balanceEl) balanceEl.textContent = formatRupiah(totalBalance);
 
     renderList(monthlyData);
-    renderChart(monthlyData); // Render chart berdasarkan toggle aktif
+    renderChart(monthlyData);
   }
 
   // --- RENDER LIST ---
@@ -234,10 +327,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function renderChart(transactions) {
     if (!chartCanvas) return;
 
-    // Filter berdasarkan toggle (Income / Expense)
     const filteredTrans = transactions.filter(t => t.type === currentStatsType);
-
-    // Agregasi Kategori
     const catTotals = {};
     let totalAmount = 0;
 
@@ -252,7 +342,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const dataVal = Object.values(catTotals);
     const colors = labels.map(l => getColor(l));
 
-    // Render Legend Custom
     if (legendContainer) {
       legendContainer.innerHTML = '';
       if (labels.length === 0) {
@@ -275,10 +364,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (chartInstance) chartInstance.destroy();
 
-    // Setup ChartJS
     if (labels.length > 0) {
       chartInstance = new Chart(chartCanvas, {
-        type: 'pie', // Pie chart sesuai gambar
+        type: 'pie',
         data: {
           labels: labels,
           datasets: [{
@@ -292,42 +380,35 @@ document.addEventListener('DOMContentLoaded', function () {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false }, // Kita pakai custom legend
+            legend: { display: false },
             tooltip: {
-              // --- KUSTOMISASI TOOLTIP (TAMBAH RP) ---
               callbacks: {
                 label: function (context) {
                   let label = context.label || '';
-                  if (label) {
-                    label += ': ';
-                  }
-                  if (context.parsed !== null) {
-                    // Format rupiah di dalam tooltip
-                    label += formatRupiah(context.parsed);
-                  }
+                  if (label) label += ': ';
+                  if (context.parsed !== null) label += formatRupiah(context.parsed);
                   return label;
                 }
               }
             }
           },
-          cutout: '0%' // Full Pie
+          cutout: '0%'
         }
       });
     } else {
-      // Clear canvas jika tidak ada data
       const ctx = chartCanvas.getContext('2d');
       ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
     }
   }
 
-  // --- STATS TOGGLE EVENT LISTENERS ---
+  // --- STATS TOGGLE ---
   if (statsIncomeBtn && statsExpenseBtn) {
     statsIncomeBtn.addEventListener('click', () => {
       if (currentStatsType !== 'Income') {
         currentStatsType = 'Income';
         statsIncomeBtn.classList.add('active');
         statsExpenseBtn.classList.remove('active');
-        updateDashboard(); // Re-render chart
+        updateDashboard();
       }
     });
 
@@ -336,30 +417,21 @@ document.addEventListener('DOMContentLoaded', function () {
         currentStatsType = 'Expense';
         statsExpenseBtn.classList.add('active');
         statsIncomeBtn.classList.remove('active');
-        updateDashboard(); // Re-render chart
-      }
-    });
-  }
-
-  // --- DATE NAVIGATION ---
-  if (prevBtn) prevBtn.addEventListener('click', () => { currentViewDate.setMonth(currentViewDate.getMonth() - 1); updateDashboard(); });
-  if (nextBtn) nextBtn.addEventListener('click', () => { currentViewDate.setMonth(currentViewDate.getMonth() + 1); updateDashboard(); });
-
-  if (monthPicker) {
-    monthPicker.addEventListener('change', (e) => {
-      if (e.target.value) {
-        const [yearStr, monthStr] = e.target.value.split('-');
-        currentViewDate = new Date(parseInt(yearStr), parseInt(monthStr) - 1, 1);
         updateDashboard();
       }
     });
-
-    monthPicker.addEventListener('click', () => {
-      if ('showPicker' in HTMLInputElement.prototype) {
-        try { monthPicker.showPicker(); } catch (err) { }
-      }
-    });
   }
+
+  // --- DATE NAVIGATION (Panah Kiri/Kanan) ---
+  if (prevBtn) prevBtn.addEventListener('click', () => {
+    currentViewDate.setMonth(currentViewDate.getMonth() - 1);
+    updateDashboard();
+  });
+
+  if (nextBtn) nextBtn.addEventListener('click', () => {
+    currentViewDate.setMonth(currentViewDate.getMonth() + 1);
+    updateDashboard();
+  });
 
   const addBtn = document.getElementById('openTransactionModalBtn');
   const popup = document.getElementById('add-transaction-modal-overlay');
