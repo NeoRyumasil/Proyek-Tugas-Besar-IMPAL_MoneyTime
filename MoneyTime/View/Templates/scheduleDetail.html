@@ -1,0 +1,69 @@
+<div class="detail-modal-card">
+
+    <div class="detail-header">
+        <b class="detail-title">Schedule Detail</b>
+        <div class="detail-header-icons">
+            <div class="detail-icon-btn" id="schDetailEditBtn">
+                <i class="fa-regular fa-pen-to-square" style="color: #2563EB;"></i>
+            </div>
+            <div class="detail-icon-btn" id="closeSchDetailModalIcon">
+                <i class="fa-solid fa-xmark" style="color: #b91c1c; font-size: 32px;"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-form-content" style="margin-top: 20px;">
+        <div class="detail-form-row">
+            <div class="detail-form-group">
+                <label class="detail-label">Description</label>
+                <div class="detail-input-box">
+                    <input type="text" class="detail-input-text" id="schDetailDescription" readonly>
+                </div>
+            </div>
+
+            <div class="detail-form-group">
+                <label class="detail-label">Time</label>
+                <div class="detail-input-box">
+                    <input type="text" class="detail-input-text" id="schDetailTime" readonly>
+                    <i class="fa-regular fa-clock detail-calendar-icon" style="font-size: 18px;"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-form-row">
+            <div class="detail-form-group">
+                <label class="detail-label">Date</label>
+                <div class="detail-input-box detail-date-box">
+                    <input type="text" class="detail-input-text" id="schDetailDate" readonly>
+                    <i class="fa-solid fa-calendar-days detail-calendar-icon"></i>
+                </div>
+            </div>
+
+            <div class="detail-form-group">
+                <label class="detail-label">Category</label>
+                <div class="detail-input-box">
+                    <input type="text" class="detail-input-text" id="schDetailCategory" readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-form-row" style="grid-template-columns: 1fr;">
+            <div class="detail-form-group">
+                <label class="detail-label">Priority</label>
+                <div class="priority-selector readonly" id="schDetailPriorityContainer">
+                    <div class="priority-option none" data-value="None">None</div>
+                    <div class="priority-option low" data-value="Low">Low</div>
+                    <div class="priority-option medium" data-value="Medium">Medium</div>
+                    <div class="priority-option high" data-value="High">High</div>
+                    <div class="priority-option critical" data-value="Critical">Critical</div>
+                </div>
+                <input type="hidden" id="schDetailPriority">
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-actions">
+        <div class="detail-btn-wontdo" id="schDetailWontDoBtn">Won't Do</div>
+        <div class="detail-btn-delete" id="schDetailDeleteBtn">Delete</div>
+    </div>
+</div>
