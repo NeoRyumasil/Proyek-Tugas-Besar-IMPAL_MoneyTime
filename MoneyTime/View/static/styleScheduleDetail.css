@@ -1,0 +1,182 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+.detail-modal-card {
+    width: min(1080px, 100% - 64px);
+    background: #fff;
+    padding: 32px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    font-family: 'Inter', sans-serif;
+    box-sizing: border-box;
+    margin: auto;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #000;
+}
+
+.detail-header-icons {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.detail-icon-btn {
+    font-size: 24px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+}
+
+.detail-icon-btn:hover {
+    transform: scale(1.1);
+}
+
+.detail-form-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.detail-form-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 28px;
+    row-gap: 12px;
+}
+
+.detail-form-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.detail-label {
+    width: 90px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #000;
+    flex-shrink: 0;
+}
+
+.detail-input-box {
+    flex: 1;
+    height: 50px;
+    border: 2px solid #dadada;
+    border-radius: 8px;
+    background: #f9f9f9;
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+}
+
+.detail-input-text {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 15px;
+    color: #333;
+    font-family: 'Inter', sans-serif;
+    cursor: default;
+}
+
+.detail-calendar-icon {
+    color: #1a3e7f;
+    font-size: 20px;
+    pointer-events: none;
+}
+
+/* --- PRIORITY STYLING (Readonly Override) --- */
+.priority-selector.readonly {
+    pointer-events: none;
+}
+
+.priority-selector.readonly .priority-option {
+    opacity: 0.5;
+}
+
+.priority-selector.readonly .priority-option.active {
+    opacity: 1 !important;
+    box-shadow: none;
+    transform: none;
+    border-width: 2px;
+}
+
+/* --- ACTION BUTTONS --- */
+.detail-actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 10px;
+}
+
+/* Base Style untuk Tombol Detail */
+.detail-btn-wontdo,
+.detail-btn-delete {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 16px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    border: none;
+}
+
+/* Tombol Won't Do (Oranye #E45700) */
+.detail-btn-wontdo {
+    background-color: #E45700;
+}
+
+.detail-btn-wontdo:hover {
+    background-color: #bf3d00;
+    /* Versi lebih gelap untuk hover */
+}
+
+/* Tombol Delete (Merah) */
+.detail-btn-delete {
+    background-color: #a60000;
+}
+
+.detail-btn-delete:hover {
+    background-color: #850000;
+}
+
+@media (max-width: 768px) {
+    .detail-form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-form-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .detail-label {
+        width: 100%;
+    }
+
+    .detail-input-box {
+        width: 100%;
+    }
+}
