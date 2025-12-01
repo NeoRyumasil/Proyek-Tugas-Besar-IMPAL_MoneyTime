@@ -148,3 +148,13 @@
 .button2:hover {
     background-color: #9f0003;
 }
+
+.modal-btn-wontdo {
+    background-color: #E45700;
+    color: #fff;
+    border: none;
+}
+
+.modal-btn-wontdo:hover {
+    background-color: #bf3d00;
+}
