@@ -15,6 +15,7 @@ body {
     background-color: #f0f5ff;
 }
 
+/* ================= HEADER & NAVBAR ================= */
 .header-guest {
     width: 100%;
     height: 100px;
@@ -381,6 +382,7 @@ body {
     transform: translateY(-7px) rotate(-45deg);
 }
 
+/* ================= CONTENT & LAYOUT ================= */
 .money-body {
     max-width: 1200px;
     margin: 0 auto;
@@ -456,6 +458,7 @@ body {
     font-weight: 700;
 }
 
+/* ================= TOOLBAR ================= */
 .toolbar-wrapper {
     background: white;
     border-radius: 12px;
@@ -501,18 +504,6 @@ body {
     background-color: #2563EB;
 }
 
-.date-badge {
-    background-color: #3B82F6;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 15px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
 .add-btn {
     background-color: #15803d;
     color: white;
@@ -531,6 +522,7 @@ body {
     background-color: #166534;
 }
 
+/* ================= CONTENT & CHARTS ================= */
 .content-wrapper {
     display: flex;
     gap: 24px;
@@ -601,7 +593,6 @@ body {
 .val-green {
     color: #126C00;
     font-size: 18px;
-
 }
 
 .val-red {
@@ -695,9 +686,10 @@ body {
 
 .l-val {
     font-weight: 700;
-    color: #dc2626;
+    color: #dc2626; /* Default (Expense) color */
 }
 
+/* ================= FOOTER ================= */
 .footer {
     width: 100%;
     background-color: #1a3e7f;
@@ -802,6 +794,7 @@ body {
     color: #f0f5ff;
 }
 
+/* ================= RESPONSIVE ================= */
 @media (max-width: 1200px) {
     .footer {
         padding: 50px 48px;
@@ -832,9 +825,7 @@ body {
     }
 }
 
-/* --- CUSTOM DATE PICKER STYLING (NEW) --- */
-
-/* Container utama untuk trigger */
+/* ================= CUSTOM DATE PICKER ================= */
 .date-picker-container {
     position: relative;
     display: inline-block;
@@ -842,7 +833,6 @@ body {
     margin: 0 10px;
 }
 
-/* Badge Tampilan (Pill Putih) */
 .date-display-badge {
     background: #ffffff;
     padding: 6px 16px 6px 8px;
@@ -857,13 +847,11 @@ body {
     justify-content: space-between;
 }
 
-/* Hover Effect */
 .date-picker-container:hover .date-display-badge {
     box-shadow: 0 8px 20px rgba(26, 62, 127, 0.15);
     border-color: rgba(26, 62, 127, 0.3);
 }
 
-/* Ikon Kalender */
 .calendar-icon-box {
     width: 36px;
     height: 36px;
@@ -876,7 +864,6 @@ body {
     font-size: 16px;
 }
 
-/* Teks Bulan Tahun */
 .date-text {
     font-family: 'Inter', sans-serif;
     font-weight: 700;
@@ -886,7 +873,6 @@ body {
     text-align: center;
 }
 
-/* Panah Dropdown */
 .dropdown-indicator {
     font-size: 12px;
     color: #9aaec9;
@@ -894,7 +880,6 @@ body {
     margin-right: 4px;
 }
 
-/* Putar panah saat aktif */
 .date-picker-container.active .dropdown-indicator {
     transform: rotate(180deg);
     color: #1a3e7f;
@@ -912,22 +897,18 @@ body {
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
     padding: 16px;
     z-index: 999;
-
-    /* Hidden by default */
     opacity: 0;
     visibility: hidden;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid rgba(26, 62, 127, 0.1);
 }
 
-/* Show popup */
 .date-picker-container.active .custom-date-popup {
     opacity: 1;
     visibility: visible;
     transform: translateX(-50%) translateY(0);
 }
 
-/* Header Tahun di Popup */
 .picker-header {
     display: flex;
     justify-content: space-between;
@@ -963,7 +944,6 @@ body {
     color: #1a3e7f;
 }
 
-/* Grid Bulan */
 .picker-months-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -998,6 +978,7 @@ body {
     }
 }
 
+/* ================= STATS TOGGLE ================= */
 .stats-header-row {
     display: flex;
     justify-content: space-between;
@@ -1008,7 +989,6 @@ body {
 .stats-mini-toggle {
     display: flex;
     background-color: #9BABC9;
-    /* Warna dasar abu-biru */
     border-radius: 6px;
     padding: 2px;
     gap: 2px;
@@ -1018,7 +998,6 @@ body {
     padding: 4px 12px;
     border-radius: 4px;
     font-size: 12px;
-    /* Ukuran font lebih kecil */
     font-weight: 600;
     color: #fff;
     cursor: pointer;
@@ -1030,14 +1009,13 @@ body {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-/* State Aktif (Biru Tua) */
 .stats-toggle-btn.active {
     background-color: #1a3e7f;
     color: #fff;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* --- TOOLTIP HOVER STYLE --- */
+/* ================= TOOLTIP HOVER STYLE ================= */
 .transaction-tooltip {
     position: fixed;
     background: rgba(26, 62, 127, 0.95); /* Warna Biru Tema MoneyTime */
@@ -1084,4 +1062,10 @@ body {
     text-align: right;
 }
 
+/* ================= STATS LEGEND COLORS ================= */
 
+/* Override warna merah default (.l-val) jika ada class val-green-stats */
+/* Digunakan khusus di Chart/Stats saat mode Income */
+.l-val.val-green-stats {
+    color: #126C00 !important;
+}

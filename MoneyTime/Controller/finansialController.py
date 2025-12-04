@@ -138,3 +138,53 @@ class FinansialController:
         except Exception as e:
             print(f"[FinansialController] get_transactions error: {e}")
             return []
+
+    def get_categories(self, user_id: str) -> Dict[str, List[str]]:
+        """
+        Mengambil kategori unik berdasarkan transaksi yang sudah ada di database.
+        Mengelompokkan berdasarkan Income dan Expense.
+        Jika belum ada transaksi, kembalikan kategori default.
+        """
+        try:
+            conn = db_connect()
+            cursor = conn.cursor()
+
+            # Query untuk Income categories
+            sql_income = """
+                SELECT DISTINCT f.kategori
+                FROM [dbo].[Pemasukkan] p
+                JOIN [dbo].[Finansial] f ON p.FinansialID = f.FinansialID
+                WHERE f.UserID = ?
+            """
+            cursor.execute(sql_income, (user_id,))
+            income_rows = cursor.fetchall()
+            income_categories = [row[0] for row in income_rows] if income_rows else []
+
+            # Query untuk Expense categories
+            sql_expense = """
+                SELECT DISTINCT f.kategori
+                FROM [dbo].[Pengeluaran] q
+                JOIN [dbo].[Finansial] f ON q.FinansialID = f.FinansialID
+                WHERE f.UserID = ?
+            """
+            cursor.execute(sql_expense, (user_id,))
+            expense_rows = cursor.fetchall()
+            expense_categories = [row[0] for row in expense_rows] if expense_rows else []
+
+            # Jika belum ada kategori, gunakan default
+            if not income_categories:
+                income_categories = ["Gaji", "Return Investasi", "Jual Barang", "Other"]
+            if not expense_categories:
+                expense_categories = ["Academic", "Project", "Organization", "Entertainment", "Other"]
+
+            return {
+                "Income": income_categories,
+                "Expense": expense_categories
+            }
+        except Exception as e:
+            print(f"[FinansialController] get_categories error: {e}")
+            # Return default categories jika error
+            return {
+                "Income": ["Gaji", "Return Investasi", "Jual Barang", "Other"],
+                "Expense": ["Academic", "Project", "Organization", "Entertainment", "Other"]
+            }

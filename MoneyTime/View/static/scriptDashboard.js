@@ -351,6 +351,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // --- RENDER CHART (WITH EMPTY STATE) ---
+// --- RENDER CHART (UPDATED COLOR LOGIC) ---
   function renderChart(transactions) {
     if (!chartCanvas) return;
 
@@ -376,15 +377,20 @@ document.addEventListener('DOMContentLoaded', function () {
       if (labels.length === 0) {
         legendContainer.innerHTML = '<div style="text-align:center; color:#888; font-size:14px; padding: 10px;">Data not found</div>';
       } else {
+        // --- LOGIKA WARNA BARU DI SINI ---
+        // Jika sedang tab Income, gunakan 'val-green', jika Expense gunakan 'val-red'
+        const amountClass = currentStatsType === 'Income' ? 'val-green' : 'val-red';
+
         labels.forEach((cat, idx) => {
           const pct = totalAmount > 0 ? ((dataVal[idx] / totalAmount) * 100).toFixed(2) + '%' : '0%';
+          
           legendContainer.innerHTML += `
               <div class="l-item">
                   <div class="l-left">
                       <span class="l-pct" style="background-color: ${colors[idx]}">${pct}</span>
                       <span class="l-name">${cat}</span>
                   </div>
-                  <span class="l-val">${formatRupiah(dataVal[idx])}</span>
+                  <span class="l-val ${amountClass}">${formatRupiah(dataVal[idx])}</span>
               </div>
           `;
         });
@@ -428,12 +434,11 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     } else {
         // EMPTY STATE (Gray Placeholder)
-        // Ini memastikan ukuran container tetap sama (250px) dengan menampilkan lingkaran abu-abu
         chartData = {
             labels: ["No Data"],
             datasets: [{
-                data: [1], // Dummy data
-                backgroundColor: ["#E5E7EB"], // Light Gray
+                data: [1], 
+                backgroundColor: ["#E5E7EB"], 
                 borderWidth: 0,
                 hoverOffset: 0
             }]
@@ -443,7 +448,7 @@ document.addEventListener('DOMContentLoaded', function () {
             maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
-                tooltip: { enabled: false } // Disable tooltip
+                tooltip: { enabled: false } 
             },
             cutout: '0%'
         };

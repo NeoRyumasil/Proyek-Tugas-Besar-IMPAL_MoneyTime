@@ -9,13 +9,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const categoryList = categoryDropdown ? categoryDropdown.querySelector(".dropdown-list") : null;
     const addCategoryBtn = document.getElementById("addCategoryBtn");
 
-    const categories = {
+    let categories = {
         Income: ["Gaji", "Return Investasi", "Jual Barang", "Other"],
         Expense: ["Academic", "Project", "Organization", "Entertainment", "Other"]
     };
 
     let currentType = "Income";
     let categoryItems = [];
+
+    // --- FETCH CATEGORIES FROM API ---
+    async function fetchCategories() {
+        try {
+            const response = await fetch('/api/categories', {
+                method: 'GET',
+                credentials: 'same-origin'
+            });
+            const data = await response.json();
+            if (data.success) {
+                categories = data.categories;
+            } else {
+                console.error('Failed to fetch categories:', data.message);
+            }
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+        }
+    }
 
     // --- CATEGORY LOGIC (UPDATED) ---
     function renderCategoryList(type) {
@@ -44,8 +62,10 @@ document.addEventListener('DOMContentLoaded', () => {
         categoryItems = Array.from(categoryList.querySelectorAll(".dropdown-item"));
     }
 
-    // Init awal
-    renderCategoryList(currentType);
+    // Init awal - fetch categories first, then render
+    fetchCategories().then(() => {
+        renderCategoryList(currentType);
+    });
 
     // Listener Ganti Tipe (Income/Expense)
     typeButtons.forEach(btn => {
