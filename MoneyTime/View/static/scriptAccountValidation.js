@@ -1,25 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- 1. INISIALISASI ELEMEN DOM ---
-    const step1 = document.getElementById('step-1-email');
-    const step2 = document.getElementById('step-2-otp');
-    // step3 dihapus karena tidak digunakan lagi
-
-    const form1 = document.getElementById('form-send-otp');
-    const form2 = document.getElementById('form-verify-otp');
-
-    const error1 = document.getElementById('step-1-error');
-    const error2 = document.getElementById('step-2-error');
-
+    // --- DOM ELEMENTS ---
+    const formVerify = document.getElementById('form-verify-otp');
+    const otpError = document.getElementById('otp-error');
+    const verifyBtn = document.getElementById('verify-btn');
     const toastContainer = document.getElementById('toast-container');
     const resendLink = document.getElementById('resend-link');
+    const otpInputs = document.querySelectorAll('.otp-inputs input');
 
-    // --- 2. VARIABEL GLOBAL ---
-    let currentEmail = ''; 
+    // --- VARIABLES ---
     let resendTimer = null;
-    let timeLeft = 30;
+    const COOLDOWN_SECONDS = 30; 
 
-    // --- 3. FUNGSI TOAST ---
+    // --- 1. TOAST FUNCTION (Sama dengan scriptForgotPassword.js) ---
     function showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
@@ -37,12 +30,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
 
-    // --- 4. TIMER RESEND ---
-    function startResendTimer() {
+    // --- 2. RESEND TIMER FUNCTION (Sama dengan scriptForgotPassword.js) ---
+    function startResendTimer(initialTime) {
         if (!resendLink) return;
         if (resendTimer) clearInterval(resendTimer);
-        timeLeft = 30;
+        
+        let timeLeft = initialTime;
 
+        // Tampilan Awal (Disabled)
         resendLink.style.pointerEvents = 'none';
         resendLink.style.color = '#999999';
         resendLink.style.cursor = 'default';
@@ -55,83 +50,121 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (timeLeft <= 0) {
                 clearInterval(resendTimer);
+                
+                // Tampilan Aktif (Clickable)
                 resendLink.textContent = 'Resend';
                 resendLink.style.pointerEvents = 'auto';
                 resendLink.style.color = '#1A3E7F';
                 resendLink.style.cursor = 'pointer';
                 resendLink.style.fontWeight = '600';
+                
+                // Hapus timestamp storage agar bisa kirim ulang nanti
+                sessionStorage.removeItem('otp_next_allowed_time');
             }
         }, 1000);
     }
 
-    // --- 5. KIRIM OTP (STEP 1 - AUTO/MANUAL) ---
-    form1.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        error1.style.display = 'none';
-        const formData = new FormData(form1);
-        currentEmail = formData.get('email');
-
-        const btn = form1.querySelector('button');
-        const originalText = btn.innerText;
-        btn.innerText = 'Sending...';
-        btn.disabled = true;
-
+    // --- 3. AUTO SEND & REFRESH LOGIC ---
+    async function sendOtpAutomatic() {
+        // UI Loading State pada Link Resend
+        resendLink.textContent = "Sending...";
+        resendLink.style.pointerEvents = 'none';
+        
         try {
-            const response = await fetch('/send-validation-otp', {
-                method: 'POST',
-                body: formData
-            });
+            const response = await fetch('/send-validation-otp', { method: 'POST' });
             const result = await response.json();
 
             if (result.success) {
-                step1.style.display = 'none';
-                step2.style.display = 'block';
-                startResendTimer();
-                showToast('OTP sent to your email!', 'success');
+                showToast('Verification code sent!', 'success');
+                
+                // Set cooldown
+                const nextAllowedTime = Date.now() + (COOLDOWN_SECONDS * 1000);
+                sessionStorage.setItem('otp_next_allowed_time', nextAllowedTime);
+                
+                startResendTimer(COOLDOWN_SECONDS);
             } else {
-                error1.textContent = result.message;
-                error1.style.display = 'block';
                 showToast(result.message, 'error');
+                // Jika error (misal session habis), kembalikan ke Auth
+                if(result.message.toLowerCase().includes('email')) {
+                    setTimeout(() => window.location.href = '/auth', 2000);
+                }
             }
         } catch (err) {
-            error1.textContent = 'An error occurred.';
-            error1.style.display = 'block';
-            showToast('Connection error.', 'error');
-        } finally {
-            btn.innerText = originalText;
-            btn.disabled = false;
+            console.error(err);
+            showToast('Network error.', 'error');
         }
-    });
+    }
 
-    // --- 6. AUTO-FOCUS OTP INPUT ---
-    const otpInputs = document.querySelectorAll('.otp-inputs input');
+    function checkAutoSendStatus() {
+        const nextAllowed = sessionStorage.getItem('otp_next_allowed_time');
+        
+        if (nextAllowed) {
+            const now = Date.now();
+            const remainingTime = Math.ceil((parseInt(nextAllowed) - now) / 1000);
+
+            if (remainingTime > 0) {
+                // Masih cooldown: Jangan kirim ulang, lanjutkan timer
+                startResendTimer(remainingTime);
+            } else {
+                // Cooldown habis: Kirim baru
+                sendOtpAutomatic();
+            }
+        } else {
+            // Belum pernah kirim: Kirim baru
+            sendOtpAutomatic();
+        }
+    }
+
+    // --- 4. RESEND CLICK EVENT ---
+    if (resendLink) {
+        resendLink.addEventListener('click', async (e) => {
+            e.preventDefault();
+            // Cek manual (double check)
+            if (resendLink.textContent === 'Resend') {
+                await sendOtpAutomatic();
+            }
+        });
+    }
+
+    // --- 5. HANDLING INPUT OTP (Sama dengan scriptForgotPassword.js) ---
     otpInputs.forEach((input, index) => {
         input.addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            e.target.value = e.target.value.replace(/[^0-9]/g, ''); // Hanya angka
+            
+            // Auto Focus Next
             if (e.target.value && index < otpInputs.length - 1) {
                 otpInputs[index + 1].focus();
             }
+            // Sembunyikan error saat user mengetik
+            otpError.style.display = 'none';
         });
+
         input.addEventListener('keydown', (e) => {
+            // Backspace Logic
             if (e.key === 'Backspace' && !e.target.value && index > 0) {
                 otpInputs[index - 1].focus();
             }
         });
     });
 
-    // --- 7. VERIFIKASI OTP (STEP 2) - UPDATED ---
-    form2.addEventListener('submit', async (e) => {
+    // --- 6. VERIFY SUBMIT ---
+    formVerify.addEventListener('submit', async (e) => {
         e.preventDefault();
-        error2.style.display = 'none';
+        otpError.style.display = 'none'; // Reset error display
 
         let otpValue = '';
         otpInputs.forEach(input => otpValue += input.value);
 
         if (otpValue.length < 4) {
-            error2.textContent = 'Please enter complete code.';
-            error2.style.display = 'block';
+            otpError.textContent = 'Please enter complete 4-digit code.';
+            otpError.style.display = 'block';
             return;
         }
+
+        const btn = formVerify.querySelector('button');
+        const originalText = btn.innerText;
+        btn.innerText = 'Verifying...';
+        btn.disabled = true;
 
         const formData = new FormData();
         formData.append('otp', otpValue);
@@ -144,96 +177,30 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
 
             if (result.success) {
-                // Hentikan timer jika ada
+                // Clear storage
+                sessionStorage.removeItem('otp_next_allowed_time');
                 if (resendTimer) clearInterval(resendTimer);
                 
-                // LANGSUNG REDIRECT KE LOGIN TANPA TAMPILAN LAIN
-                window.location.href = '/auth';
+                showToast('Account verified successfully!', 'success');
                 
+                // Redirect ke Login
+                setTimeout(() => {
+                    window.location.href = '/auth';
+                }, 1500);
             } else {
-                error2.textContent = result.message;
-                error2.style.display = 'block';
-                showToast(result.message, 'error');
+                // Tampilkan Error Persis Forgot Password Style
+                otpError.textContent = result.message; // "Invalid verification code."
+                otpError.style.display = 'block';
             }
         } catch (err) {
-            error2.textContent = 'An error occurred.';
-            error2.style.display = 'block';
+            otpError.textContent = 'An error occurred. Please try again.';
+            otpError.style.display = 'block';
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
         }
     });
 
-    // --- 8. KLIK RESEND ---
-    if (resendLink) {
-        resendLink.addEventListener('click', async (e) => {
-            e.preventDefault();
-            
-            if (timeLeft <= 0) {
-                resendLink.style.pointerEvents = 'none';
-                resendLink.textContent = 'Sending...';
-
-                const formData = new FormData();
-                if(currentEmail) formData.append('email', currentEmail);
-
-                try {
-                    const response = await fetch('/send-validation-otp', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const result = await response.json();
-
-                    if (result.success) {
-                        showToast('OTP resent successfully!', 'success');
-                        startResendTimer();
-                    } else {
-                        showToast('Failed: ' + result.message, 'error');
-                        resendLink.textContent = 'Resend';
-                        resendLink.style.pointerEvents = 'auto';
-                    }
-                } catch (err) {
-                    showToast('Network error.', 'error');
-                    resendLink.textContent = 'Resend';
-                    resendLink.style.pointerEvents = 'auto';
-                }
-            }
-        });
-    }
-    
-    // Auto trigger send otp logic (jika ada function terpisah)
-    const statusText = document.getElementById('otp-status-text');
-    const otpError = document.getElementById('otp-error');
-    
-    // --- AUTO SEND OTP FUNCTION (Jika mode auto-send aktif di HTML) ---
-    if(statusText) {
-        async function sendOtpAutomatic() {
-            statusText.textContent = "Sending verification code...";
-            statusText.style.color = "#1a3e7f";
-            if(resendLink) resendLink.style.pointerEvents = 'none'; 
-            
-            try {
-                const response = await fetch('/send-validation-otp', { method: 'POST' });
-                const result = await response.json();
-
-                if (result.success) {
-                    statusText.textContent = "Verification code sent!";
-                    statusText.style.color = "#15803d"; 
-                    showToast('Code sent to your email!', 'success');
-                    startResendTimer();
-                } else {
-                    statusText.textContent = "Failed to send code.";
-                    statusText.style.color = "#c90004";
-                    if(otpError) {
-                        otpError.textContent = result.message;
-                        otpError.style.display = 'block';
-                    }
-                    if(result.message.includes('tidak ditemukan')) {
-                        setTimeout(() => window.location.href = '/auth', 3000);
-                    }
-                }
-            } catch (err) {
-                console.error(err);
-                statusText.textContent = "Network error.";
-                statusText.style.color = "#c90004";
-            }
-        }
-        sendOtpAutomatic();
-    }
+    // Jalankan logika timer saat load
+    checkAutoSendStatus();
 });

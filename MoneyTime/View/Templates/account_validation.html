@@ -14,7 +14,7 @@
 
     <div class="main-container">
 
-        <div class="step-container" id="step-otp-validation">
+        <div class="step-container" id="step-otp-validation" style="display: block;">
             <form class="step-form" id="form-verify-otp">
                 <h1>Verify Your Account</h1>
                 <p>We have sent a 4-digit verification code to your email.<br>Please enter the code below to continue.</p>
@@ -29,22 +29,16 @@
                     </div>
                 </div>
 
-                <p id="otp-status-text" style="font-size: 12px; color: #1a3e7f; margin-bottom: 10px; font-weight: 500;">
-                    Sending verification code...
-                </p>
-
                 <p class="resend-text">
                     Didn’t receive a code? 
-                    <a href="#" id="resend-link">Resend</a>
+                    <a href="#" id="resend-link">Resend in 30s</a>
                 </p>
                 
                 <div id="otp-error" class="error-message" style="display: none;"></div>
+                
                 <button type="submit" class="submit-btn" id="verify-btn">Verify Account</button>
             </form>
         </div>
-
-        <div id="step-1-email" style="display:none;"><form id="form-send-otp"></form><div id="step-1-error"></div></div>
-        <div id="step-2-otp" style="display:none;"><div id="step-2-error"></div></div>
 
     </div>
 
