@@ -27,7 +27,7 @@ def index():
 def auth():
     return render_template('RegisLogin.html')
 
-# Route register (UPDATED)
+# Route register (UPDATED: Simpan ke Session, BUKAN Database)
 @app.route('/register', methods=['POST'])
 def register():
     username = request.form.get('register_username')
@@ -36,18 +36,29 @@ def register():
     confirm = request.form.get('register_confirm')
 
     if password == confirm:
-        registration_result = user_controller.registrasi(username, password, email)
-        if registration_result == True:
-            # Simpan email untuk validasi akun
-            session['pending_validation_email'] = email
-            # Kirim sinyal redirect ke frontend
-            return jsonify({'success': True, 'message': 'Registration successful', 'redirect': '/account-validation'})
-        elif registration_result == "exists":
-            return jsonify({'success': False, 'message': 'Account already exists, please use a new one.'})
-        elif registration_result == False:
-            return jsonify({'success': False, 'message': 'Registration failed. Please try again.'})
-        else:
-            return jsonify({'success': False, 'message': 'Unexpected error occurred during registration.'})
+        # Cek apakah username/email sudah terpakai
+        if user_controller.check_username_exists(username):
+            return jsonify({'success': False, 'message': 'Username already exists.'})
+        if user_controller.check_email_exists(email):
+            return jsonify({'success': False, 'message': 'Email already exists.'})
+
+        # SIMPAN SEMENTARA DI SESSION (Belum masuk DB)
+        session['pending_registration'] = {
+            'username': username,
+            'email': email,
+            'password': password
+        }
+        
+        # Simpan email untuk keperluan validasi
+        session['pending_validation_email'] = email
+
+        # Redirect ke halaman validasi
+        return jsonify({
+            'success': True, 
+            'message': 'Please verify your email.', 
+            'redirect': '/account-validation'
+        })
+    
     return jsonify({'success': False, 'message': 'Passwords do not match.'})
 
 # Route login
@@ -200,19 +211,21 @@ def update_password():
     else:
         return jsonify({'success': False, 'message': 'Gagal update password.'})
 
-# --- Fitur Account Validation (BARU) ---
+# --- Fitur Account Validation (UPDATED) ---
 @app.route('/account-validation')
 def account_validation():
+    # Pastikan ada data pendaftaran di session
+    if 'pending_registration' not in session:
+        return redirect(url_for('auth'))
     return render_template('account_validation.html')
 
 @app.route('/send-validation-otp', methods=['POST'])
 def send_validation_otp():
     email = request.form.get('email')
-    # Ambil dari session jika tidak ada di form (user baru regis)
     if not email:
         email = session.get('pending_validation_email')
     if not email:
-        return jsonify({'success': False, 'message': 'Email tidak ditemukan.'})
+        return jsonify({'success': False, 'message': 'Email tidak ditemukan. Silakan daftar ulang.'})
         
     otp = user_controller.send_validation_otp(email)
     if otp:
@@ -228,14 +241,36 @@ def verify_validation_otp():
     server_otp = session.get('validation_otp')
     email = session.get('validation_email')
     
-    if server_otp and user_otp == server_otp and email:
-        # Validasi berhasil, hapus session temporary
-        session.pop('validation_otp', None)
-        session.pop('validation_email', None)
-        session.pop('pending_validation_email', None)
-        return jsonify({'success': True, 'message': 'Akun berhasil diverifikasi.'})
+    # Ambil data user dari session (karena belum ada di DB)
+    pending_reg = session.get('pending_registration')
+
+    if server_otp and user_otp == server_otp and pending_reg:
+        
+        # === SIMPAN KE DATABASE SEKARANG ===
+        reg_username = pending_reg['username']
+        reg_password = pending_reg['password']
+        reg_email = pending_reg['email']
+
+        # Panggil Controller Registrasi (yang melakukan INSERT)
+        result = user_controller.registrasi(reg_username, reg_password, reg_email)
+        
+        if result == True:
+            # Sukses simpan, bersihkan session
+            session.pop('validation_otp', None)
+            session.pop('validation_email', None)
+            session.pop('pending_validation_email', None)
+            session.pop('pending_registration', None)
+            
+            return jsonify({'success': True, 'message': 'Account verified successfully.'})
+        else:
+            return jsonify({'success': False, 'message': 'Database error.'})
+            
+    elif not pending_reg:
+        return jsonify({'success': False, 'message': 'Session expired. Please register again.'})
     else:
-        return jsonify({'success': False, 'message': 'Kode OTP salah.'})
+        # PESAN ERROR BAHASA INGGRIS (Untuk ditampilkan di form)
+        return jsonify({'success': False, 'message': 'Invalid verification code.'})
+
 
 if __name__ == '__main__':
     app.run(debug=True)

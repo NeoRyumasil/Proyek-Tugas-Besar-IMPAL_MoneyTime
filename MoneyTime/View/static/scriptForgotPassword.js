@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- 1. INISIALISASI ELEMEN DOM ---
+    // --- 1. DOM ELEMENTS INITIALIZATION ---
     const step1 = document.getElementById('step-1-email');
     const step2 = document.getElementById('step-2-otp');
     const step3 = document.getElementById('step-3-password');
@@ -16,22 +16,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const toastContainer = document.getElementById('toast-container');
     const resendLink = document.getElementById('resend-link');
 
-    // --- 2. VARIABEL GLOBAL ---
-    let currentEmail = ''; // Menyimpan email untuk keperluan Resend
+    // --- 2. GLOBAL VARIABLES ---
+    let currentEmail = ''; // Store email for resend purposes
     let resendTimer = null;
     let timeLeft = 30;
 
-    // --- 3. FUNGSI TOAST (NOTIFIKASI) ---
+    // --- 3. TOAST FUNCTION (NOTIFICATION) ---
     function showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.textContent = message;
         toastContainer.appendChild(toast);
 
-        // Animasi masuk
+        // Animation in
         setTimeout(() => toast.classList.add('show'), 100);
 
-        // Hapus otomatis
+        // Auto remove
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => {
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
 
-    // --- 4. FUNGSI TIMER RESEND (30 DETIK) ---
+    // --- 4. RESEND TIMER FUNCTION (30 SECONDS) ---
     function startResendTimer() {
         if (!resendLink) return;
 
@@ -50,34 +50,34 @@ document.addEventListener('DOMContentLoaded', () => {
         if (resendTimer) clearInterval(resendTimer);
         timeLeft = 30;
 
-        // TAMPILAN AWAL (MATI/DISABLED)
+        // INITIAL DISPLAY (DISABLED)
         resendLink.style.pointerEvents = 'none';
-        resendLink.style.color = '#999999'; // Abu-abu
+        resendLink.style.color = '#999999'; // Gray
         resendLink.style.cursor = 'default';
         resendLink.style.textDecoration = 'none';
         resendLink.textContent = `Resend in ${timeLeft}s`;
 
-        // MULAI HITUNG MUNDUR
+        // START COUNTDOWN
         resendTimer = setInterval(() => {
             timeLeft--;
             resendLink.textContent = `Resend in ${timeLeft}s`;
 
-            // JIKA WAKTU HABIS
+            // WHEN TIME IS UP
             if (timeLeft <= 0) {
                 clearInterval(resendTimer);
-                
-                // TAMPILAN AKTIF (BISA DIKLIK)
+
+                // ACTIVE DISPLAY (CLICKABLE)
                 resendLink.textContent = 'Resend';
                 resendLink.style.pointerEvents = 'auto';
-                resendLink.style.color = '#1A3E7F'; // Biru MoneyTime
+                resendLink.style.color = '#1A3E7F'; // MoneyTime Blue
                 resendLink.style.cursor = 'pointer';
                 resendLink.style.fontWeight = '600';
             }
         }, 1000);
     }
 
-    // --- 5. PEMICU TIMER (OBSERVER) ---
-    // Timer jalan otomatis saat Step 2 muncul
+    // --- 5. TIMER TRIGGER (OBSERVER) ---
+    // Timer runs automatically when Step 2 appears
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
@@ -92,17 +92,17 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.observe(step2, { attributes: true, attributeFilter: ['style'] });
     }
 
-    // --- 6. LOGIKA KLIK TOMBOL RESEND ---
+    // --- 6. RESEND BUTTON CLICK LOGIC ---
     if (resendLink) {
         resendLink.addEventListener('click', async (e) => {
             e.preventDefault();
-            
-            // Double check: Pastikan timer habis & email ada
+
+            // Double check: Ensure timer is up & email exists
             if (timeLeft <= 0 && currentEmail) {
-                
+
                 showToast('Sending new code...', 'success');
-                
-                // Matikan tombol sementara proses fetch berjalan
+
+                // Disable button while fetch process is running
                 resendLink.style.pointerEvents = 'none';
                 resendLink.textContent = 'Sending...';
 
@@ -118,10 +118,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (result.success) {
                         showToast('OTP resent successfully!', 'success');
-                        startResendTimer(); // Reset timer 30 detik
+                        startResendTimer(); // Reset timer 30 seconds
                     } else {
                         showToast('Failed: ' + result.message, 'error');
-                        // Kembalikan tombol ke keadaan aktif jika gagal
+                        // Return button to active state if failed
                         resendLink.textContent = 'Resend';
                         resendLink.style.pointerEvents = 'auto';
                     }
@@ -135,13 +135,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 7. STEP 1: KIRIM OTP PERTAMA KALI ---
+    // --- 7. STEP 1: SEND OTP FOR THE FIRST TIME ---
     form1.addEventListener('submit', async (e) => {
         e.preventDefault();
         error1.style.display = 'none';
         const formData = new FormData(form1);
-        
-        // Simpan email
+
+        // Save email
         currentEmail = formData.get('email');
 
         // UX Loading
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (result.success) {
                 step1.style.display = 'none';
-                step2.style.display = 'block'; // Ini akan memicu Observer -> startResendTimer
+                step2.style.display = 'block'; // This will trigger Observer -> startResendTimer
                 showToast('OTP sent to your email!', 'success');
             } else {
                 error1.textContent = result.message;
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const otpInputs = document.querySelectorAll('.otp-inputs input');
     otpInputs.forEach((input, index) => {
         input.addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/[^0-9]/g, ''); // Hanya angka
+            e.target.value = e.target.value.replace(/[^0-9]/g, ''); // Only numbers
 
             if (e.target.value && index < otpInputs.length - 1) {
                 otpInputs[index + 1].focus();
@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- 9. STEP 2: VERIFIKASI OTP ---
+    // --- 9. STEP 2: VERIFY OTP ---
     form2.addEventListener('submit', async (e) => {
         e.preventDefault();
         error2.style.display = 'none';
@@ -221,12 +221,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result.success) {
                 step2.style.display = 'none';
                 step3.style.display = 'block';
-                if (resendTimer) clearInterval(resendTimer); // Stop timer jika sukses
+                if (resendTimer) clearInterval(resendTimer); // Stop timer if success
                 showToast('Email verified successfully!', 'success');
             } else {
                 error2.textContent = result.message;
                 error2.style.display = 'block';
-                showToast(result.message, 'error');
             }
         } catch (err) {
             error2.textContent = 'An error occurred.';
@@ -242,27 +241,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const newPass = document.getElementById('new-password').value;
         const confirmPass = document.getElementById('confirm-password').value;
 
-        // Batasan Minimal Password 8 Huruf
+        // Minimum password limit 8 characters
         if (newPass.length < 8) {
-            errorDiv.textContent = 'Password must be at least 8 characters long';
-            errorDiv.style.display = 'block';
-            return;
-        }
-        
-        // Batasan Harus Mengandung Angka dan Huruf
-        const hasNumber = /\d/.test(newPass);
-        const hasLetter = /[a-zA-Z]/.test(newPass);
-        if (!hasNumber || !hasLetter) {
-            errorDiv.textContent = 'Password must contain both letters and numbers';
-            errorDiv.style.display = 'block';
+            error3.textContent = 'Password must be at least 8 characters long';
+            error3.style.display = 'block';
             return;
         }
 
-        // Batasan Harus Mengandung Simbol
+        // Must contain numbers and letters
+        const hasNumber = /\d/.test(newPass);
+        const hasLetter = /[a-zA-Z]/.test(newPass);
+        if (!hasNumber || !hasLetter) {
+            error3.textContent = 'Password must contain both letters and numbers';
+            error3.style.display = 'block';
+            return;
+        }
+
+        // Must contain symbols
         const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(newPass);
         if (!hasSymbol) {
-            errorDiv.textContent = 'Password must contain at least one special character';
-            errorDiv.style.display = 'block';
+            error3.textContent = 'Password must contain at least one special character';
+            error3.style.display = 'block';
             return;
         }
 
@@ -282,10 +281,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (result.success) {
                 showToast('Password updated successfully!', 'success');
-                
-                // Redirect ke halaman Login setelah 2 detik
+
+                // Redirect to login page after 2 seconds
                 setTimeout(() => {
-                    window.location.href = '/auth'; 
+                    window.location.href = '/auth';
                 }, 2000);
             } else {
                 error3.textContent = result.message;
@@ -298,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- 11. TOGGLE PASSWORD (LIHAT/SEMBUNYIKAN) ---
+    // --- 11. TOGGLE PASSWORD (SHOW/HIDE) ---
     document.querySelectorAll('.password-toggle').forEach(icon => {
         icon.addEventListener('click', function() {
             const input = this.previousElementSibling;

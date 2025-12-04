@@ -1,20 +1,14 @@
 from Model.user import User          
 from Controller.databaseController import db_connect
-
-# Import kredensial dari file credentials.py
 from Controller.credentials import email_sender, email_password
 
-# Import library untuk Email dan Random
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 import random
 import os
-
-# Library Hashing
 from werkzeug.security import generate_password_hash, check_password_hash
-
-# Flask
 from flask import render_template
 
 class UserController:
@@ -61,11 +55,12 @@ class UserController:
             if 'conn' in locals(): conn.close()
 
     def registrasi(self, username, password, email):
+        """Menyimpan user baru ke database"""
         try:
             conn = db_connect()
             cursor = conn.cursor()
 
-            # Check if username or email already exists
+            # Cek duplikat lagi untuk keamanan
             check_sql = "SELECT COUNT(*) FROM [dbo].[User] WHERE username = ? OR email = ?"
             cursor.execute(check_sql, (username, email))
             count = cursor.fetchone()[0]
@@ -74,7 +69,6 @@ class UserController:
                 print(f"User {username} atau email {email} sudah terdaftar.")
                 return "exists"
               
-            # Hashing password sebelum disimpan
             hashed_password = generate_password_hash(password)
 
             sql = """
@@ -112,28 +106,41 @@ class UserController:
         try:
             conn = db_connect()
             cursor = conn.cursor()
-
             sql = "SELECT COUNT(*) FROM [dbo].[User] WHERE email = ?"
             cursor.execute(sql, (email,))
             result = cursor.fetchone()[0]
-
             return result > 0
-        
         except Exception as e:
             print("Error check email:", e)
             return False
         finally:
             if 'conn' in locals(): conn.close()
 
+    def check_username_exists(self, username: str):
+        try:
+            conn = db_connect()
+            cursor = conn.cursor()
+            sql = "SELECT COUNT(*) FROM [dbo].[User] WHERE username = ?"
+            cursor.execute(sql, (username,))
+            result = cursor.fetchone()[0]
+            return result > 0
+        except Exception as e:
+            print("Error check username:", e)
+            return False
+        finally:
+            if 'conn' in locals(): conn.close()
+
     def send_otp(self, target_email):
         """Mengirim OTP Reset Password"""
-        
         otp_code = str(random.randint(1000, 9999))
 
-        msg = MIMEMultipart()
+        msg = MIMEMultipart('related')
         msg['From'] = f"MoneyTime <{email_sender}>"
         msg['To'] = target_email
         msg['Subject'] = "Kode Verifikasi Reset Password Anda"
+
+        msg_alternative = MIMEMultipart('alternative')
+        msg.attach(msg_alternative)
 
         css_content = ""
         try:
@@ -150,10 +157,20 @@ class UserController:
                 css_style=css_content 
             )
         except Exception as e:
-            print(f"Error rendering template: {e}")
             html_content = f"Kode OTP Anda adalah: {otp_code}"
 
-        msg.attach(MIMEText(html_content, 'html'))
+        msg_alternative.attach(MIMEText(html_content, 'html'))
+
+        # Attach Logo
+        try:
+            img_path = os.path.join('View', 'static', 'avatarHeader.png')
+            with open(img_path, 'rb') as f:
+                image = MIMEImage(f.read())
+                image.add_header('Content-ID', '<logo_img>')
+                image.add_header('Content-Disposition', 'inline', filename='avatarHeader.png')
+                msg.attach(image)
+        except Exception as e:
+            print(f"Warning: Gagal attach logo: {e}")
 
         try:
             server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -161,10 +178,8 @@ class UserController:
             server.login(email_sender, email_password)
             server.sendmail(email_sender, target_email, msg.as_string())
             server.quit()
-            
             print(f"[SUCCESS] Email OTP {otp_code} terkirim ke {target_email}")
             return otp_code 
-            
         except Exception as e:
             print(f"[ERROR] Gagal kirim email: {e}")
             return None
@@ -173,14 +188,11 @@ class UserController:
         try:
             conn = db_connect()
             cursor = conn.cursor()
-
             hashed_password = generate_password_hash(new_password)
-
             sql = "UPDATE [dbo].[User] SET password = ? WHERE email = ?"
             cursor.execute(sql, (hashed_password, email))
             conn.commit()
             return True
-
         except Exception as e:
             print("Error update password:", e)
             return False
@@ -188,30 +200,29 @@ class UserController:
             if 'conn' in locals(): conn.close()
 
     # ==========================================
-    #       LOGIKA ACCOUNT VALIDATION (BARU)
+    #       LOGIKA ACCOUNT VALIDATION
     # ==========================================
 
     def send_validation_otp(self, target_email):
         """Mengirim OTP untuk validasi akun"""
-
         otp_code = str(random.randint(1000, 9999))
 
-        msg = MIMEMultipart()
+        msg = MIMEMultipart('related')
         msg['From'] = f"MoneyTime <{email_sender}>"
         msg['To'] = target_email
-        msg['Subject'] = "Verifikasi Akun MoneyTime Anda" # Subject Disesuaikan
+        msg['Subject'] = "Verifikasi Akun MoneyTime Anda"
 
-        # 1. BACA FILE CSS EMAIL
+        msg_alternative = MIMEMultipart('alternative')
+        msg.attach(msg_alternative)
+
         css_content = ""
         try:
-            # Path relative dari main.py
             css_path = os.path.join('View', 'static', 'styleForgotPasswordEmail.css')
             with open(css_path, 'r') as f:
                 css_content = f.read()
         except Exception as e:
             print(f"Warning: Gagal membaca file CSS Email: {e}")
 
-        # 2. RENDER TEMPLATE HTML (Gunakan template baru: validation_email.html)
         try:
             html_content = render_template(
                 'email/validation_email.html',
@@ -219,45 +230,37 @@ class UserController:
                 css_style=css_content
             )
         except Exception as e:
-            print(f"Error rendering template: {e}")
-            # Fallback jika template error
             html_content = f"Selamat datang! Kode verifikasi akun Anda adalah: {otp_code}"
 
-        msg.attach(MIMEText(html_content, 'html'))
+        msg_alternative.attach(MIMEText(html_content, 'html'))
 
-        # 3. KIRIM EMAIL
+        # Attach Logo
+        try:
+            img_path = os.path.join('View', 'static', 'avatarHeader.png')
+            with open(img_path, 'rb') as f:
+                image = MIMEImage(f.read())
+                image.add_header('Content-ID', '<logo_img>')
+                image.add_header('Content-Disposition', 'inline', filename='avatarHeader.png')
+                msg.attach(image)
+        except Exception as e:
+            print(f"Warning: Gagal attach logo: {e}")
+
         try:
             server = smtplib.SMTP('smtp.gmail.com', 587)
             server.starttls()
             server.login(email_sender, email_password)
             server.sendmail(email_sender, target_email, msg.as_string())
             server.quit()
-
             print(f"[SUCCESS] Email Validasi {otp_code} terkirim ke {target_email}")
             return otp_code
-
         except Exception as e:
             print(f"[ERROR] Gagal kirim email: {e}")
             return None
 
     def verify_validation_otp(self, email, otp):
-        """Verifikasi OTP untuk validasi akun"""
-        try:
-            conn = db_connect()
-            cursor = conn.cursor()
-
-            # Pastikan email terdaftar di DB
-            check_sql = "SELECT COUNT(*) FROM [dbo].[User] WHERE email = ?"
-            cursor.execute(check_sql, (email,))
-            count = cursor.fetchone()[0]
-
-            if count == 0:
-                return False 
-
-            return True
-
-        except Exception as e:
-            print("Error verify validation OTP:", e)
-            return False
-        finally:
-            if 'conn' in locals(): conn.close()
+        """
+        Verifikasi OTP sederhana. 
+        KITA TIDAK CEK DATABASE KARENA USER BELUM TERSIMPAN.
+        Pengecekan kecocokan OTP dilakukan di main.py via Session.
+        """
+        return True
