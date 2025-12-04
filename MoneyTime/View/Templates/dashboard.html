@@ -9,10 +9,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styleDashboard.css') }}">
     
     <link rel="stylesheet" href="{{ url_for('static', filename='styleTransactionAdd.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styleModal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styleTransactionDetail.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styleTransactionEdit.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleScheduleAdd.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleScheduleDetail.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleScheduleEdit.css') }}">
     
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleModal.css') }}">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap"
@@ -172,91 +176,166 @@
             </div>
         </div>
 
-        <div class="toolbar-wrapper">
-            <div class="toolbar-left">
-                <i class="fa-solid fa-wallet wallet-icon"></i>
-                <span class="toolbar-label">Transactions</span>
-            </div>
-
-            <div class="toolbar-center">
-                <button class="nav-circle-btn" id="prevMonthBtn">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </button>
-
-                <div class="date-picker-container" id="datePickerContainer">
-                    <div class="date-display-badge">
-                        <div class="calendar-icon-box">
-                            <i class="fa-regular fa-calendar-days"></i>
-                        </div>
-                        <span id="currentMonthLabel" class="date-text">Loading...</span>
-                        <i class="fa-solid fa-chevron-down dropdown-indicator"></i>
+        <div class="dashboard-split-view">
+            
+            <div class="dashboard-column">
+                
+                <div class="toolbar-wrapper">
+                    <div class="toolbar-left">
+                        <i class="fa-solid fa-wallet wallet-icon"></i>
+                        <span class="toolbar-label">Transactions</span>
                     </div>
 
-                    <div class="custom-date-popup" id="customDatePicker">
-                        <div class="picker-header">
-                            <button class="picker-nav-btn" id="pickerPrevYear">
-                                <i class="fa-solid fa-chevron-left"></i>
-                            </button>
-                            <span class="picker-year-label" id="pickerYearLabel">2025</span>
-                            <button class="picker-nav-btn" id="pickerNextYear">
-                                <i class="fa-solid fa-chevron-right"></i>
-                            </button>
+                    <div class="toolbar-center">
+                        <button class="nav-circle-btn" id="prevMonthBtn">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+
+                        <div class="date-picker-container" id="datePickerContainer">
+                            <div class="date-display-badge">
+                                <div class="calendar-icon-box">
+                                    <i class="fa-regular fa-calendar-days"></i>
+                                </div>
+                                <span id="currentMonthLabel" class="date-text">Loading...</span>
+                                <i class="fa-solid fa-chevron-down dropdown-indicator"></i>
+                            </div>
+                            <div class="custom-date-popup" id="customDatePicker">
+                                <div class="picker-header">
+                                    <button class="picker-nav-btn" id="pickerPrevYear"><i class="fa-solid fa-chevron-left"></i></button>
+                                    <span class="picker-year-label" id="pickerYearLabel">2025</span>
+                                    <button class="picker-nav-btn" id="pickerNextYear"><i class="fa-solid fa-chevron-right"></i></button>
+                                </div>
+                                <div class="picker-months-grid" id="pickerMonthsGrid"></div>
+                            </div>
                         </div>
-                        <div class="picker-months-grid" id="pickerMonthsGrid">
-                        </div>
+
+                        <button class="nav-circle-btn" id="nextMonthBtn">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
                     </div>
-                </div>
 
-                <button class="nav-circle-btn" id="nextMonthBtn">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
-            </div>
-            <div class="toolbar-right">
-                <button class="add-btn add-transaction-btn" id="openTransactionModalBtn">
-                    <i class="fa-solid fa-plus"></i> Add Transaction
-                </button>
-            </div>
-        </div>
-
-        <div class="content-wrapper">
-            <div class="trans-list-section" id="transactionListContainer">
-                <div style="text-align:center; padding:40px; color:#888;">Loading transactions...</div>
-            </div>
-
-            <div class="stats-section">
-                <div class="stats-header-row">
-                    <h3 class="section-title" style="margin-bottom: 0;">Stats</h3>
-
-                    <div class="stats-mini-toggle">
-                        <div class="stats-toggle-btn" id="statsIncomeBtn">Income</div>
-                        <div class="stats-toggle-btn active" id="statsExpenseBtn">Expense</div>
+                    <div class="toolbar-right">
+                        <button class="add-btn add-transaction-btn" id="openTransactionModalBtn">
+                            <i class="fa-solid fa-plus"></i> Add Transaction
+                        </button>
                     </div>
                 </div>
 
-                <div class="chart-box" id="chartContainer">
-                    <canvas id="moneyPieChart"></canvas>
+                <div class="trans-list-section" id="transactionListContainer">
+                    <div style="text-align:center; padding:40px; color:#888;">Loading transactions...</div>
                 </div>
-                <div class="legend-box" id="statsLegend"></div>
+
             </div>
-        </div>
+            <div class="dashboard-column">
+                
+                <div class="toolbar-wrapper">
+                    <div class="toolbar-left">
+                        <i class="fa-regular fa-calendar-days wallet-icon"></i>
+                        <span class="toolbar-label">Schedule</span>
+                    </div>
+
+                    <div class="toolbar-right" style="margin-left: auto;">
+                        <button class="add-btn" id="addScheduleBtn">
+                            <i class="fa-solid fa-plus"></i> Add Schedule
+                        </button>
+                    </div>
+                </div>
+
+                <div class="schedule-list-section">
+                    <div class="day-card" id="dashboard-schedule-list">
+                        <div class="day-header">
+                            <div class="dh-left">
+                                <span class="day-name">Upcoming & Today</span>
+                            </div>
+                        </div>
+
+                        <div class="trans-items">
+                            <div class="t-item schedule-row">
+                                <div class="sch-left">
+                                    <div class="priority-dot critical"></div>
+                                    <div class="sch-checkbox failed"><i class="fa-solid fa-check check-mark"></i></div>
+                                    <div class="sch-info">
+                                        <div class="sch-title">Final Project Submission</div>
+                                        <div class="sch-time">23:59</div>
+                                    </div>
+                                </div>
+                                <div class="sch-center">
+                                    <span class="t-badge badge-academic">Academic</span>
+                                </div>
+                                <div class="sch-right">
+                                    <span class="sch-date text-red">Oct 10 (Overdue)</span>
+                                </div>
+                            </div>
+
+                            <div class="t-item schedule-row">
+                                <div class="sch-left">
+                                    <div class="priority-dot medium"></div>
+                                    <div class="sch-checkbox"><i class="fa-solid fa-check check-mark"></i></div>
+                                    <div class="sch-info">
+                                        <div class="sch-title">Team Meeting</div>
+                                        <div class="sch-time">09:00</div>
+                                    </div>
+                                </div>
+                                <div class="sch-center">
+                                    <span class="t-badge badge-org">Organization</span>
+                                </div>
+                                <div class="sch-right">
+                                    <span class="sch-date">Oct 23</span>
+                                </div>
+                            </div>
+                            
+                            <div class="t-item schedule-row">
+                                <div class="sch-left">
+                                    <div class="priority-dot low"></div>
+                                    <div class="sch-checkbox"><i class="fa-solid fa-check check-mark"></i></div>
+                                    <div class="sch-info">
+                                        <div class="sch-title">Grocery Shopping</div>
+                                        <div class="sch-time">17:00</div>
+                                    </div>
+                                </div>
+                                <div class="sch-center">
+                                    <span class="t-badge badge-dark">Personal</span>
+                                </div>
+                                <div class="sch-right">
+                                    <span class="sch-date">Oct 23</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+            </div>
     </div>
 
     <div id="add-transaction-modal-overlay" class="modal-overlay" style="display: none;">
         {% include 'transactionAdd.html' %}
     </div>
-
     <div id="transaction-detail-modal-overlay" class="modal-overlay" style="display: none; z-index: 1050;">
         {% include 'transactionDetail.html' %}
     </div>
-
     <div id="edit-transaction-modal-overlay" class="modal-overlay" style="display: none; z-index: 1060;">
         {% include 'transactionEdit.html' %}
+    </div>
+
+    <div id="add-schedule-modal-overlay" class="modal-overlay" style="display: none; z-index: 1050;">
+        {% include 'scheduleAdd.html' %}
+    </div>
+    <div id="schedule-detail-modal-overlay" class="modal-overlay" style="display: none; z-index: 1060;">
+        {% include 'scheduleDetail.html' %}
+    </div>
+    <div id="edit-schedule-modal-overlay" class="modal-overlay" style="display: none; z-index: 1070;">
+        {% include 'scheduleEdit.html' %}
+    </div>
+    <div id="wont-do-modal-overlay" class="modal-overlay" style="display: none; z-index: 1250;">
+        {% include 'wontDoModal.html' %}
     </div>
 
     <div id="discard-modal-overlay" class="modal-overlay" style="display: none; z-index: 1100;">
         {% include 'discardChangesModal.html' %}
     </div>
-
     <div id="delete-modal-overlay" class="modal-overlay" style="display: none; z-index: 1200;">
         {% include 'deleteItemModal.html' %}
     </div>
@@ -308,10 +387,14 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ url_for('static', filename='scriptMoney.js') }}"></script>
     <script src="{{ url_for('static', filename='scriptTransactionAdd.js') }}"></script>
-    <script src="{{ url_for('static', filename='scriptModal.js') }}"></script>
     <script src="{{ url_for('static', filename='scriptTransactionDetail.js') }}"></script>
     <script src="{{ url_for('static', filename='scriptTransactionEdit.js') }}"></script>
+    
+    <script src="{{ url_for('static', filename='scriptScheduleAdd.js') }}"></script>
+    <script src="{{ url_for('static', filename='scriptScheduleDetail.js') }}"></script>
+    <script src="{{ url_for('static', filename='scriptScheduleEdit.js') }}"></script>
+    
+    <script src="{{ url_for('static', filename='scriptModal.js') }}"></script>
 
 </body>
-
 </html>
