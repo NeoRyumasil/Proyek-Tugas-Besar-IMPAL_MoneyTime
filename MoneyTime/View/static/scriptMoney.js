@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
 
-  // --- NAVBAR & UI UTILS ---
+  // =========================================
+  // 1. NAVBAR & UI UTILS
+  // =========================================
   const navToggle = document.getElementById('navToggle');
   const header = document.querySelector('.header-guest');
 
@@ -21,9 +23,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // --- SEARCH ELEMENT (LOGIKA BARU AKAN DITAMBAHKAN DI BAWAH) ---
-  const searchInput = document.getElementById('searchInput');
-  
   const profilePill = document.getElementById('profilePill');
   const profileContainer = document.querySelector('.profile-container');
 
@@ -39,74 +38,74 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // --- CORE LOGIC ---
+  // =========================================
+  // 2. CORE VARIABLES & HELPERS
+  // =========================================
   let allTransactions = [];
   let currentViewDate = new Date();
   let chartInstance = null;
   let currentStatsType = 'Expense';
 
-  // Elements Dashboard
+  // Elements
   const prevBtn = document.getElementById('prevMonthBtn');
   const nextBtn = document.getElementById('nextMonthBtn');
   const monthLabel = document.getElementById('currentMonthLabel');
-
-  // Elements Custom Picker
-  const pickerContainer = document.getElementById('datePickerContainer');
-  const pickerPopup = document.getElementById('customDatePicker');
-  const pickerYearLabel = document.getElementById('pickerYearLabel');
-  const pickerMonthsGrid = document.getElementById('pickerMonthsGrid');
-  const pickerPrevYear = document.getElementById('pickerPrevYear');
-  const pickerNextYear = document.getElementById('pickerNextYear');
-
-  // Stats Toggles
-  const statsIncomeBtn = document.getElementById('statsIncomeBtn');
-  const statsExpenseBtn = document.getElementById('statsExpenseBtn');
-
-  // Dashboard Cards
+  const searchInput = document.getElementById('searchInput');
+  
+  // Dashboard UI Elements
   const listContainer = document.getElementById('transactionListContainer');
   const incomeEl = document.getElementById('monthly-income');
   const expenseEl = document.getElementById('monthly-expenses');
   const balanceEl = document.getElementById('total-balance');
-
-  // Chart Elements
   const legendContainer = document.getElementById('statsLegend');
   const chartCanvas = document.getElementById('moneyPieChart');
 
-  // Variabel internal picker
+  // Date Picker
+  const pickerContainer = document.getElementById('datePickerContainer');
+  const pickerYearLabel = document.getElementById('pickerYearLabel');
+  const pickerMonthsGrid = document.getElementById('pickerMonthsGrid');
+  const pickerPrevYear = document.getElementById('pickerPrevYear');
+  const pickerNextYear = document.getElementById('pickerNextYear');
   let pickerYearView = currentViewDate.getFullYear();
   const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-  const categoryColors = {
-    'kos': '#5d4037',
-    'makan': '#f97316',
-    'langganan': '#7c3aed',
-    'jajan': '#eab308',
-    'transportasi': '#0ea5e9',
-    'gaji': '#16a34a',
-    'investasi': '#15803d',
-    'bonus': '#10b981',
-    'other': '#64748b'
-  };
-
-  function getColor(cat) {
-    if (!cat) return '#999999';
-    const lowerCat = cat.toLowerCase();
-    if (categoryColors[lowerCat]) return categoryColors[lowerCat];
-    let hash = 0;
-    for (let i = 0; i < lowerCat.length; i++) hash = lowerCat.charCodeAt(i) + ((hash << 5) - hash);
-    const h = Math.abs(hash % 360);
-    return `hsl(${h}, 65%, 55%)`;
-  }
-
+  // Helper: Format Rupiah
   const formatRupiah = (num) => new Intl.NumberFormat('id-ID', {
     style: 'currency', currency: 'IDR', minimumFractionDigits: 0
   }).format(num);
 
-  // --- LOGIKA CUSTOM PICKER ---
+  // --- 30 Distinct Colors Palette ---
+  const distinctColors = [
+      "#FF0000", "#0000FF", "#008000", "#FFD700", "#800080", 
+      "#00FFFF", "#FF00FF", "#FF4500", "#00CED1", "#2E8B57", 
+      "#8B4513", "#4682B4", "#D2691E", "#9ACD32", "#4B0082", 
+      "#DC143C", "#000080", "#DAA520", "#808000", "#708090", 
+      "#FF1493", "#7B68EE", "#00FA9A", "#C71585", "#191970", 
+      "#556B2F", "#FF6347", "#40E0D0", "#8B0000", "#9932CC"
+  ];
 
+  let categoryColorMap = {}; 
+
+  function assignColorsToCategories(transactions) {
+      categoryColorMap = {}; 
+      const uniqueCategories = [...new Set(transactions.map(t => t.kategori))]; 
+      
+      uniqueCategories.forEach((cat, index) => {
+          const colorIndex = index % distinctColors.length;
+          categoryColorMap[cat] = distinctColors[colorIndex];
+      });
+  }
+
+  function getColor(cat) {
+      if (!cat) return '#999999';
+      return categoryColorMap[cat] || '#999999';
+  }
+
+  // =========================================
+  // 3. DATE PICKER LOGIC
+  // =========================================
   function renderPicker() {
     if (!pickerYearLabel || !pickerMonthsGrid) return;
-
     pickerYearLabel.textContent = pickerYearView;
     pickerMonthsGrid.innerHTML = '';
 
@@ -114,31 +113,25 @@ document.addEventListener('DOMContentLoaded', function () {
       const monthDiv = document.createElement('div');
       monthDiv.classList.add('month-item');
       monthDiv.textContent = mName;
-
       if (pickerYearView === currentViewDate.getFullYear() && index === currentViewDate.getMonth()) {
         monthDiv.classList.add('selected');
       }
-
       monthDiv.addEventListener('click', (e) => {
         e.stopPropagation();
         currentViewDate.setFullYear(pickerYearView);
         currentViewDate.setMonth(index);
-        currentViewDate.setDate(1); 
-
+        currentViewDate.setDate(1);
+        
+        if (searchInput) searchInput.value = '';
         updateDashboard();
         closePicker();
       });
-
       pickerMonthsGrid.appendChild(monthDiv);
     });
   }
 
   function togglePicker() {
-    if (pickerContainer.classList.contains('active')) {
-      closePicker();
-    } else {
-      openPicker();
-    }
+    pickerContainer.classList.contains('active') ? closePicker() : openPicker();
   }
 
   function openPicker() {
@@ -153,48 +146,41 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (pickerContainer) {
     pickerContainer.addEventListener('click', (e) => {
-      if (!e.target.closest('.custom-date-popup')) {
-        togglePicker();
-      }
+      if (!e.target.closest('.custom-date-popup')) togglePicker();
     });
   }
-
-  if (pickerPrevYear) {
-    pickerPrevYear.addEventListener('click', (e) => {
-      e.stopPropagation();
-      pickerYearView--;
-      renderPicker();
-    });
-  }
-
-  if (pickerNextYear) {
-    pickerNextYear.addEventListener('click', (e) => {
-      e.stopPropagation();
-      pickerYearView++;
-      renderPicker();
-    });
-  }
-
+  if (pickerPrevYear) pickerPrevYear.addEventListener('click', (e) => { e.stopPropagation(); pickerYearView--; renderPicker(); });
+  if (pickerNextYear) pickerNextYear.addEventListener('click', (e) => { e.stopPropagation(); pickerYearView++; renderPicker(); });
+  
   document.addEventListener('click', (e) => {
-    if (pickerContainer && !pickerContainer.contains(e.target)) {
-      closePicker();
-    }
+    if (pickerContainer && !pickerContainer.contains(e.target)) closePicker();
   });
 
-  // --- [UPDATED] API FETCH WITH SEARCH SUPPORT ---
-  async function fetchTransactions(query = '') {
-    try {
-      // Jika query ada, tambahkan ke URL. Jika tidak, ambil semua.
-      const url = query 
-          ? `/api/transactions?q=${encodeURIComponent(query)}` 
-          : '/api/transactions';
+  if (prevBtn) prevBtn.addEventListener('click', () => {
+    currentViewDate.setMonth(currentViewDate.getMonth() - 1);
+    if(searchInput) searchInput.value = '';
+    updateDashboard();
+  });
 
-      const response = await fetch(url);
+  if (nextBtn) nextBtn.addEventListener('click', () => {
+    currentViewDate.setMonth(currentViewDate.getMonth() + 1);
+    if(searchInput) searchInput.value = '';
+    updateDashboard();
+  });
+
+  // =========================================
+  // 4. TRANSACTION LOGIC
+  // =========================================
+  
+  // --- FETCH DATA ---
+  async function fetchTransactions() {
+    try {
+      const response = await fetch('/api/transactions');
       const data = await response.json();
-      
       if (data.success) {
         allTransactions = data.transactions;
-        updateDashboard(); // Render ulang tampilan
+        assignColorsToCategories(allTransactions);
+        updateDashboard();
       } else {
         if (listContainer) listContainer.innerHTML = '<div style="text-align:center;">Failed to load data.</div>';
       }
@@ -204,97 +190,96 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // --- [UPDATED] EVENT LISTENER SEARCH BAR (LIVE SEARCH) ---
+  // --- SEARCH HANDLER ---
   if (searchInput) {
     let timeout = null;
-
     searchInput.addEventListener('input', (e) => {
-      const val = e.target.value;
-
-      // Debounce: Tunggu 300ms agar tidak spam request
       clearTimeout(timeout);
       timeout = setTimeout(() => {
-        fetchTransactions(val);
+        updateDashboard();
       }, 300);
-    });
-    
-    searchInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        clearTimeout(timeout);
-        fetchTransactions(searchInput.value);
-      }
     });
   }
 
   // --- UPDATE DASHBOARD ---
-// --- UPDATE DASHBOARD (DIPERBARUI) ---
   function updateDashboard() {
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-    // 1. Cek apakah user sedang mencari sesuatu
-    const searchQuery = searchInput ? searchInput.value.trim() : '';
+    const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
     let displayData = [];
 
-    if (searchQuery.length > 0) {
-        // --- LOGIC PENCARIAN ---
-        // Jika sedang search, tampilkan SEMUA data hasil fetch (jangan filter by bulan)
-        displayData = allTransactions;
+    // Reset Container
+    if (listContainer) listContainer.innerHTML = '';
+
+    // [LOGIC FILTERING]
+    if (query.length > 0) {
+        // Mode Pencarian: Global (Abaikan filter bulan)
+        if (monthLabel) monthLabel.textContent = `Search: "${searchInput.value}"`;
         
-        // Ubah label bulan agar user sadar ini hasil pencarian
-        if (monthLabel) monthLabel.textContent = `Search: "${searchQuery}"`;
-        
+        displayData = allTransactions.filter(t => 
+            t.deskripsi.toLowerCase().includes(query) ||
+            t.kategori.toLowerCase().includes(query) ||
+            t.type.toLowerCase().includes(query)
+        );
+
+        if (displayData.length === 0) {
+            listContainer.innerHTML = `
+                <div style="text-align:center; padding:40px; color:#888;">
+                    <i class="fa-solid fa-magnifying-glass" style="font-size: 24px; margin-bottom: 10px;"></i><br>
+                    Data "${searchInput.value}" not found.
+                </div>`;
+        }
+
     } else {
-        // --- LOGIC NORMAL ---
-        // Jika tidak search, filter berdasarkan Bulan & Tahun yang dipilih
+        // Mode Normal: Filter Bulan
         if (monthLabel) monthLabel.textContent = `${monthNames[month]} ${year}`;
 
         displayData = allTransactions.filter(t => {
-            if(!t.tanggal) return false;
+            if (!t.tanggal) return false;
             const d = new Date(t.tanggal);
             return d.getFullYear() === year && d.getMonth() === month;
         });
+
+        if (displayData.length === 0) {
+            listContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No transactions found this month.</div>';
+        }
     }
 
-    // 2. Hitung Summary (Income/Expense) berdasarkan data yang DITAMPILKAN
-    let totalIncome = 0;
-    let totalExpense = 0;
+    // [LOGIC SUMMARY]
+    // 1. Monthly Income & Expense (Mengikuti data yang TAMPIL / FILTERED)
+    let displayedIncome = 0;
+    let displayedExpense = 0;
 
     displayData.forEach(t => {
-      if (t.type === 'Income') totalIncome += t.nominal;
-      else totalExpense += t.nominal;
+      if (t.type === 'Income') displayedIncome += t.nominal;
+      else displayedExpense += t.nominal;
     });
 
-    // Total Balance tetap dihitung dari akumulasi seluruh data yang tersedia (bukan hanya bulan ini/hasil search)
-    // agar mencerminkan "Saldo Akhir" pengguna.
-    let totalBalance = allTransactions.reduce((acc, t) => {
-      return t.type === 'Income' ? acc + t.nominal : acc - t.nominal;
+    // 2. Total Balance (SELALU GLOBAL - Tidak terpengaruh filter bulan/search)
+    // "total balance hanya bisa berubah dari input dan drop pengeluaran dan pemasukkan saja"
+    let globalBalance = allTransactions.reduce((acc, t) => {
+        return t.type === 'Income' ? acc + t.nominal : acc - t.nominal;
     }, 0);
 
-    // 3. Update UI Kartu Atas
-    if (incomeEl) incomeEl.textContent = formatRupiah(totalIncome);
-    if (expenseEl) expenseEl.textContent = formatRupiah(totalExpense);
-    if (balanceEl) balanceEl.textContent = formatRupiah(totalBalance);
+    // Update Kartu UI
+    if (incomeEl) incomeEl.textContent = formatRupiah(displayedIncome);
+    if (expenseEl) expenseEl.textContent = formatRupiah(displayedExpense);
+    
+    // Balance menggunakan Global Balance
+    if (balanceEl) balanceEl.textContent = formatRupiah(globalBalance);
 
-    // 4. Render List & Chart
-    // (RenderList sudah otomatis support hover detailing karena menggunakan data-attributes yang kita buat sebelumnya)
-    renderList(displayData);
+    // Render Konten
+    if (displayData.length > 0) {
+        renderList(displayData);
+    }
     renderChart(displayData);
   }
 
   // --- RENDER LIST ---
-// ... (Kode sebelumnya tetap sama)
-
-  // --- RENDER LIST (DIMODIFIKASI) ---
   function renderList(transactions) {
     if (!listContainer) return;
-    listContainer.innerHTML = '';
-
-    if (transactions.length === 0) {
-      listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">No transactions found.</div>';
-      return;
-    }
 
     const grouped = {};
     transactions.forEach(t => {
@@ -312,12 +297,10 @@ document.addEventListener('DOMContentLoaded', function () {
     sortedDates.forEach(dateStr => {
       let dateDisplay = dateStr;
       let dateNum = '';
-      
       if(dateStr !== 'No Date'){
           const dateObj = new Date(dateStr);
           dateNum = dateObj.getDate();
-          const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
-          dateDisplay = dayName; 
+          dateDisplay = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
       }
 
       let dInc = 0, dExp = 0;
@@ -332,11 +315,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const sign = isInc ? '+' : '-';
         const valClass = isInc ? 'val-green' : 'val-red';
         const transactionString = encodeURIComponent(JSON.stringify(t));
-
-        // --- PERUBAHAN DISINI: Menambahkan data attributes untuk Tooltip ---
-        // Kita escape tanda kutip agar aman di dalam atribut HTML
         const safeDesc = t.deskripsi.replace(/"/g, '&quot;');
-        
+
+        // Data Attributes untuk Tooltip
         itemsHtml += `
             <div class="t-item" 
                  onclick="openTransactionDetail(JSON.parse(decodeURIComponent('${transactionString}')))"
@@ -372,76 +353,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // --- LOGIC HOVER TOOLTIP (BARU) ---
-  // 1. Buat elemen tooltip dan masukkan ke body
-  const tooltipEl = document.createElement('div');
-  tooltipEl.className = 'transaction-tooltip';
-  document.body.appendChild(tooltipEl);
-
-  // 2. Event Delegation untuk Mouse Enter (Menampilkan Tooltip)
-  document.addEventListener('mouseover', (e) => {
-      const item = e.target.closest('.t-item');
-      if (item) {
-          const desc = item.getAttribute('data-desc');
-          const date = item.getAttribute('data-date');
-          const nominal = item.getAttribute('data-nominal');
-          const type = item.getAttribute('data-type');
-          const category = item.getAttribute('data-category');
-
-          // Format Tampilan Tooltip
-          tooltipEl.innerHTML = `
-              <div class="tooltip-header">
-                  <span>${type}</span>
-                  <span>${category}</span>
-              </div>
-              <div class="tooltip-row">
-                  <span class="tooltip-label">Date</span>
-                  <span class="tooltip-val">${date}</span>
-              </div>
-              <div class="tooltip-row">
-                  <span class="tooltip-label">Desc</span>
-                  <span class="tooltip-val">${desc.length > 20 ? desc.substring(0, 20) + '...' : desc}</span>
-              </div>
-              <div class="tooltip-row" style="margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 4px;">
-                  <span class="tooltip-label">Total</span>
-                  <span class="tooltip-val" style="color: #fff; font-size: 15px;">${nominal}</span>
-              </div>
-          `;
-          tooltipEl.style.display = 'block';
-      }
-  });
-
-  // 3. Event Delegation untuk Mouse Move (Mengikuti Kursor)
-  document.addEventListener('mousemove', (e) => {
-      // Cek apakah sedang hover di t-item
-      if (tooltipEl.style.display === 'block') {
-          // Cegah tooltip keluar layar
-          let top = e.clientY + 15;
-          let left = e.clientX + 15;
-
-          if (left + 240 > window.innerWidth) {
-              left = e.clientX - 240; // Pindah ke kiri kursor
-          }
-          
-          if (top + 150 > window.innerHeight) {
-              top = e.clientY - 150; // Pindah ke atas kursor
-          }
-
-          tooltipEl.style.top = `${top}px`;
-          tooltipEl.style.left = `${left}px`;
-      }
-  });
-
-  // 4. Event Delegation untuk Mouse Leave (Menyembunyikan Tooltip)
-  document.addEventListener('mouseout', (e) => {
-      const item = e.target.closest('.t-item');
-      if (item) {
-          tooltipEl.style.display = 'none';
-      }
-  });
-
-// ... (Sisa kode existing seperti fetchTransactions, chart, dll tetap di bawah)
-
   // --- RENDER CHART ---
   function renderChart(transactions) {
     if (!chartCanvas) return;
@@ -451,7 +362,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let totalAmount = 0;
 
     filteredTrans.forEach(t => {
-      const catName = t.kategori;
+      const catName = t.kategori || 'Uncategorized';
       if (!catTotals[catName]) catTotals[catName] = 0;
       catTotals[catName] += t.nominal;
       totalAmount += t.nominal;
@@ -541,26 +452,70 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // --- DATE NAVIGATION ---
-  if (prevBtn) prevBtn.addEventListener('click', () => {
-    currentViewDate.setMonth(currentViewDate.getMonth() - 1);
-    updateDashboard();
-  });
-
-  if (nextBtn) nextBtn.addEventListener('click', () => {
-    currentViewDate.setMonth(currentViewDate.getMonth() + 1);
-    updateDashboard();
-  });
-
+  // --- ADD TRANSACTION BUTTON ---
   const addBtn = document.getElementById('openTransactionModalBtn');
   const popup = document.getElementById('add-transaction-modal-overlay');
-
   if (addBtn && popup) {
-    addBtn.addEventListener('click', () => {
-      popup.style.display = 'flex';
-    });
+    addBtn.addEventListener('click', () => { popup.style.display = 'flex'; });
   }
 
-  // Fetch data pertama kali
+  // =========================================
+  // 5. TOOLTIP LOGIC (HOVER DETAIL)
+  // =========================================
+  const tooltipEl = document.createElement('div');
+  tooltipEl.className = 'transaction-tooltip';
+  document.body.appendChild(tooltipEl);
+
+  document.addEventListener('mouseover', (e) => {
+      const item = e.target.closest('.t-item');
+      // Pastikan item memiliki data-desc
+      if (item && item.hasAttribute('data-desc')) {
+          const desc = item.getAttribute('data-desc');
+          const date = item.getAttribute('data-date');
+          const nominal = item.getAttribute('data-nominal');
+          const type = item.getAttribute('data-type');
+          const category = item.getAttribute('data-category');
+
+          tooltipEl.innerHTML = `
+              <div class="tooltip-header">
+                  <span>${category}</span>
+                  <span style="font-weight:400; opacity:0.8; font-size:12px;">${type}</span>
+              </div>
+              <div class="tooltip-row">
+                  <span class="tooltip-label">Date:</span>
+                  <span class="tooltip-val">${date}</span>
+              </div>
+              <div class="tooltip-row">
+                  <span class="tooltip-label">Desc:</span>
+                  <span class="tooltip-val" style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${desc}</span>
+              </div>
+              <div class="tooltip-row" style="margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 4px;">
+                  <span class="tooltip-label">Amount:</span>
+                  <span class="tooltip-val" style="font-size: 14px;">${nominal}</span>
+              </div>
+          `;
+          tooltipEl.style.display = 'block';
+      }
+  });
+
+  document.addEventListener('mousemove', (e) => {
+      if (tooltipEl.style.display === 'block') {
+          let top = e.clientY + 15;
+          let left = e.clientX + 15;
+          
+          if (left + 220 > window.innerWidth) left = e.clientX - 230;
+          if (top + 150 > window.innerHeight) top = e.clientY - 160;
+          
+          tooltipEl.style.top = `${top}px`;
+          tooltipEl.style.left = `${left}px`;
+      }
+  });
+
+  document.addEventListener('mouseout', (e) => {
+      const item = e.target.closest('.t-item');
+      if (item) tooltipEl.style.display = 'none';
+  });
+
+  // Init Data
   fetchTransactions();
 });
