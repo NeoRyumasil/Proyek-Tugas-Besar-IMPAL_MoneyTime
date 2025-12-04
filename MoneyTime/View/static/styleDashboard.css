@@ -15,6 +15,7 @@ body {
     background-color: #f0f5ff;
 }
 
+/* ================= HEADER & NAVBAR ================= */
 .header-guest {
     width: 100%;
     height: 100px;
@@ -381,6 +382,7 @@ body {
     transform: translateY(-7px) rotate(-45deg);
 }
 
+/* ================= DASHBOARD BODY ================= */
 .dashboard-body {
     max-width: 1200px;
     margin: 0 auto;
@@ -410,16 +412,15 @@ body {
     color: #000;
 }
 
+/* --- SUMMARY CARDS --- */
 .summary-container {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 Column Grid */
     gap: 20px;
     margin-bottom: 30px;
-    flex-wrap: wrap;
 }
 
 .m-card {
-    flex: 1;
-    min-width: 240px;
     border-radius: 12px;
     padding: 24px;
     color: white;
@@ -428,68 +429,77 @@ body {
     flex-direction: column;
     justify-content: space-between;
     height: 120px;
+    min-width: 0; /* Prevent overflow */
 }
 
-.card-green {
-    background: linear-gradient(135deg, #1e7e00 0%, #104f03 100%);
-}
-
-.card-red {
-    background: linear-gradient(135deg, #9f0003 0%, #590000 100%);
-}
-
-.card-blue {
-    background: linear-gradient(135deg, #2f80ed 0%, #1a3e7f 100%);
-}
-
-.card-gold {
-    background: linear-gradient(135deg, #7a6b00 0%, #c7ae02 100%);
-}
+.card-green { background: linear-gradient(135deg, #1e7e00 0%, #104f03 100%); }
+.card-red { background: linear-gradient(135deg, #9f0003 0%, #590000 100%); }
+.card-blue { background: linear-gradient(135deg, #2f80ed 0%, #1a3e7f 100%); }
+.card-gold { background: linear-gradient(135deg, #7a6b00 0%, #c7ae02 100%); }
 
 .card-icon-label {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 500;
     opacity: 0.95;
+    white-space: nowrap;
 }
 
 .card-amount {
     font-size: 24px;
     font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
+/* ================= DASHBOARD SPLIT VIEW (NEW) ================= */
+.dashboard-split-view {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 50% - 50% Split */
+    gap: 24px;
+    align-items: start;
+}
+
+.dashboard-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* --- TOOLBAR --- */
 .toolbar-wrapper {
     background: white;
     border-radius: 12px;
-    padding: 12px 24px;
+    padding: 12px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    margin-bottom: 24px;
     flex-wrap: wrap;
-    gap: 15px;
+    gap: 10px;
 }
 
 .toolbar-left {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 18px;
+    gap: 8px;
+    font-size: 16px;
     font-weight: 700;
 }
 
 .toolbar-center {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 8px;
 }
 
+/* Buttons & Navigation */
 .nav-circle-btn {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background-color: #3B82F6;
     border: none;
@@ -498,64 +508,25 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background 0.2s;
-}
-
-.nav-circle-btn:hover {
-    background-color: #2563EB;
-}
-
-.date-badge {
-    background-color: #3B82F6;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 15px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    font-size: 12px;
 }
 
 .add-btn {
     background-color: #15803d;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 8px 16px;
     border-radius: 6px;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     cursor: pointer;
+    white-space: nowrap;
 }
 
-.add-btn:hover {
-    background-color: #166534;
-}
-
-.content-wrapper {
-    display: flex;
-    gap: 24px;
-    align-items: flex-start;
-}
-
-.trans-list-section {
-    flex: 2;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.stats-section {
-    flex: 1;
-    background: white;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
+/* --- CONTENT LISTS (SHARED) --- */
 .day-card {
     background: white;
     border-radius: 12px;
@@ -567,27 +538,9 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 15px;
+    padding-bottom: 12px;
     border-bottom: 1px solid #eee;
-    margin-bottom: 15px;
-}
-
-.dh-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.date-box {
-    width: 36px;
-    height: 36px;
-    background-color: #3B82F6;
-    color: white;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
+    margin-bottom: 12px;
 }
 
 .day-name {
@@ -595,113 +548,183 @@ body {
     font-size: 16px;
 }
 
-.dh-right {
-    display: flex;
-    gap: 20px;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.val-green {
-    color: #126C00;
-    font-size: 18px;
-
-}
-
-.val-red {
-    color: #dc2626;
-    font-size: 18px;
-}
-
 .t-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 12px;
+    padding: 12px 12px;
     border-radius: 8px;
     transition: background-color 0.2s ease;
     cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+}
+.t-item:last-child { border-bottom: none; }
+.t-item:hover { background-color: #f7f9fc; }
+
+/* --- MONEY SPECIFIC --- */
+.val-green { color: #126C00; font-weight: 600; }
+.val-red { color: #dc2626; font-weight: 600; }
+.t-desc { font-weight: 500; font-size: 14px; }
+
+/* --- TIME / SCHEDULE SPECIFIC (Merged from styleTime.css) --- */
+.sch-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 2;
 }
 
-.t-item:hover {
-    background-color: #DADADA;
-}
-
-.t-desc {
-    width: 35%;
-    font-weight: 500;
-    font-size: 15px;
-    text-align: left;
-}
-
-.t-badge {
-    margin: 0 auto;
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
-    color: white;
-    width: 100px;
-    text-align: center;
-}
-
-.t-val {
-    width: 35%;
-    text-align: right;
-    font-weight: 600;
-    font-size: 15px;
-}
-
-.section-title {
-    margin: 0 0 20px 0;
-    font-size: 18px;
-    font-weight: 700;
-}
-
-.chart-box {
-    position: relative;
-    height: 250px;
-    margin-bottom: 20px;
+.sch-center {
+    flex: 1;
     display: flex;
     justify-content: center;
-}
-
-.legend-box {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.l-item {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    font-size: 14px;
 }
 
-.l-left {
+.sch-right {
     display: flex;
     align-items: center;
     gap: 10px;
+    text-align: right;
+    flex: 1;
+    justify-content: flex-end;
 }
 
-.l-pct {
-    padding: 2px 8px;
+/* Priority Dots */
+.priority-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.priority-dot.low { background: #8ce99a; border: 2px solid #1b5e20; }
+.priority-dot.medium { background: #ffe066; border: 2px solid #7a6b00; }
+.priority-dot.high { background: #ff6b6b; border: 2px solid #7a1a1a; }
+.priority-dot.critical { background-color: #FF6B6B; border: 2px solid #7a1a1a; }
+
+/* Checkboxes */
+.sch-checkbox {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #252525;
     border-radius: 4px;
-    color: white;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+}
+.sch-checkbox .check-mark { display: none; color: white; font-size: 12px; }
+.sch-checkbox.checked, .sch-checkbox.failed { 
+    background-color: #1a3e7f; border-color: #1a3e7f; 
+}
+.sch-checkbox.checked .check-mark, .sch-checkbox.failed .check-mark { display: block; }
+.sch-checkbox.wontdo { background-color: #E45700; border-color: #E45700; }
+
+.sch-info { display: flex; flex-direction: column; }
+.sch-title { font-weight: 600; font-size: 14px; color: #000; }
+.sch-time { font-size: 12px; color: #666; }
+
+/* Badges */
+.t-badge {
+    padding: 4px 10px;
+    border-radius: 4px;
     font-size: 11px;
-    font-weight: bold;
+    font-weight: 600;
+    color: white;
+    min-width: 80px;
+    text-align: center;
+    display: inline-block;
+}
+.badge-academic { background-color: #00a256; }
+.badge-project { background-color: #127692; }
+.badge-org { background-color: #8f9400; }
+.badge-entertain { background-color: #130b83; }
+.badge-dark { background-color: #000; }
+.badge-navy { background-color: #130b83; }
+
+/* Date Text */
+.sch-date {
+    font-weight: 600;
+    font-size: 13px;
+    text-align: right;
+    color: #000;
+}
+.text-red { color: #9f0003; }
+
+/* ================= DATE PICKER ================= */
+.date-picker-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
 }
 
-.l-name {
-    font-weight: 500;
+.date-display-badge {
+    background: #ffffff;
+    padding: 4px 12px 4px 6px;
+    border-radius: 50px;
+    border: 1px solid rgba(26, 62, 127, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 140px;
+    justify-content: space-between;
 }
 
-.l-val {
+.calendar-icon-box {
+    width: 28px;
+    height: 28px;
+    background-color: #f0f5ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1a3e7f;
+    font-size: 14px;
+}
+
+.date-text {
+    font-size: 14px;
     font-weight: 700;
-    color: #dc2626;
+    color: #1a3e7f;
 }
 
+/* Popup Date Picker */
+.custom-date-popup {
+    position: absolute;
+    top: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 260px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    padding: 16px;
+    z-index: 999;
+    display: none; /* Hidden via JS usually, or add class 'active' to container */
+}
+
+.date-picker-container.active .custom-date-popup { display: block; }
+
+.picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.picker-year-label { font-weight: 800; color: #1a3e7f; }
+.picker-nav-btn { background: none; border: none; cursor: pointer; color: #9aaec9; }
+.picker-months-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.month-item { 
+    padding: 8px; text-align: center; border-radius: 6px; font-size: 13px; cursor: pointer; 
+}
+.month-item:hover { background-color: #f0f5ff; }
+.month-item.selected { background-color: #1a3e7f; color: white; }
+
+/* ================= FOOTER ================= */
 .footer {
     width: 100%;
     background-color: #1a3e7f;
@@ -806,237 +829,27 @@ body {
     color: #f0f5ff;
 }
 
-@media (max-width: 1200px) {
-    .footer {
-        padding: 50px 48px;
+/* ================= RESPONSIVE ================= */
+@media (max-width: 1024px) {
+    .dashboard-split-view {
+        grid-template-columns: 1fr; /* Stack vertically on tablet */
     }
-
-    .header-guest {
-        padding: 20px 40px;
-    }
-}
-
-@media (max-width: 900px) {
-    .content-wrapper {
-        flex-direction: column;
-    }
-
-    .stats-section {
-        width: 100%;
-    }
-
-    .page-switch,
-    .search-bar,
-    .profile-name {
-        display: none;
-    }
-
-    .nav-toggle {
-        display: flex;
+    
+    .summary-container {
+        grid-template-columns: repeat(2, 1fr); /* 2x2 cards */
     }
 }
 
-/* --- CUSTOM DATE PICKER STYLING (NEW) --- */
-
-/* Container utama untuk trigger */
-.date-picker-container {
-    position: relative;
-    display: inline-block;
-    cursor: pointer;
-    margin: 0 10px;
-}
-
-/* Badge Tampilan (Pill Putih) */
-.date-display-badge {
-    background: #ffffff;
-    padding: 6px 16px 6px 8px;
-    border-radius: 50px;
-    box-shadow: 0 4px 12px rgba(26, 62, 127, 0.08);
-    border: 1px solid rgba(26, 62, 127, 0.1);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: all 0.3s ease;
-    min-width: 180px;
-    justify-content: space-between;
-}
-
-/* Hover Effect */
-.date-picker-container:hover .date-display-badge {
-    box-shadow: 0 8px 20px rgba(26, 62, 127, 0.15);
-    border-color: rgba(26, 62, 127, 0.3);
-}
-
-/* Ikon Kalender */
-.calendar-icon-box {
-    width: 36px;
-    height: 36px;
-    background-color: #f0f5ff;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #1a3e7f;
-    font-size: 16px;
-}
-
-/* Teks Bulan Tahun */
-.date-text {
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: 16px;
-    color: #1a3e7f;
-    flex-grow: 1;
-    text-align: center;
-}
-
-/* Panah Dropdown */
-.dropdown-indicator {
-    font-size: 12px;
-    color: #9aaec9;
-    transition: transform 0.3s ease;
-    margin-right: 4px;
-}
-
-/* Putar panah saat aktif */
-.date-picker-container.active .dropdown-indicator {
-    transform: rotate(180deg);
-    color: #1a3e7f;
-}
-
-/* --- POPUP CARD --- */
-.custom-date-popup {
-    position: absolute;
-    top: 130%;
-    left: 50%;
-    transform: translateX(-50%) translateY(-10px);
-    width: 280px;
-    background: #ffffff;
-    border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    padding: 16px;
-    z-index: 999;
-
-    /* Hidden by default */
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(26, 62, 127, 0.1);
-}
-
-/* Show popup */
-.date-picker-container.active .custom-date-popup {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(0);
-}
-
-/* Header Tahun di Popup */
-.picker-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.picker-year-label {
-    font-family: 'Inter', sans-serif;
-    font-weight: 800;
-    font-size: 18px;
-    color: #1a3e7f;
-}
-
-.picker-nav-btn {
-    background: transparent;
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    cursor: pointer;
-    color: #9aaec9;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.picker-nav-btn:hover {
-    background-color: #f0f5ff;
-    color: #1a3e7f;
-}
-
-/* Grid Bulan */
-.picker-months-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-}
-
-.month-item {
-    padding: 10px 4px;
-    text-align: center;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #555;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.month-item:hover {
-    background-color: #f0f5ff;
-    color: #1a3e7f;
-}
-
-.month-item.selected {
-    background-color: #1a3e7f;
-    color: #ffffff;
-    box-shadow: 0 4px 10px rgba(26, 62, 127, 0.3);
-}
-
-@media (max-width: 576px) {
-    .custom-date-popup {
-        width: 260px;
+@media (max-width: 600px) {
+    .header-guest { padding: 15px 20px; }
+    .page-switch, .search-bar, .profile-name { display: none; }
+    .nav-toggle { display: flex; }
+    
+    .summary-container {
+        grid-template-columns: 1fr; /* 1 card per row */
     }
-}
-
-.stats-header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.stats-mini-toggle {
-    display: flex;
-    background-color: #9BABC9;
-    /* Warna dasar abu-biru */
-    border-radius: 6px;
-    padding: 2px;
-    gap: 2px;
-}
-
-.stats-toggle-btn {
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-size: 12px;
-    /* Ukuran font lebih kecil */
-    font-weight: 600;
-    color: #fff;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    user-select: none;
-}
-
-.stats-toggle-btn:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-}
-
-/* State Aktif (Biru Tua) */
-.stats-toggle-btn.active {
-    background-color: #1a3e7f;
-    color: #fff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    
+    .toolbar-wrapper { flex-direction: column; align-items: stretch; }
+    .toolbar-center { justify-content: center; margin: 10px 0; }
+    .add-btn { width: 100%; justify-content: center; }
 }
