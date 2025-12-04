@@ -227,42 +227,59 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // --- UPDATE DASHBOARD ---
+// --- UPDATE DASHBOARD (DIPERBARUI) ---
   function updateDashboard() {
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-    if (monthLabel) monthLabel.textContent = `${monthNames[month]} ${year}`;
+    // 1. Cek Input Pencarian
+    const searchQuery = searchInput ? searchInput.value.trim() : '';
+    let displayData = [];
 
-    // Filter transaksi bulan ini
-    const monthlyData = allTransactions.filter(t => {
-      // Jika data dari search (bisa jadi tanggal null atau format lain), 
-      // handle dengan aman.
-      if(!t.tanggal) return false;
-      const d = new Date(t.tanggal);
-      return d.getFullYear() === year && d.getMonth() === month;
-    });
+    if (searchQuery.length > 0) {
+        // --- MODE PENCARIAN ---
+        // Tampilkan SEMUA data hasil fetch (hasil search dari backend), abaikan bulan/tahun
+        displayData = allTransactions;
+        
+        // Ubah label bulan untuk indikasi visual
+        if (monthLabel) monthLabel.textContent = `Search: "${searchQuery}"`;
+    } else {
+        // --- MODE NORMAL ---
+        // Filter berdasarkan Bulan & Tahun yang dipilih
+        if (monthLabel) monthLabel.textContent = `${monthNames[month]} ${year}`;
 
-    // Hitung Summary
+        displayData = allTransactions.filter(t => {
+            if(!t.tanggal) return false;
+            const d = new Date(t.tanggal);
+            return d.getFullYear() === year && d.getMonth() === month;
+        });
+    }
+
+    // 2. Hitung Summary untuk Kartu (Income & Expense mengikuti data yang TAMPIL)
     let totalIncome = 0;
     let totalExpense = 0;
-    
-    // Total Balance dihitung dari ALL data yang di-fetch (sesuai konteks search atau all)
-    let totalBalance = allTransactions.reduce((acc, t) => {
-      return t.type === 'Income' ? acc + t.nominal : acc - t.nominal;
-    }, 0);
 
-    monthlyData.forEach(t => {
+    displayData.forEach(t => {
       if (t.type === 'Income') totalIncome += t.nominal;
       else totalExpense += t.nominal;
     });
 
+    // Total Balance tetap dihitung dari akumulasi seluruh data yang tersedia (bukan hanya bulan ini/hasil search)
+    // agar mencerminkan "Saldo Akhir" pengguna.
+    let totalBalance = allTransactions.reduce((acc, t) => {
+      return t.type === 'Income' ? acc + t.nominal : acc - t.nominal;
+    }, 0);
+
+    // 3. Update Elemen UI
     if (incomeEl) incomeEl.textContent = formatRupiah(totalIncome);
     if (expenseEl) expenseEl.textContent = formatRupiah(totalExpense);
     if (balanceEl) balanceEl.textContent = formatRupiah(totalBalance);
 
-    renderList(monthlyData);
-    renderChart(monthlyData);
+    // 4. Render Ulang List & Chart
+    // (renderList ini sudah memiliki atribut data-* untuk hover tooltip)
+    renderList(displayData);
+    renderChart(displayData);
   }
 
   // --- RENDER LIST ---
