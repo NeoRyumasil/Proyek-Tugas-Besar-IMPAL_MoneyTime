@@ -4,7 +4,7 @@ from Controller.databaseController import db_connect
 # Import kredensial dari file credentials.py
 from Controller.credentials import email_sender, email_password
 
-# Import library untuk Email dan Random (Wajib ada agar tidak error)
+# Import library untuk Email dan Random
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -20,9 +20,6 @@ from flask import render_template
 class UserController:
     def __init__(self):
         self.current_user = None  
-
-    # --- METHOD LAMA (LOGIN, REGISTRASI, DLL) ---
-    # (Pastikan kode login/regis lama Anda tetap ada di sini)
 
     def login(self, username, email, password):
         try:
@@ -108,7 +105,7 @@ class UserController:
         return self.current_user
 
     # ==========================================
-    #       LOGIKA FORGOT PASSWORD (BARU)
+    #       LOGIKA FORGOT PASSWORD
     # ==========================================
 
     def check_email_exists(self, email: str):
@@ -129,7 +126,7 @@ class UserController:
             if 'conn' in locals(): conn.close()
 
     def send_otp(self, target_email):
-        """Mengirim OTP dengan CSS terpisah"""
+        """Mengirim OTP Reset Password"""
         
         otp_code = str(random.randint(1000, 9999))
 
@@ -138,17 +135,14 @@ class UserController:
         msg['To'] = target_email
         msg['Subject'] = "Kode Verifikasi Reset Password Anda"
 
-        # 1. BACA FILE CSS EMAIL
         css_content = ""
         try:
-            # Path relative dari main.py
             css_path = os.path.join('View', 'static', 'styleForgotPasswordEmail.css')
             with open(css_path, 'r') as f:
                 css_content = f.read()
         except Exception as e:
             print(f"Warning: Gagal membaca file CSS Email: {e}")
 
-        # 2. RENDER TEMPLATE HTML
         try:
             html_content = render_template(
                 'email/otp_email.html', 
@@ -161,7 +155,6 @@ class UserController:
 
         msg.attach(MIMEText(html_content, 'html'))
 
-        # 3. KIRIM EMAIL
         try:
             server = smtplib.SMTP('smtp.gmail.com', 587)
             server.starttls()
@@ -181,16 +174,90 @@ class UserController:
             conn = db_connect()
             cursor = conn.cursor()
 
-            # Hashing password sebelum disimpan
             hashed_password = generate_password_hash(new_password)
 
             sql = "UPDATE [dbo].[User] SET password = ? WHERE email = ?"
             cursor.execute(sql, (hashed_password, email))
             conn.commit()
             return True
-        
+
         except Exception as e:
             print("Error update password:", e)
+            return False
+        finally:
+            if 'conn' in locals(): conn.close()
+
+    # ==========================================
+    #       LOGIKA ACCOUNT VALIDATION (BARU)
+    # ==========================================
+
+    def send_validation_otp(self, target_email):
+        """Mengirim OTP untuk validasi akun"""
+
+        otp_code = str(random.randint(1000, 9999))
+
+        msg = MIMEMultipart()
+        msg['From'] = f"MoneyTime <{email_sender}>"
+        msg['To'] = target_email
+        msg['Subject'] = "Verifikasi Akun MoneyTime Anda" # Subject Disesuaikan
+
+        # 1. BACA FILE CSS EMAIL
+        css_content = ""
+        try:
+            # Path relative dari main.py
+            css_path = os.path.join('View', 'static', 'styleForgotPasswordEmail.css')
+            with open(css_path, 'r') as f:
+                css_content = f.read()
+        except Exception as e:
+            print(f"Warning: Gagal membaca file CSS Email: {e}")
+
+        # 2. RENDER TEMPLATE HTML (Gunakan template baru: validation_email.html)
+        try:
+            html_content = render_template(
+                'email/validation_email.html',
+                otp_code=otp_code,
+                css_style=css_content
+            )
+        except Exception as e:
+            print(f"Error rendering template: {e}")
+            # Fallback jika template error
+            html_content = f"Selamat datang! Kode verifikasi akun Anda adalah: {otp_code}"
+
+        msg.attach(MIMEText(html_content, 'html'))
+
+        # 3. KIRIM EMAIL
+        try:
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(email_sender, email_password)
+            server.sendmail(email_sender, target_email, msg.as_string())
+            server.quit()
+
+            print(f"[SUCCESS] Email Validasi {otp_code} terkirim ke {target_email}")
+            return otp_code
+
+        except Exception as e:
+            print(f"[ERROR] Gagal kirim email: {e}")
+            return None
+
+    def verify_validation_otp(self, email, otp):
+        """Verifikasi OTP untuk validasi akun"""
+        try:
+            conn = db_connect()
+            cursor = conn.cursor()
+
+            # Pastikan email terdaftar di DB
+            check_sql = "SELECT COUNT(*) FROM [dbo].[User] WHERE email = ?"
+            cursor.execute(check_sql, (email,))
+            count = cursor.fetchone()[0]
+
+            if count == 0:
+                return False 
+
+            return True
+
+        except Exception as e:
+            print("Error verify validation OTP:", e)
             return False
         finally:
             if 'conn' in locals(): conn.close()
