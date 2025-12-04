@@ -1,0 +1,63 @@
+<!-- Floating Action Button (Tombol Bulat untuk Membuka Chat) -->
+<div id="mt-assistant-trigger" class="mt-trigger-btn" onclick="toggleAssistant()">
+    <!-- Icon Robot/Assistant (Placeholder) -->
+    <img src="{{ url_for('static', filename='gemini.png') }}" alt="Assistant Icon" style="width: 30px; height: 30px;" />
+</div>
+
+<!-- Main Assistant Window -->
+<div id="mt-assistant-window" class="mt-window hidden">
+    
+    <!-- Background Decoration (Gambar Absolut yang di-rotate) -->
+    <img class="mt-bg-decoration" alt="decoration" />
+
+    <!-- Header -->
+    <div class="mt-header">
+        <div class="mt-header-left">
+            <img src="{{ url_for('static', filename='avatarheader.png') }}" alt="Logo" class="mt-logo" style="width: 35px;" />
+            <div class="mt-header-text">
+                <div class="mt-title">MoneyTime Assistant</div>
+                <div class="mt-subtitle">Smart Planner & Automatic Scheduler</div>
+            </div>
+        </div>
+        <!-- Minimize/Close Button -->
+        <div class="mt-minimize-btn" onclick="toggleAssistant()">
+            <div class="mt-minimize-line"></div>
+        </div>
+    </div>
+
+    <!-- Body (Chat Bubble Area) -->
+    <div class="mt-body">
+        <!-- Bot Message -->
+        <div class="mt-msg-container mt-msg-bot">
+            <div class="mt-avatar-frame">
+                <img src="{{ url_for('static', filename='avatarBot.png') }}" alt="Bot Avatar" />
+            </div>
+            <div class="mt-bubble mt-bubble-bot">
+                Hi there! I’m your MoneyTime Assistant.<br>
+                I can help you plan activities, auto schedule tasks, and sync with Google Calendar. What would you like to do today?
+            </div>
+        </div>
+
+        <!-- User Message (Contoh) -->
+        <div class="mt-msg-container mt-msg-user">
+            <div class="mt-user-avatar-frame">
+                <!-- User Avatar/Icon -->
+                <img src="{{ url_for('static', filename='avatarUser.svg') }}" alt="User Avatar" />
+            </div>
+            <div class="mt-bubble mt-bubble-user">
+                Tolong buatkan lorem ipsum dolor sit amet abcdefgh
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer (Input Area) -->
+    <div class="mt-footer">
+        <div class="mt-input-wrapper">
+            <input type="text" class="mt-chat-input" placeholder="Type your message..." />
+            <button class="mt-send-btn">
+                <!-- Icon Send (Panah) -->
+                <img src="{{ url_for('static', filename='sendAssistant.svg') }}" alt="Send" />
+            </button>
+        </div>
+    </div>
+</div>
