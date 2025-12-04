@@ -137,16 +137,29 @@ def add_transaction():
 def api_transactions():
     if 'user' not in session:
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
-    
+
     user_id = session['user'].get('id')
-    
+
     # Ambil parameter search 'q' dari URL
-    keyword = request.args.get('q', '') 
-    
+    keyword = request.args.get('q', '')
+
     # Panggil controller dengan keyword
     transactions = finansial_controller.get_transactions(user_id, keyword)
-    
+
     return jsonify({'success': True, 'transactions': transactions})
+
+# [NEW] Endpoint ambil kategori dinamis
+@app.route('/api/categories', methods=['GET'])
+def api_categories():
+    if 'user' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+
+    user_id = session['user'].get('id')
+
+    # Panggil controller untuk ambil kategori
+    categories = finansial_controller.get_categories(user_id)
+
+    return jsonify({'success': True, 'categories': categories})
 
 # Route logout
 @app.route('/logout')

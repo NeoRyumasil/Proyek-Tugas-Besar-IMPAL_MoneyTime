@@ -950,3 +950,15 @@ body {
     font-weight: 600;
     text-align: right;
 }
+
+/* --- LEGEND AMOUNT COLORS --- */
+
+/* Override warna default merah pada .l-val jika ada class val-green */
+.l-val.val-green {
+    color: #126C00 !important; /* Hijau sesuai request */
+}
+
+/* Pastikan Expense tetap merah */
+.l-val.val-red {
+    color: #dc2626 !important;
+}

@@ -51,6 +51,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const nextBtn = document.getElementById('nextMonthBtn');
   const monthLabel = document.getElementById('currentMonthLabel');
   const searchInput = document.getElementById('searchInput');
+  const statsIncomeBtn = document.getElementById('statsIncomeBtn');
+  const statsExpenseBtn = document.getElementById('statsExpenseBtn');
   
   // Dashboard UI Elements
   const listContainer = document.getElementById('transactionListContainer');
@@ -104,6 +106,21 @@ document.addEventListener('DOMContentLoaded', function () {
   // =========================================
   // 3. DATE PICKER LOGIC
   // =========================================
+
+  function togglePicker() {
+    pickerContainer.classList.contains('active') ? closePicker() : openPicker();
+  }
+
+  function openPicker() {
+    pickerYearView = currentViewDate.getFullYear();
+    renderPicker();
+    pickerContainer.classList.add('active');
+  }
+
+  function closePicker() {
+    pickerContainer.classList.remove('active');
+  }
+
   function renderPicker() {
     if (!pickerYearLabel || !pickerMonthsGrid) return;
     pickerYearLabel.textContent = pickerYearView;
@@ -128,20 +145,6 @@ document.addEventListener('DOMContentLoaded', function () {
       });
       pickerMonthsGrid.appendChild(monthDiv);
     });
-  }
-
-  function togglePicker() {
-    pickerContainer.classList.contains('active') ? closePicker() : openPicker();
-  }
-
-  function openPicker() {
-    pickerYearView = currentViewDate.getFullYear();
-    renderPicker();
-    pickerContainer.classList.add('active');
-  }
-
-  function closePicker() {
-    pickerContainer.classList.remove('active');
   }
 
   if (pickerContainer) {
@@ -248,7 +251,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // [LOGIC SUMMARY]
-    // 1. Monthly Income & Expense (Mengikuti data yang TAMPIL / FILTERED)
     let displayedIncome = 0;
     let displayedExpense = 0;
 
@@ -257,8 +259,6 @@ document.addEventListener('DOMContentLoaded', function () {
       else displayedExpense += t.nominal;
     });
 
-    // 2. Total Balance (SELALU GLOBAL - Tidak terpengaruh filter bulan/search)
-    // "total balance hanya bisa berubah dari input dan drop pengeluaran dan pemasukkan saja"
     let globalBalance = allTransactions.reduce((acc, t) => {
         return t.type === 'Income' ? acc + t.nominal : acc - t.nominal;
     }, 0);
@@ -377,18 +377,26 @@ document.addEventListener('DOMContentLoaded', function () {
       if (labels.length === 0) {
         legendContainer.innerHTML = '<div style="text-align:center; color:#888; font-size:14px;">No data available</div>';
       } else {
+        
+        // --- PERBAIKAN DI SINI ---
+        // Class CSS yang benar adalah 'val-green-stats' (bukan l-val-green)
+        // 'l-val' adalah class dasar (merah), 'val-green-stats' menimpanya jadi hijau
+        const valClass = currentStatsType === 'Income' ? 'l-val val-green-stats' : 'l-val';
+
         labels.forEach((cat, idx) => {
           const pct = totalAmount > 0 ? ((dataVal[idx] / totalAmount) * 100).toFixed(2) + '%' : '0%';
+          
           legendContainer.innerHTML += `
               <div class="l-item">
                   <div class="l-left">
                       <span class="l-pct" style="background-color: ${colors[idx]}">${pct}</span>
                       <span class="l-name">${cat}</span>
                   </div>
-                  <span class="l-val">${formatRupiah(dataVal[idx])}</span>
+                  <span class="${valClass}">${formatRupiah(dataVal[idx])}</span>
               </div>
           `;
         });
+
       }
     }
 
