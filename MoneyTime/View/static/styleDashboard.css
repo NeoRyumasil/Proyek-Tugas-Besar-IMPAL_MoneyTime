@@ -527,6 +527,13 @@ body {
 }
 
 /* --- CONTENT LISTS (SHARED) --- */
+.trans-list-section {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
 .day-card {
     background: white;
     border-radius: 12px;
@@ -541,6 +548,12 @@ body {
     padding-bottom: 12px;
     border-bottom: 1px solid #eee;
     margin-bottom: 12px;
+}
+
+.dh-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .day-name {
@@ -567,6 +580,16 @@ body {
 .t-desc { font-weight: 500; font-size: 14px; }
 
 /* --- TIME / SCHEDULE SPECIFIC (Merged from styleTime.css) --- */
+.schedule-list-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.day-header.clickable {
+    cursor: pointer;
+}
+
 .sch-left {
     display: flex;
     align-items: center;
@@ -588,6 +611,20 @@ body {
     text-align: right;
     flex: 1;
     justify-content: flex-end;
+}
+
+.view-more {
+    margin-top: 10px;
+    font-weight: 600;
+    color: #000;
+    font-size: 14px;
+    cursor: pointer;
+    padding-left: 8px;
+    transition: color 0.2s;
+}
+
+.view-more:hover {
+    color: #1a3e7f;
 }
 
 /* Priority Dots */
@@ -651,6 +688,18 @@ body {
     color: #000;
 }
 .text-red { color: #9f0003; }
+
+.date-box {
+    width: 36px;
+    height: 36px;
+    background-color: #3B82F6;
+    color: white;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
 
 /* ================= DATE PICKER ================= */
 .date-picker-container {
