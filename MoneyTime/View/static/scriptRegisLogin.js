@@ -11,34 +11,30 @@ document.addEventListener('DOMContentLoaded', () => {
         container.classList.remove('right-panel-active');
     });
 
-    // Fungsi untuk mengatur fungsionalitas lihat/sembunyikan password
+    // Fungsi Password Toggle
     function setupPasswordToggle(inputId, toggleId) {
         const passwordInput = document.getElementById(inputId);
         const toggleIcon = document.getElementById(toggleId);
 
         if (passwordInput && toggleIcon) {
             toggleIcon.addEventListener('click', () => {
-                // Cek tipe input saat ini
                 const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
                 passwordInput.setAttribute('type', type);
                 
-                // Ganti ikon mata
                 toggleIcon.classList.toggle('fa-eye');
                 toggleIcon.classList.toggle('fa-eye-slash');
             });
         }
     }
 
-    // Terapkan fungsi pada setiap pasang input dan ikon
     setupPasswordToggle('login-password', 'toggle-login-password');
     setupPasswordToggle('register-password', 'toggle-register-password');
     setupPasswordToggle('confirm-password', 'toggle-confirm-password');
 
-    // Popup handling
-    const registerSuccessPopup = document.getElementById('register-success-popup');
+    // Popup handling (Hanya untuk Login sekarang)
     const loginSuccessPopup = document.getElementById('login-success-popup');
 
-    // Handle register form submission
+    // --- HANDLE REGISTER FORM (UPDATED: NO POPUP, DIRECT REDIRECT) ---
     const registerForm = document.querySelector('.sign-up-container form');
     registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -46,14 +42,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const confirm = document.getElementById('confirm-password').value;
         const errorDiv = document.getElementById('register-error');
 
-        // Batasan Minimal Password 8 Huruf
+        // Validasi Password
         if (password.length < 8) {
             errorDiv.textContent = 'Password must be at least 8 characters long';
             errorDiv.style.display = 'block';
             return;
         }
         
-        // Batasan Harus Mengandung Angka dan Huruf
         const hasNumber = /\d/.test(password);
         const hasLetter = /[a-zA-Z]/.test(password);
         if (!hasNumber || !hasLetter) {
@@ -62,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Batasan Harus Mengandung Simbol
         const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password);
         if (!hasSymbol) {
             errorDiv.textContent = 'Password must contain at least one special character';
@@ -70,64 +64,45 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Cek kecocokan password dan konfirmasi
         if (password !== confirm) {
             errorDiv.textContent = 'Passwords do not match';
             errorDiv.style.display = 'block';
             return;
         }
 
-        // Hide error if previously shown
         errorDiv.style.display = 'none';
 
-        // Send data to backend
         const formData = new FormData(registerForm);
         try {
             const response = await fetch('/register', {
                 method: 'POST',
                 body: formData
             });
-        const result = await response.json();
-        // Debug log for registration response
-        console.log('Registration response:', result);
-        if (result.success) {
-            registerSuccessPopup.style.display = 'flex';
-            setTimeout(() => {
-                registerSuccessPopup.style.opacity = '1';
-                registerSuccessPopup.style.transform = 'scale(1)';
-            }, 10);
-            setTimeout(() => {
-                registerSuccessPopup.style.opacity = '0';
-                registerSuccessPopup.style.transform = 'scale(0.5)';
-                setTimeout(() => {
-                    registerSuccessPopup.style.display = 'none';
-                    container.classList.remove('right-panel-active'); // Switch to login
-                }, 500);
-            }, 1000);
-        } else {
-            errorDiv.textContent = result.message;
-            errorDiv.style.display = 'block';
-        }
+            const result = await response.json();
+            
+            if (result.success) {
+                // LANGSUNG REDIRECT KE VALIDASI AKUN
+                if (result.redirect) {
+                    window.location.href = result.redirect;
+                }
+            } else {
+                errorDiv.textContent = result.message;
+                errorDiv.style.display = 'block';
+            }
         } catch (error) {
             errorDiv.textContent = 'An error occurred. Please try again.';
             errorDiv.style.display = 'block';
         }
     });
 
-    // Handle login form submission (optional, but for completeness)
+    // --- HANDLE LOGIN FORM (TETAP ADA POPUP) ---
     const loginForm = document.querySelector('.sign-in-container form');
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const errorDiv = document.getElementById('login-error');
-        errorDiv.style.display = 'none'; // Hide previous errors
+        errorDiv.style.display = 'none';
         const formData = new FormData(loginForm);
 
-        // Log the form data for debugging (optional)
-        for (let [key, value] of formData.entries()) {
-            console.log(key, value);
-        }
-
-        // Ensure remember_me is included in form data even if unchecked
         if (!formData.has('remember_me')) {
             formData.append('remember_me', 'off');
         }
@@ -137,23 +112,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 body: formData
             });
-            console.log('Response status:', response.status);
-            console.log('Response headers:', response.headers);
             const result = await response.json();
-            console.log('Response result:', result);
+            
             if (result.success) {
-                // Handle remember me: store in localStorage if checked
-                const rememberMe = document.getElementById('remember-me').checked;
-                if (rememberMe) {
-                    localStorage.setItem('rememberMe', 'true');
-                    // Optionally store email or other data
-                    const email = document.getElementById('login_username').value;
-                    localStorage.setItem('email', email);
-                } else {
-                    localStorage.removeItem('rememberMe');
-                    localStorage.removeItem('email');
-                }
-
                 loginSuccessPopup.style.display = 'flex';
                 setTimeout(() => {
                     loginSuccessPopup.style.opacity = '1';
@@ -164,7 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     loginSuccessPopup.style.transform = 'scale(0.5)';
                     setTimeout(() => {
                         loginSuccessPopup.style.display = 'none';
-                        // Setelah popup sukses login hilang, redirect ke dashboard
                         window.location.href = '/dashboard';
                     }, 500);
                 }, 1000);
@@ -173,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorDiv.style.display = 'block';
             }
         } catch (error) {
-            errorDiv.textContent = 'An error occurred. Please try again.' + error;
+            errorDiv.textContent = 'An error occurred. Please try again.';
             errorDiv.style.display = 'block';
         }
     });

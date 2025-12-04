@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MoneyTime - Login & Register</title>
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="icon" href="{{ url_for('static', filename='logoMoneyTime.svg') }}">
     
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='styleRegisLogin.css') }}">
 </head>
 <body>
-    <!--Container Login dan Register-->
     <div class="container" id="main-container">
-        <!--Form Register-->
         <div class="form-container sign-up-container">
             <form action="#">
                 <h1>Register</h1>
@@ -44,7 +43,6 @@
             </form>
         </div>
         
-        <!--Form Login-->
         <div class="form-container sign-in-container">
             <form action="{{ url_for('login') }}" method="POST">
                 <h1>Login</h1>
@@ -72,7 +70,6 @@
             </form>
         </div>
         
-        <!--Overlay-->
         <div class="overlay-container">
             <div class="overlay">
                 <div class="overlay-panel overlay-left">
@@ -98,21 +95,12 @@
         
     </div>
 
-    <!-- Popup untuk Register -->
-    <div id="register-success-popup" class="success-popup" style="display: none;">
-        <div class="popup-box">
-            <img src="{{ url_for('static', filename='contreng (2).png') }}" alt="Success">
-        </div>
-    </div>
-
-    <!-- Popup untuk Login -->
     <div id="login-success-popup" class="success-popup" style="display: none;">
         <div class="popup-box">
             <img src="{{ url_for('static', filename='contreng (2).png') }}" alt="Success">
         </div>
     </div>
 
-    <!-- Script Jawa -->
     <script src="{{ url_for('static', filename='scriptRegisLogin.js') }}"></script>
 </body>
 </html>

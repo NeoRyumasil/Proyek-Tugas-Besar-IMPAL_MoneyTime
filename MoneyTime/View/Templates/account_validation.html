@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoneyTime - Account Validation</title>
+    
+    <link rel="icon" href="{{ url_for('static', filename='logoMoneyTime.svg') }}">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleForgotPassword.css') }}">
+</head>
+<body>
+
+    <div class="main-container">
+
+        <div class="step-container" id="step-otp-validation">
+            <form class="step-form" id="form-verify-otp">
+                <h1>Verify Your Account</h1>
+                <p>We have sent a 4-digit verification code to your email.<br>Please enter the code below to continue.</p>
+                
+                <div class="otp-input-group">
+                    <i class="fa-solid fa-key"></i>
+                    <div class="otp-inputs">
+                        <input type="text" id="otp-1" maxlength="1" required>
+                        <input type="text" id="otp-2" maxlength="1" required>
+                        <input type="text" id="otp-3" maxlength="1" required>
+                        <input type="text" id="otp-4" maxlength="1" required>
+                    </div>
+                </div>
+
+                <p id="otp-status-text" style="font-size: 12px; color: #1a3e7f; margin-bottom: 10px; font-weight: 500;">
+                    Sending verification code...
+                </p>
+
+                <p class="resend-text">
+                    Didn’t receive a code? 
+                    <a href="#" id="resend-link">Resend</a>
+                </p>
+                
+                <div id="otp-error" class="error-message" style="display: none;"></div>
+                <button type="submit" class="submit-btn" id="verify-btn">Verify Account</button>
+            </form>
+        </div>
+
+        <div id="step-1-email" style="display:none;"><form id="form-send-otp"></form><div id="step-1-error"></div></div>
+        <div id="step-2-otp" style="display:none;"><div id="step-2-error"></div></div>
+
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="{{ url_for('static', filename='scriptAccountValidation.js') }}"></script>
+</body>
+</html>

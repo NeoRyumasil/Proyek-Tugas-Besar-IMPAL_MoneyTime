@@ -577,7 +577,28 @@ body {
 /* --- MONEY SPECIFIC --- */
 .val-green { color: #126C00; font-weight: 600; }
 .val-red { color: #dc2626; font-weight: 600; }
-.t-desc { font-weight: 500; font-size: 14px; }
+.t-desc {
+    width: 35%;
+    font-weight: 500;
+    font-size: 15px;
+    text-align: left;
+}
+.t-badge {
+    margin: 0 auto;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    width: 100px;
+    text-align: center;
+}
+.t-val {
+    width: 35%;
+    text-align: right;
+    font-weight: 600;
+    font-size: 15px;
+}
 
 /* --- TIME / SCHEDULE SPECIFIC (Merged from styleTime.css) --- */
 .schedule-list-section {

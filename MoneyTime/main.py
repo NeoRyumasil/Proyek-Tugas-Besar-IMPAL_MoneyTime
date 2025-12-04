@@ -27,7 +27,7 @@ def index():
 def auth():
     return render_template('RegisLogin.html')
 
-# Route register
+# Route register (UPDATED)
 @app.route('/register', methods=['POST'])
 def register():
     username = request.form.get('register_username')
@@ -38,7 +38,10 @@ def register():
     if password == confirm:
         registration_result = user_controller.registrasi(username, password, email)
         if registration_result == True:
-            return jsonify({'success': True, 'message': 'Registration successful'})
+            # Simpan email untuk validasi akun
+            session['pending_validation_email'] = email
+            # Kirim sinyal redirect ke frontend
+            return jsonify({'success': True, 'message': 'Registration successful', 'redirect': '/account-validation'})
         elif registration_result == "exists":
             return jsonify({'success': False, 'message': 'Account already exists, please use a new one.'})
         elif registration_result == False:
@@ -89,17 +92,17 @@ def time():
         return redirect(url_for('auth'))
     return render_template('time.html', user=session['user'])
 
-# [UPDATED] Endpoint tambah transaksi
+# Endpoint tambah transaksi
 @app.route('/add-transaction', methods=['POST'])
 def add_transaction():
     if 'user' not in session:
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
 
     data = request.get_json() or {}
-    ttype = data.get('type')  # 'Income' or 'Expense'
+    ttype = data.get('type')
     description = data.get('description')
     amount = data.get('amount')
-    date = data.get('date')   # Ambil Tanggal
+    date = data.get('date')
     category = data.get('category') or 'Other'
 
     if not ttype or not description or not amount or not date:
@@ -108,10 +111,7 @@ def add_transaction():
     user = session['user']
     user_id = user.get('id')
 
-    # Tentukan status Finansial ('Pemasukan'/'Pengeluaran') berdasarkan tipe
     status_finansial = 'Pemasukan' if str(ttype).lower() == 'income' else 'Pengeluaran'
-
-    # get or create finansial record dengan status
     finansial_id = finansial_controller.get_or_create_finansial(user_id, category, status=status_finansial)
     
     if not finansial_id:
@@ -122,7 +122,6 @@ def add_transaction():
     except Exception:
         return jsonify({'success': False, 'message': 'Invalid amount'}), 400
 
-    # Panggil fungsi add dengan parameter tanggal
     if str(ttype).lower() == 'income':
         ok = finansial_controller.add_pemasukan(finansial_id, description, nominal, date)
     else:
@@ -132,31 +131,25 @@ def add_transaction():
         return jsonify({'success': True, 'message': 'Transaction added'})
     return jsonify({'success': False, 'message': 'Failed to add transaction'}), 500
 
-# [UPDATED] Endpoint ambil data transaksi (Support Search)
+# Endpoint ambil data transaksi
 @app.route('/api/transactions', methods=['GET'])
 def api_transactions():
     if 'user' not in session:
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
 
     user_id = session['user'].get('id')
-
-    # Ambil parameter search 'q' dari URL
     keyword = request.args.get('q', '')
-
-    # Panggil controller dengan keyword
     transactions = finansial_controller.get_transactions(user_id, keyword)
 
     return jsonify({'success': True, 'transactions': transactions})
 
-# [NEW] Endpoint ambil kategori dinamis
+# Endpoint ambil kategori dinamis
 @app.route('/api/categories', methods=['GET'])
 def api_categories():
     if 'user' not in session:
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
 
     user_id = session['user'].get('id')
-
-    # Panggil controller untuk ambil kategori
     categories = finansial_controller.get_categories(user_id)
 
     return jsonify({'success': True, 'categories': categories})
@@ -206,6 +199,43 @@ def update_password():
         return jsonify({'success': True, 'message': 'Password berhasil diubah.'})
     else:
         return jsonify({'success': False, 'message': 'Gagal update password.'})
+
+# --- Fitur Account Validation (BARU) ---
+@app.route('/account-validation')
+def account_validation():
+    return render_template('account_validation.html')
+
+@app.route('/send-validation-otp', methods=['POST'])
+def send_validation_otp():
+    email = request.form.get('email')
+    # Ambil dari session jika tidak ada di form (user baru regis)
+    if not email:
+        email = session.get('pending_validation_email')
+    if not email:
+        return jsonify({'success': False, 'message': 'Email tidak ditemukan.'})
+        
+    otp = user_controller.send_validation_otp(email)
+    if otp:
+        session['validation_otp'] = otp
+        session['validation_email'] = email
+        return jsonify({'success': True, 'message': 'OTP terkirim.'})
+    else:
+        return jsonify({'success': False, 'message': 'Gagal mengirim email.'})
+
+@app.route('/verify-validation-otp', methods=['POST'])
+def verify_validation_otp():
+    user_otp = request.form.get('otp')
+    server_otp = session.get('validation_otp')
+    email = session.get('validation_email')
+    
+    if server_otp and user_otp == server_otp and email:
+        # Validasi berhasil, hapus session temporary
+        session.pop('validation_otp', None)
+        session.pop('validation_email', None)
+        session.pop('pending_validation_email', None)
+        return jsonify({'success': True, 'message': 'Akun berhasil diverifikasi.'})
+    else:
+        return jsonify({'success': False, 'message': 'Kode OTP salah.'})
 
 if __name__ == '__main__':
     app.run(debug=True)

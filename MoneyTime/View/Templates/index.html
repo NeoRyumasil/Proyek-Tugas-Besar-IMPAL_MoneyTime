@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ url_for('static', filename='logoMoneyTime.svg') }}">
+    
     <link rel="stylesheet" href="{{ url_for('static', filename='styleLandingPage.css') }}">
     <script src="{{ url_for('static', filename='scriptLandingPage.js') }}"></script>
     <title>MoneyTime</title>
 </head>
 
 <body>
-    <!--Header-->
     <div class="header-guest">
         <div class="header-guest-container">
             <div class="name-and-logo">
@@ -18,7 +19,6 @@
                     <div class="logo">MoneyTime</div>
                 </div>
             </div>
-            <!--Navigation Bar-->
             <nav class="page-switch" id="mainNav" aria-label="Primary">
                 <a href="#home" class="page-link">
                     <div class="page-1"><b class="page-text">Home</b></div>
@@ -43,7 +43,6 @@
         </div>
     </div>
 
-    <!--Banner Atas-->
     <div class="hero" id="home">
         <div class="hero-background">
             <img class="hero-background-img" alt="" src="{{ url_for('static', filename='hero background.png') }}">
@@ -72,7 +71,6 @@
         </div>
     </div>
 
-    <!--Fitur-->
     <div class="features-component" id="features">
         <div class="features-container">
             <div class="title">
@@ -80,7 +78,6 @@
                 <div class="lorem-ipsum-dolor">Berikut Adalah Fitur-Fitur Utama yang Kami Tawarkan.</div>
             </div>
             <div class="features-card">
-                <!--Fitur Keuangan-->
                 <div class="money-card">
                     <div class="card">
                         <div class="card-container">
@@ -97,7 +94,6 @@
                         </div>
                     </div>
                 </div>
-                <!--Fitur Waktu-->
                 <div class="money-card">
                     <div class="card">
                         <div class="card-container">
@@ -118,7 +114,6 @@
         </div>
     </div>
 
-    <!--About-->
     <div class="about-us-component" id="about">
         <img class="about-us--about-us-component" alt="" src="{{ url_for('static', filename='About Us Component.png') }}">
         <div class="about-moneytime-parent">
@@ -129,7 +124,6 @@
         </div>
     </div>
 
-    <!--Footer-->
     <div class="footer">
         <div class="footer-wrapper">
             <div class="footer-top">
