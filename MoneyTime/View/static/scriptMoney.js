@@ -21,24 +21,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  const searchBtn = document.getElementById('searchBtn');
+  // --- SEARCH ELEMENT (LOGIKA BARU AKAN DITAMBAHKAN DI BAWAH) ---
   const searchInput = document.getElementById('searchInput');
-
-  if (searchBtn && searchInput) {
-    const performSearch = () => {
-      const query = searchInput.value.trim();
-      if (query) {
-        alert(`Searching for: "${query}"`);
-      } else {
-        searchInput.focus();
-      }
-    };
-    searchBtn.addEventListener('click', performSearch);
-    searchInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') performSearch();
-    });
-  }
-
+  
   const profilePill = document.getElementById('profilePill');
   const profileContainer = document.querySelector('.profile-container');
 
@@ -65,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const nextBtn = document.getElementById('nextMonthBtn');
   const monthLabel = document.getElementById('currentMonthLabel');
 
-  // Elements Custom Picker (BARU)
+  // Elements Custom Picker
   const pickerContainer = document.getElementById('datePickerContainer');
   const pickerPopup = document.getElementById('customDatePicker');
   const pickerYearLabel = document.getElementById('pickerYearLabel');
@@ -122,28 +107,23 @@ document.addEventListener('DOMContentLoaded', function () {
   function renderPicker() {
     if (!pickerYearLabel || !pickerMonthsGrid) return;
 
-    // Set tahun di header popup
     pickerYearLabel.textContent = pickerYearView;
     pickerMonthsGrid.innerHTML = '';
 
-    // Generate bulan
     shortMonths.forEach((mName, index) => {
       const monthDiv = document.createElement('div');
       monthDiv.classList.add('month-item');
       monthDiv.textContent = mName;
 
-      // Highlight jika sesuai dengan bulan yang sedang aktif di dashboard
-      // (Hanya jika tahun view di picker sama dengan tahun aktif dashboard)
       if (pickerYearView === currentViewDate.getFullYear() && index === currentViewDate.getMonth()) {
         monthDiv.classList.add('selected');
       }
 
-      // Klik bulan -> Update Dashboard & Tutup
       monthDiv.addEventListener('click', (e) => {
         e.stopPropagation();
         currentViewDate.setFullYear(pickerYearView);
         currentViewDate.setMonth(index);
-        currentViewDate.setDate(1); // Reset ke tanggal 1
+        currentViewDate.setDate(1); 
 
         updateDashboard();
         closePicker();
@@ -154,7 +134,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function togglePicker() {
-    // Cek apakah class 'active' ada di container
     if (pickerContainer.classList.contains('active')) {
       closePicker();
     } else {
@@ -163,7 +142,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function openPicker() {
-    // Sinkronkan tahun picker dengan tahun dashboard saat dibuka
     pickerYearView = currentViewDate.getFullYear();
     renderPicker();
     pickerContainer.classList.add('active');
@@ -173,20 +151,17 @@ document.addEventListener('DOMContentLoaded', function () {
     pickerContainer.classList.remove('active');
   }
 
-  // Event Listener: Klik container untuk buka/tutup
   if (pickerContainer) {
     pickerContainer.addEventListener('click', (e) => {
-      // Pastikan yang diklik BUKAN elemen di dalam popup (header/grid)
       if (!e.target.closest('.custom-date-popup')) {
         togglePicker();
       }
     });
   }
 
-  // Event Listener: Navigasi Tahun di Picker
   if (pickerPrevYear) {
     pickerPrevYear.addEventListener('click', (e) => {
-      e.stopPropagation(); // Jangan trigger togglePicker
+      e.stopPropagation();
       pickerYearView--;
       renderPicker();
     });
@@ -194,27 +169,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (pickerNextYear) {
     pickerNextYear.addEventListener('click', (e) => {
-      e.stopPropagation(); // Jangan trigger togglePicker
+      e.stopPropagation();
       pickerYearView++;
       renderPicker();
     });
   }
 
-  // Event Listener: Klik di luar (Close outside)
   document.addEventListener('click', (e) => {
     if (pickerContainer && !pickerContainer.contains(e.target)) {
       closePicker();
     }
   });
 
-  // --- API FETCH ---
-  async function fetchTransactions() {
+  // --- [UPDATED] API FETCH WITH SEARCH SUPPORT ---
+  async function fetchTransactions(query = '') {
     try {
-      const response = await fetch('/api/transactions');
+      // Jika query ada, tambahkan ke URL. Jika tidak, ambil semua.
+      const url = query 
+          ? `/api/transactions?q=${encodeURIComponent(query)}` 
+          : '/api/transactions';
+
+      const response = await fetch(url);
       const data = await response.json();
+      
       if (data.success) {
         allTransactions = data.transactions;
-        updateDashboard();
+        updateDashboard(); // Render ulang tampilan
       } else {
         if (listContainer) listContainer.innerHTML = '<div style="text-align:center;">Failed to load data.</div>';
       }
@@ -224,17 +204,41 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  // --- [UPDATED] EVENT LISTENER SEARCH BAR (LIVE SEARCH) ---
+  if (searchInput) {
+    let timeout = null;
+
+    searchInput.addEventListener('input', (e) => {
+      const val = e.target.value;
+
+      // Debounce: Tunggu 300ms agar tidak spam request
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        fetchTransactions(val);
+      }, 300);
+    });
+    
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        clearTimeout(timeout);
+        fetchTransactions(searchInput.value);
+      }
+    });
+  }
+
   // --- UPDATE DASHBOARD ---
   function updateDashboard() {
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-    // Update Label Utama di Dashboard
     if (monthLabel) monthLabel.textContent = `${monthNames[month]} ${year}`;
 
     // Filter transaksi bulan ini
     const monthlyData = allTransactions.filter(t => {
+      // Jika data dari search (bisa jadi tanggal null atau format lain), 
+      // handle dengan aman.
+      if(!t.tanggal) return false;
       const d = new Date(t.tanggal);
       return d.getFullYear() === year && d.getMonth() === month;
     });
@@ -242,6 +246,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Hitung Summary
     let totalIncome = 0;
     let totalExpense = 0;
+    
+    // Total Balance dihitung dari ALL data yang di-fetch (sesuai konteks search atau all)
     let totalBalance = allTransactions.reduce((acc, t) => {
       return t.type === 'Income' ? acc + t.nominal : acc - t.nominal;
     }, 0);
@@ -260,27 +266,41 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // --- RENDER LIST ---
+// ... (Kode sebelumnya tetap sama)
+
+  // --- RENDER LIST (DIMODIFIKASI) ---
   function renderList(transactions) {
     if (!listContainer) return;
     listContainer.innerHTML = '';
 
     if (transactions.length === 0) {
-      listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">No transactions this month.</div>';
+      listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">No transactions found.</div>';
       return;
     }
 
     const grouped = {};
     transactions.forEach(t => {
-      if (!grouped[t.tanggal]) grouped[t.tanggal] = [];
-      grouped[t.tanggal].push(t);
+      const dateKey = t.tanggal || 'No Date';
+      if (!grouped[dateKey]) grouped[dateKey] = [];
+      grouped[dateKey].push(t);
     });
 
-    const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+    const sortedDates = Object.keys(grouped).sort((a, b) => {
+        if (a === 'No Date') return 1;
+        if (b === 'No Date') return -1;
+        return new Date(b) - new Date(a);
+    });
 
     sortedDates.forEach(dateStr => {
-      const dateObj = new Date(dateStr);
-      const dateNum = dateObj.getDate();
-      const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+      let dateDisplay = dateStr;
+      let dateNum = '';
+      
+      if(dateStr !== 'No Date'){
+          const dateObj = new Date(dateStr);
+          dateNum = dateObj.getDate();
+          const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+          dateDisplay = dayName; 
+      }
 
       let dInc = 0, dExp = 0;
       let itemsHtml = '';
@@ -295,8 +315,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const valClass = isInc ? 'val-green' : 'val-red';
         const transactionString = encodeURIComponent(JSON.stringify(t));
 
+        // --- PERUBAHAN DISINI: Menambahkan data attributes untuk Tooltip ---
+        // Kita escape tanda kutip agar aman di dalam atribut HTML
+        const safeDesc = t.deskripsi.replace(/"/g, '&quot;');
+        
         itemsHtml += `
-            <div class="t-item" onclick="openTransactionDetail(JSON.parse(decodeURIComponent('${transactionString}')))">
+            <div class="t-item" 
+                 onclick="openTransactionDetail(JSON.parse(decodeURIComponent('${transactionString}')))"
+                 data-desc="${safeDesc}"
+                 data-date="${t.tanggal || '-'}"
+                 data-nominal="${formatRupiah(t.nominal)}"
+                 data-type="${t.type}"
+                 data-category="${t.kategori}">
+                 
                 <span class="t-desc">${t.deskripsi}</span>
                 <span class="t-badge" style="background-color: ${color}">${t.kategori}</span>
                 <span class="t-val ${valClass}">${sign} ${formatRupiah(t.nominal)}</span>
@@ -309,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="day-header">
                         <div class="dh-left">
                             <div class="date-box">${dateNum}</div>
-                            <span class="day-name">${dayName}</span>
+                            <span class="day-name">${dateDisplay}</span>
                         </div>
                         <div class="dh-right">
                             <span class="val-green"><i class="fa-solid fa-arrow-trend-up"></i> ${formatRupiah(dInc)}</span>
@@ -322,6 +353,76 @@ document.addEventListener('DOMContentLoaded', function () {
       listContainer.innerHTML += cardHtml;
     });
   }
+
+  // --- LOGIC HOVER TOOLTIP (BARU) ---
+  // 1. Buat elemen tooltip dan masukkan ke body
+  const tooltipEl = document.createElement('div');
+  tooltipEl.className = 'transaction-tooltip';
+  document.body.appendChild(tooltipEl);
+
+  // 2. Event Delegation untuk Mouse Enter (Menampilkan Tooltip)
+  document.addEventListener('mouseover', (e) => {
+      const item = e.target.closest('.t-item');
+      if (item) {
+          const desc = item.getAttribute('data-desc');
+          const date = item.getAttribute('data-date');
+          const nominal = item.getAttribute('data-nominal');
+          const type = item.getAttribute('data-type');
+          const category = item.getAttribute('data-category');
+
+          // Format Tampilan Tooltip
+          tooltipEl.innerHTML = `
+              <div class="tooltip-header">
+                  <span>${type}</span>
+                  <span>${category}</span>
+              </div>
+              <div class="tooltip-row">
+                  <span class="tooltip-label">Date</span>
+                  <span class="tooltip-val">${date}</span>
+              </div>
+              <div class="tooltip-row">
+                  <span class="tooltip-label">Desc</span>
+                  <span class="tooltip-val">${desc.length > 20 ? desc.substring(0, 20) + '...' : desc}</span>
+              </div>
+              <div class="tooltip-row" style="margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 4px;">
+                  <span class="tooltip-label">Total</span>
+                  <span class="tooltip-val" style="color: #fff; font-size: 15px;">${nominal}</span>
+              </div>
+          `;
+          tooltipEl.style.display = 'block';
+      }
+  });
+
+  // 3. Event Delegation untuk Mouse Move (Mengikuti Kursor)
+  document.addEventListener('mousemove', (e) => {
+      // Cek apakah sedang hover di t-item
+      if (tooltipEl.style.display === 'block') {
+          // Cegah tooltip keluar layar
+          let top = e.clientY + 15;
+          let left = e.clientX + 15;
+
+          if (left + 240 > window.innerWidth) {
+              left = e.clientX - 240; // Pindah ke kiri kursor
+          }
+          
+          if (top + 150 > window.innerHeight) {
+              top = e.clientY - 150; // Pindah ke atas kursor
+          }
+
+          tooltipEl.style.top = `${top}px`;
+          tooltipEl.style.left = `${left}px`;
+      }
+  });
+
+  // 4. Event Delegation untuk Mouse Leave (Menyembunyikan Tooltip)
+  document.addEventListener('mouseout', (e) => {
+      const item = e.target.closest('.t-item');
+      if (item) {
+          tooltipEl.style.display = 'none';
+      }
+  });
+
+// ... (Sisa kode existing seperti fetchTransactions, chart, dll tetap di bawah)
 
   // --- RENDER CHART ---
   function renderChart(transactions) {
@@ -422,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // --- DATE NAVIGATION (Panah Kiri/Kanan) ---
+  // --- DATE NAVIGATION ---
   if (prevBtn) prevBtn.addEventListener('click', () => {
     currentViewDate.setMonth(currentViewDate.getMonth() - 1);
     updateDashboard();
@@ -442,5 +543,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Fetch data pertama kali
   fetchTransactions();
 });
