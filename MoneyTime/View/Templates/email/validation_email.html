@@ -1,37 +1,63 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <style type="text/css">
-        /* CSS ini akan di-inject oleh Python saat render template */
-        {{ css_style|safe }}
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your MoneyTime Account</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="preheader">Gunakan kode {{ otp_code }} untuk memverifikasi akun MoneyTime Anda.</div>
+<body style="margin: 0; padding: 0; background-color: #f0f5ff; font-family: 'Inter', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
     
-    <div class="container">
-        <div class="email-box">
-            <div class="header">
-                <h1>MoneyTime</h1>
-            </div>
-            
-            <div class="body-content">
-                <p>Halo,</p>
-                <p>Terima kasih telah mendaftar di MoneyTime. Untuk memastikan bahwa ini benar akun Anda, silakan masukkan kode verifikasi (OTP) berikut:</p>
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f0f5ff; padding: 40px 0;">
+        <tr>
+            <td align="center">
                 
-                <div class="otp-box">
-                    <span class="otp-code">{{ otp_code }}</span>
-                </div>
-                
-                <p style="font-size: 14px; color: #666; margin-top: 20px;">
-                    Kode ini diperlukan untuk menyelesaikan proses registrasi dan mengaktifkan akun Anda. Jangan berikan kode ini kepada siapa pun.
-                </p>
-            </div>
-            
-            <div class="footer">
-                &copy; 2025 MoneyTime. All rights reserved.<br>Pesan otomatis, jangan dibalas.
-            </div>
-        </div>
-    </div>
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 500px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+                    
+                    <tr>
+                        <td align="center" style="background-color: #1A3E7F; padding: 30px 20px;">
+                            <h1 style="color: #ffffff; font-family: 'Inter', sans-serif; font-size: 28px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">
+                                MoneyTime
+                            </h1>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding: 40px 30px; color: #333333; text-align: center;">
+                            <h2 style="font-size: 22px; font-weight: 700; color: #1A3E7F; margin: 0 0 15px 0;">
+                                Verify Your Email
+                            </h2>
+                            
+                            <p style="font-size: 15px; line-height: 1.6; color: #555555; margin-bottom: 25px;">
+                                Hello! Thanks for joining MoneyTime.<br>
+                                To start managing your time and money efficiently, please enter the verification code below:
+                            </p>
+
+                            <div style="margin: 30px 0;">
+                                <span style="display: inline-block; background-color: #f0f5ff; color: #1A3E7F; font-size: 32px; font-weight: 800; letter-spacing: 8px; padding: 15px 40px; border-radius: 12px;">
+                                    {{ otp_code }}
+                                </span>
+                            </div>
+
+                            <p style="font-size: 14px; line-height: 1.6; color: #666666;">
+                                This code is valid for 5 minutes. Please do not share this code with anyone.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td align="center" style="background-color: #1A3E7F; padding: 20px;">
+                            <p style="margin: 0; font-size: 12px; color: #ffffff; line-height: 1.5; opacity: 0.9;">
+                                &copy; 2025 MoneyTime. All rights reserved.<br>
+                                Automated message, please do not reply.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
 </body>
 </html>
