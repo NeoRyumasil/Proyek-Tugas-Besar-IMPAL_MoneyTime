@@ -17,10 +17,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap"
         rel="stylesheet">
     
-    <!-- Assistant -->
     <link rel="stylesheet" href="{{ url_for('static', filename='styleAssistant.css') }}">
-    {% include 'assistant.html' %}
-    <script src="{{ url_for('static', filename='scriptAssistant.js') }}"></script>
 </head>
 
 <body>
@@ -77,7 +74,6 @@
                     </svg>
                     <div class="notification-dot"></div>
 
-                    <!-- DROPDOWN CONTENT -->
                     <div class="notification-dropdown" id="notificationDropdown">
                         <div class="notif-header-row">
                             <div class="notif-title">Notification</div>
@@ -87,7 +83,6 @@
                         </div>
                         <div class="notif-divider-main"></div>
                         
-                        <!-- Item 1: Overdue -->
                         <div class="notif-card">
                             <div class="notif-card-header">
                                 <div class="notif-card-title-group">
@@ -107,7 +102,6 @@
                             </div>
                         </div>
 
-                        <!-- Item 2: Reminder -->
                         <div class="notif-card">
                             <div class="notif-card-header">
                                 <div class="notif-card-title-group">
@@ -127,7 +121,6 @@
                             </div>
                         </div>
 
-                         <!-- Item 3: Reminder -->
                          <div class="notif-card">
                             <div class="notif-card-header">
                                 <div class="notif-card-title-group">
@@ -147,7 +140,6 @@
                             </div>
                         </div>
 
-                         <!-- Item 4: Reminder -->
                          <div class="notif-card">
                             <div class="notif-card-header">
                                 <div class="notif-card-title-group">
@@ -167,8 +159,6 @@
                             </div>
                         </div>
 
-                        <!-- View All Button -->
-                        <!-- Sesuaikan href dengan route halaman notifikasi kamu -->
                         <a href="{{ url_for('notification') }}" class="notif-view-all">
                             View All
                             <div class="notif-view-all-spacer"></div>
@@ -196,24 +186,6 @@
                     </div>
 
                     <div class="profile-dropdown" id="profileDropdown">
-                        <!-- Dropdown Akun di ilangin dulu -->
-                        <!-- <a href="#" class="dropdown-item">
-                            <div class="icon-circle green">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <path
-                                        d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
-                                        stroke="white" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" />
-                                    <path
-                                        d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z"
-                                        stroke="white" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" />
-                                </svg>
-                            </div>
-                            <span>My Account</span>
-                        </a> -->
-                        <!-- <div class="dropdown-divider"></div> -->
                         <a href="{{ url_for('logout') }}" class="dropdown-item logout">
                             <div class="icon-logout">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C40C0C"
@@ -688,6 +660,10 @@
     <script src="{{ url_for('static', filename='scriptModal.js') }}"></script>
     <script src="{{ url_for('static', filename='scriptScheduleDetail.js') }}"></script>
     <script src="{{ url_for('static', filename='scriptScheduleEdit.js') }}"></script>
+
+    {% include 'assistant.html' %}
+    <script src="{{ url_for('static', filename='scriptAssistant.js') }}"></script>
+
 </body>
 
 </html>

@@ -15,8 +15,6 @@
         rel="stylesheet">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='styleAssistant.css') }}">
-    {% include 'assistant.html' %}
-    <script src="{{ url_for('static', filename='scriptAssistant.js') }}"></script>
 </head>
 
 <body>
@@ -346,6 +344,10 @@
     </div>
 
     <script src="{{ url_for('static', filename='scriptNotification.js') }}"></script>
+
+    {% include 'assistant.html' %}
+    <script src="{{ url_for('static', filename='scriptAssistant.js') }}"></script>
+
 </body>
 
 </html>
