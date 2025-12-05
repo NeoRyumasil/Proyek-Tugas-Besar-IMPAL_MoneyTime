@@ -193,7 +193,7 @@ body {
     gap: 20px;
 }
 
-/* === BAGIAN YANG SEBELUMNYA HILANG (FIXED) === */
+/* === NOTIFICATION WRAPPER & DOT === */
 .notification-wrapper {
     position: relative;
     display: flex;
@@ -438,7 +438,7 @@ body {
     font-weight: 590;
 }
 
-/* Notification List & Card */
+/* Notification List & Card (Halaman Full) */
 .notif-list-container {
     display: flex;
     flex-direction: column;
@@ -456,12 +456,29 @@ body {
     flex-direction: column;
     gap: 5px;
     box-sizing: border-box;
-    transition: transform 0.2s ease;
+    /* Tambahan untuk animasi read */
+    transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 .notif-card-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    background-color: #fbfbfb; /* Efek hover halus */
+}
+
+/* === STYLE UNTUK SUDAH DIBACA (Halaman Full) === */
+.notif-card-item.read {
+    opacity: 0.6;
+    background-color: #F0F5FF; /* Warna menyatu dengan background */
+    outline-color: #cfcfcf;
+    transform: none; /* Reset transform jika ada */
+    box-shadow: none;
+}
+
+.notif-card-item.read:hover {
+    transform: none;
+    background-color: #eef2fa;
 }
 
 .notif-item-top {
@@ -653,7 +670,7 @@ body {
     animation: fadeIn 0.2s ease;
 }
 
-/* Header Notifikasi */
+/* Header Notifikasi Dropdown */
 .notif-header-row {
     display: flex;
     justify-content: space-between;
@@ -695,7 +712,7 @@ body {
     margin: 5px 0 10px 0;
 }
 
-/* Card Item Notifikasi */
+/* Card Item Notifikasi (DROPDOWN) */
 .notif-card {
     background: white;
     border-radius: 7px;
@@ -705,6 +722,25 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    /* Tambahan untuk animasi read */
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+/* Hover di Dropdown */
+.notif-card:hover {
+    background-color: #fbfbfb;
+    transform: translateY(-1px);
+}
+
+/* === STYLE UNTUK SUDAH DIBACA (Dropdown) === */
+.notif-card.read {
+    opacity: 0.6;
+    background-color: #e4eaf9; /* Agak gelap sedikit dari background dropdown */
+    outline-color: #cfcfcf;
+}
+.notif-card.read:hover {
+    transform: none;
 }
 
 .notif-card-header {
