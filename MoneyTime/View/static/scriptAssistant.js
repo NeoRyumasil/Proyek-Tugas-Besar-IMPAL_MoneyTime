@@ -1,17 +1,26 @@
+// Pas buka otomatis di bawah
+function scrollToBottom() {
+    const chatBody = document.querySelector('.mt-body');
+    if (chatBody) {
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+}
+
 // Function untuk membuka dan menutup Assistant
 function toggleAssistant() {
     const assistantWindow = document.getElementById('mt-assistant-window');
-    const triggerBtn = document.getElementById('mt-assistant-trigger');
-
+    
     if (assistantWindow.classList.contains('hidden')) {
         // Buka Window
         assistantWindow.classList.remove('hidden');
-        // Opsi: Sembunyikan tombol trigger saat window terbuka
-        // triggerBtn.style.display = 'none'; 
+        
+        // TAMBAHAN: Auto scroll ke bawah saat dibuka
+        // Diberi sedikit timeout agar transisi CSS selesai dulu (opsional tapi lebih mulus)
+        setTimeout(scrollToBottom, 100); 
+        
     } else {
         // Tutup Window
         assistantWindow.classList.add('hidden');
-        // triggerBtn.style.display = 'flex';
     }
 }
 

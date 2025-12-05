@@ -648,6 +648,10 @@ body {
     color: #1a3e7f;
 }
 
+.hidden-task {
+    display: none !important;
+}
+
 /* Priority Dots */
 .priority-dot {
     width: 14px;
