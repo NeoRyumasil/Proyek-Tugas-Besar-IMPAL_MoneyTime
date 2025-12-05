@@ -103,6 +103,13 @@ def time():
         return redirect(url_for('auth'))
     return render_template('time.html', user=session['user'])
 
+# Route Notification
+@app.route('/notification')
+def notification():
+    if 'user' not in session:
+        return redirect(url_for('auth'))
+    return render_template('notification.html', user=session['user'])
+
 # Endpoint tambah transaksi
 @app.route('/add-transaction', methods=['POST'])
 def add_transaction():
