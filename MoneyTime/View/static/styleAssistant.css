@@ -263,3 +263,23 @@
     background: var(--mt-blue-dark);
     /* Bisa diganti SVG icon send nantinya */
 }
+
+/* Tambahkan di styleAssistant.css bagian paling bawah */
+
+/* Kustomisasi Scrollbar untuk Webkit (Chrome, Edge, Safari) */
+.mt-body::-webkit-scrollbar {
+    width: 6px; /* Lebar scrollbar lebih tipis */
+}
+
+.mt-body::-webkit-scrollbar-track {
+    background: transparent; /* Background track transparan */
+}
+
+.mt-body::-webkit-scrollbar-thumb {
+    background-color: rgba(26, 62, 127, 0.3); /* Warna biru transparan */
+    border-radius: 10px; /* Membulatkan sudut scrollbar */
+}
+
+.mt-body::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(26, 62, 127, 0.6); /* Lebih gelap saat di-hover */
+}

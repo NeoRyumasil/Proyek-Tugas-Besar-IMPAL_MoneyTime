@@ -562,6 +562,30 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  const tabs = document.querySelectorAll('.time-tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.dataset.target;
+
+      groups.forEach(group => {
+        const content = group.querySelector('.trans-items');
+        const icon = group.querySelector('.toggle-icon');
+        if (content) content.style.display = 'block';
+        if (icon) icon.style.transform = 'rotate(0deg)';
+
+        if (target === 'all') {
+          group.style.display = 'block';
+        } else {
+          if (group.id === target) group.style.display = 'block';
+          else group.style.display = 'none';
+        }
+        if (group.style.display !== 'none') initViewMore(group);
+      });
+    });
+  });
+
   const checkboxes = document.querySelectorAll('.sch-checkbox');
   checkboxes.forEach(box => {
     box.addEventListener('click', (e) => {

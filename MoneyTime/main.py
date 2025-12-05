@@ -271,6 +271,10 @@ def verify_validation_otp():
         # PESAN ERROR BAHASA INGGRIS (Untuk ditampilkan di form)
         return jsonify({'success': False, 'message': 'Invalid verification code.'})
 
+# Route Khusus untuk Halaman Video troll ke windah tol cipularang
+@app.route('/support-video')
+def support_video():
+    return render_template('support_video.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
