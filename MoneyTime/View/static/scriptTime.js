@@ -59,21 +59,49 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- 3. PROFILE DROPDOWN ---
+  // --- PROFILE DROPDOWN LOGIC ---
   const profilePill = document.getElementById('profilePill');
   const profileContainer = document.querySelector('.profile-container');
 
   if (profilePill && profileContainer) {
     profilePill.addEventListener('click', (e) => {
+      // Close notif if open
+      if (notifWrapper) notifWrapper.classList.remove('active');
+      
       profileContainer.classList.toggle('active');
       e.stopPropagation();
     });
-    document.addEventListener('click', (e) => {
-      if (!profileContainer.contains(e.target)) {
-        profileContainer.classList.remove('active');
-      }
+  }
+
+  // --- NOTIFICATION DROPDOWN LOGIC (NEW) ---
+  const notifWrapper = document.getElementById('notificationWrapper');
+  const notifDropdown = document.getElementById('notificationDropdown');
+
+  if (notifWrapper && notifDropdown) {
+    notifWrapper.addEventListener('click', (e) => {
+      // Close profile if open
+      if (profileContainer) profileContainer.classList.remove('active');
+
+      // Toggle Active Class
+      notifWrapper.classList.toggle('active');
+      e.stopPropagation();
+    });
+
+    // Prevent closing when clicking inside the dropdown itself
+    notifDropdown.addEventListener('click', (e) => {
+      e.stopPropagation();
     });
   }
+
+  // Global Click listener to close dropdowns
+  document.addEventListener('click', (e) => {
+    if (profileContainer && !profileContainer.contains(e.target)) {
+      profileContainer.classList.remove('active');
+    }
+    if (notifWrapper && !notifWrapper.contains(e.target)) {
+      notifWrapper.classList.remove('active');
+    }
+  });
 
   // --- 4. CHECKBOX INTERACTIVE ---
   const checkboxes = document.querySelectorAll('.sch-checkbox');

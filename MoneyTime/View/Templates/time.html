@@ -66,7 +66,7 @@
             </div>
 
             <div class="navbar-right-section">
-                <div class="notification-wrapper">
+                <div class="notification-wrapper" id="notificationWrapper">
                     <svg class="notification-icon" width="28" height="28" viewBox="0 0 24 24" fill="none"
                         xmlns="http://www.w3.org/2000/svg">
                         <path d="M18 8A6 6 0 0 0 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" fill="white" stroke="white"
@@ -76,6 +76,104 @@
                             stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                     <div class="notification-dot"></div>
+
+                    <!-- DROPDOWN CONTENT -->
+                    <div class="notification-dropdown" id="notificationDropdown">
+                        <div class="notif-header-row">
+                            <div class="notif-title">Notification</div>
+                            <div class="notif-mark-read">
+                                <span>Mark all as read</span>
+                            </div>
+                        </div>
+                        <div class="notif-divider-main"></div>
+                        
+                        <!-- Item 1: Overdue -->
+                        <div class="notif-card">
+                            <div class="notif-card-header">
+                                <div class="notif-card-title-group">
+                                    <span class="notif-tag">Overdue:</span>
+                                    <span class="notif-subject">Nama jadwal</span>
+                                </div>
+                                <div class="notif-time">5h ago</div>
+                            </div>
+                            <div class="notif-card-body">
+                                <div class="notif-desc-row">
+                                    <span class="notif-label">Description: </span>
+                                    <span class="notif-desc-bold">X days past deadline • Was due DATE at HH:MM</span>
+                                </div>
+                            </div>
+                            <div class="notif-card-footer">
+                                Category: Kategorinya
+                            </div>
+                        </div>
+
+                        <!-- Item 2: Reminder -->
+                        <div class="notif-card">
+                            <div class="notif-card-header">
+                                <div class="notif-card-title-group">
+                                    <span class="notif-tag">Reminder:</span>
+                                    <span class="notif-subject">Nama jadwal</span>
+                                </div>
+                                <div class="notif-time">7h ago</div>
+                            </div>
+                            <div class="notif-card-body">
+                                <div class="notif-desc-row">
+                                    <span class="notif-label">Description: </span>
+                                    <span class="notif-desc-bold">X minutes left • Due today at HH:MM</span>
+                                </div>
+                            </div>
+                            <div class="notif-card-footer">
+                                Category: Kategorinya
+                            </div>
+                        </div>
+
+                         <!-- Item 3: Reminder -->
+                         <div class="notif-card">
+                            <div class="notif-card-header">
+                                <div class="notif-card-title-group">
+                                    <span class="notif-tag">Reminder:</span>
+                                    <span class="notif-subject">Nama jadwal</span>
+                                </div>
+                                <div class="notif-time">9h ago</div>
+                            </div>
+                            <div class="notif-card-body">
+                                <div class="notif-desc-row">
+                                    <span class="notif-label">Description: </span>
+                                    <span class="notif-desc-bold">X hours left • Due today at HH:MM</span>
+                                </div>
+                            </div>
+                            <div class="notif-card-footer">
+                                Category: Kategorinya
+                            </div>
+                        </div>
+
+                         <!-- Item 4: Reminder -->
+                         <div class="notif-card">
+                            <div class="notif-card-header">
+                                <div class="notif-card-title-group">
+                                    <span class="notif-tag">Reminder:</span>
+                                    <span class="notif-subject">Nama jadwal</span>
+                                </div>
+                                <div class="notif-time">12h ago</div>
+                            </div>
+                            <div class="notif-card-body">
+                                <div class="notif-desc-row">
+                                    <span class="notif-label">Description: </span>
+                                    <span class="notif-desc-bold">X days left • Due DATE at HH:MM</span>
+                                </div>
+                            </div>
+                            <div class="notif-card-footer">
+                                Category: Kategorinya
+                            </div>
+                        </div>
+
+                        <!-- View All Button -->
+                        <!-- Sesuaikan href dengan route halaman notifikasi kamu -->
+                        <a href="{{ url_for('notification') }}" class="notif-view-all">
+                            View All
+                            <div class="notif-view-all-spacer"></div>
+                        </a>
+                    </div>
                 </div>
 
                 <div class="profile-container">

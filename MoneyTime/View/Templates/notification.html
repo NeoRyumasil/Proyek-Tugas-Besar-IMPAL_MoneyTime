@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification - MoneyTime</title>
+    <link rel="icon" href="{{ url_for('static', filename='logoMoneyTime.svg') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleNotification.css') }}">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleModal.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleAssistant.css') }}">
+    {% include 'assistant.html' %}
+    <script src="{{ url_for('static', filename='scriptAssistant.js') }}"></script>
+</head>
+
+<body>
+    <div class="header-guest">
+        <div class="header-guest-container">
+            <div class="name-and-logo">
+                <img class="image-13-icon" alt="" src="{{ url_for('static', filename='logoMoneyTime.svg') }}">
+                <div class="name">
+                    <div class="logo">MoneyTime</div>
+                </div>
+            </div>
+            <nav class="page-switch" id="mainNav" aria-label="Primary">
+                <a href="{{ url_for('dashboard') }}" class="page-link">
+                    <div class="page-1"><b class="page-text">Dashboard</b></div>
+                </a>
+
+                <a href="{{ url_for('money') }}" class="page-link">
+                    <div class="page-1"><b class="page-text">Money</b></div>
+                </a>
+
+                <a href="{{ url_for('time') }}" class="page-link">
+                    <div class="page-1"><b class="page-text">Time</b></div>
+                </a>
+            </nav>
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false"
+                aria-controls="mainNav">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+
+            <div class="search-bar">
+                <div class="primary-parent">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Type here...">
+                </div>
+                <div class="buttonsearch" id="searchBtn">
+                    <svg class="primary-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z"
+                            stroke="#1a3e7f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M21 21L16.65 16.65" stroke="#1a3e7f" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="navbar-right-section">
+                <div class="notification-wrapper" id="notificationWrapper">
+                    <svg class="notification-icon" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 8A6 6 0 0 0 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" fill="white" stroke="white"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <path
+                            d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21"
+                            stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    
+                    <div class="notification-dot"></div>
+
+                    <div class="notification-dropdown" id="notificationDropdown">
+                        <div class="notif-header-row">
+                            <div class="notif-title">Notification</div>
+                            <div class="notif-mark-read">
+                                <span>Mark all as read</span>
+                            </div>
+                        </div>
+                        <div class="notif-divider-main"></div>
+                        
+                        <div class="notif-card">
+                            <div class="notif-card-header">
+                                <div class="notif-card-title-group">
+                                    <span class="notif-tag">Overdue:</span>
+                                    <span class="notif-subject">Nama jadwal</span>
+                                </div>
+                                <div class="notif-time">5h ago</div>
+                            </div>
+                            <div class="notif-card-body">
+                                <div class="notif-desc-row">
+                                    <span class="notif-label">Description: </span>
+                                    <span class="notif-desc-bold">X days past deadline • Was due DATE at HH:MM</span>
+                                </div>
+                            </div>
+                            <div class="notif-card-footer">
+                                Category: Kategorinya
+                            </div>
+                        </div>
+
+                        <div class="notif-card">
+                            <div class="notif-card-header">
+                                <div class="notif-card-title-group">
+                                    <span class="notif-tag">Reminder:</span>
+                                    <span class="notif-subject">Nama jadwal</span>
+                                </div>
+                                <div class="notif-time">7h ago</div>
+                            </div>
+                            <div class="notif-card-body">
+                                <div class="notif-desc-row">
+                                    <span class="notif-label">Description: </span>
+                                    <span class="notif-desc-bold">X minutes left • Due today at HH:MM</span>
+                                </div>
+                            </div>
+                            <div class="notif-card-footer">
+                                Category: Kategorinya
+                            </div>
+                        </div>
+
+                         <div class="notif-card">
+                            <div class="notif-card-header">
+                                <div class="notif-card-title-group">
+                                    <span class="notif-tag">Reminder:</span>
+                                    <span class="notif-subject">Nama jadwal</span>
+                                </div>
+                                <div class="notif-time">9h ago</div>
+                            </div>
+                            <div class="notif-card-body">
+                                <div class="notif-desc-row">
+                                    <span class="notif-label">Description: </span>
+                                    <span class="notif-desc-bold">X hours left • Due today at HH:MM</span>
+                                </div>
+                            </div>
+                            <div class="notif-card-footer">
+                                Category: Kategorinya
+                            </div>
+                        </div>
+
+                         <div class="notif-card">
+                            <div class="notif-card-header">
+                                <div class="notif-card-title-group">
+                                    <span class="notif-tag">Reminder:</span>
+                                    <span class="notif-subject">Nama jadwal</span>
+                                </div>
+                                <div class="notif-time">12h ago</div>
+                            </div>
+                            <div class="notif-card-body">
+                                <div class="notif-desc-row">
+                                    <span class="notif-label">Description: </span>
+                                    <span class="notif-desc-bold">X days left • Due DATE at HH:MM</span>
+                                </div>
+                            </div>
+                            <div class="notif-card-footer">
+                                Category: Kategorinya
+                            </div>
+                        </div>
+
+                        <a href="{{ url_for('notification') }}" class="notif-view-all">
+                            View All
+                            <div class="notif-view-all-spacer"></div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="profile-container">
+                    <div class="profile-pill" id="profilePill">
+                        <div class="profile-avatar">
+                            <svg width="30" height="30" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="12" fill="black" />
+                                <path
+                                    d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z"
+                                    fill="white" />
+                            </svg>
+                        </div>
+                        <div class="profile-name">Welcome, {{ user.username|capitalize }}!</div>
+                        <svg class="profile-chevron" id="profileChevron" width="24" height="24" viewBox="0 0 24 24"
+                            fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 9L12 15L18 9" stroke="black" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </div>
+
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <a href="{{ url_for('logout') }}" class="dropdown-item logout">
+                            <div class="icon-logout">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9"
+                                        stroke="#C40C0C" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                    <path d="M16 17L21 12L16 7" stroke="#C40C0C" stroke-width="2.5"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                    <path d="M21 12H9" stroke="#C40C0C" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                </svg>
+                            </div>
+                            <span>Logout</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notif-body">
+        <img class="background-img" alt="" src="{{ url_for('static', filename='image 14.png') }}">
+
+        <div class="notif-page-header">
+            <div class="notif-page-title">Notification</div>
+            <div class="notif-mark-btn">
+                <span>Mark all as read</span>
+            </div>
+        </div>
+
+        <div class="notif-list-container">
+            <div class="notif-card-item">
+                <div class="notif-item-top">
+                    <div class="notif-item-header">
+                        <div class="notif-type-wrapper">
+                            <span class="notif-type-bold">Overdue:</span>
+                            <span class="notif-type-normal"> Nama jadwal</span>
+                        </div>
+                        <div class="notif-timestamp">5h ago</div>
+                    </div>
+                    <div class="notif-item-content">
+                        <span class="notif-content-label">Description: </span>
+                        <span class="notif-content-text">X days past deadline • Was due DATE at HH:MM</span>
+                    </div>
+                    <div class="notif-item-content">
+                        <span class="notif-content-text">Category: Kategorinya</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="notif-card-item">
+                <div class="notif-item-top">
+                    <div class="notif-item-header">
+                        <div class="notif-type-wrapper">
+                            <span class="notif-type-bold">Reminder:</span>
+                            <span class="notif-type-normal"> Nama jadwal</span>
+                        </div>
+                        <div class="notif-timestamp">7h ago</div>
+                    </div>
+                    <div class="notif-item-content">
+                        <span class="notif-content-label">Description: </span>
+                        <span class="notif-content-text">X minutes left • Due today at HH:MM</span>
+                    </div>
+                    <div class="notif-item-content">
+                        <span class="notif-content-text">Category: Kategorinya</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="notif-card-item">
+                <div class="notif-item-top">
+                    <div class="notif-item-header">
+                        <div class="notif-type-wrapper">
+                            <span class="notif-type-bold">Reminder:</span>
+                            <span class="notif-type-normal"> Nama jadwal</span>
+                        </div>
+                        <div class="notif-timestamp">9h ago</div>
+                    </div>
+                    <div class="notif-item-content">
+                        <span class="notif-content-label">Description: </span>
+                        <span class="notif-content-text">X hours left • Due today at HH:MM</span>
+                    </div>
+                    <div class="notif-item-content">
+                        <span class="notif-content-text">Category: Kategorinya</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="notif-card-item">
+                <div class="notif-item-top">
+                    <div class="notif-item-header">
+                        <div class="notif-type-wrapper">
+                            <span class="notif-type-bold">Reminder:</span>
+                            <span class="notif-type-normal"> Nama jadwal</span>
+                        </div>
+                        <div class="notif-timestamp">12h ago</div>
+                    </div>
+                    <div class="notif-item-content">
+                        <span class="notif-content-label">Description: </span>
+                        <span class="notif-content-text">X days left • Due DATE at HH:MM</span>
+                    </div>
+                    <div class="notif-item-content">
+                        <span class="notif-content-text">Category: Kategorinya</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="footer-wrapper">
+            <div class="footer-top">
+                <div class="footer-about">
+                    <div class="footer-logo">
+                        <b class="footer-brand">
+                            <span>Money</span><span class="footer-brand-highlight">Time</span>
+                        </b>
+                    </div>
+                    <div class="footer-desc">
+                        Aplikasi manajemen waktu dan keuangan.
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <b class="footer-title">Features</b>
+                    <div class="footer-links">
+                        <div>Money</div>
+                        <div>Time</div>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <b class="footer-title">Customer Service</b>
+                    <div class="footer-links">
+                        <div>Contact Us</div>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <b class="footer-title">Follow Us</b>
+                    <div class="footer-socials">
+                        <img class="footer-icon" alt="" src="{{ url_for('static', filename='google.svg') }}">
+                        <img class="footer-icon" alt="" src="{{ url_for('static', filename='facebook.png') }}">
+                        <img class="footer-icon" alt="" src="{{ url_for('static', filename='x-twitter.png') }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-divider"></div>
+            <b class="footer-copy">© 2025 MoneyTime. All rights reserved.</b>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='scriptNotification.js') }}"></script>
+</body>
+
+</html>
