@@ -1,4 +1,4 @@
-window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', function () {
     const discardIcon = document.querySelector('.discard-anim');
     if (discardIcon) {
         discardIcon.style.transform = 'scale(0.2)';
@@ -18,5 +18,58 @@ window.addEventListener('DOMContentLoaded', function() {
             registrationBefore.style.opacity = '0';
             registrationAfter.style.opacity = '1';
         }, 1000);
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    // --- LOGIKA LOGOUT MODAL ---
+    const logoutBtn = document.getElementById('logoutBtn'); // Tombol di Dropdown Profile
+    const logoutOverlay = document.getElementById('logout-modal-overlay');
+    const logoutModal = document.getElementById('logout-modal');
+    const logoutYes = document.getElementById('logoutYesBtn');
+    const logoutNo = document.getElementById('logoutNoBtn');
+
+    // Fungsi Buka Modal
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // Mencegah redirect langsung
+            if (logoutOverlay) {
+                logoutOverlay.style.display = 'flex';
+                // Sedikit delay agar transisi CSS opacity/scale berjalan mulus
+                setTimeout(() => {
+                    if (logoutModal) logoutModal.classList.add('show');
+                }, 10);
+            }
+        });
+    }
+
+    // Fungsi Tutup Modal (Tombol No)
+    if (logoutNo) {
+        logoutNo.addEventListener('click', () => {
+            if (logoutModal) logoutModal.classList.remove('show');
+            setTimeout(() => {
+                if (logoutOverlay) logoutOverlay.style.display = 'none';
+            }, 300); // Sesuaikan dengan durasi transisi CSS
+        });
+    }
+
+    // Fungsi Logout (Tombol Yes)
+    if (logoutYes) {
+        logoutYes.addEventListener('click', () => {
+            // Redirect ke route logout Flask
+            window.location.href = '/logout';
+        });
+    }
+
+    // Tutup jika klik area gelap (Overlay)
+    if (logoutOverlay) {
+        logoutOverlay.addEventListener('click', (e) => {
+            if (e.target === logoutOverlay) {
+                if (logoutModal) logoutModal.classList.remove('show');
+                setTimeout(() => {
+                    logoutOverlay.style.display = 'none';
+                }, 300);
+            }
+        });
     }
 });
