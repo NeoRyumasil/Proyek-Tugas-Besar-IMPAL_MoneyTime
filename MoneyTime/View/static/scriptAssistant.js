@@ -1,36 +1,129 @@
-// Pas buka otomatis di bawah
+/* View/static/scriptAssistant.js */
+
 function scrollToBottom() {
-    const chatBody = document.querySelector('.mt-body');
+    const chatBody = document.getElementById('mt-chat-body');
     if (chatBody) {
         chatBody.scrollTop = chatBody.scrollHeight;
     }
 }
 
-// Function untuk membuka dan menutup Assistant
 function toggleAssistant() {
     const assistantWindow = document.getElementById('mt-assistant-window');
-    
     if (assistantWindow.classList.contains('hidden')) {
-        // Buka Window
         assistantWindow.classList.remove('hidden');
-        
-        // TAMBAHAN: Auto scroll ke bawah saat dibuka
-        // Diberi sedikit timeout agar transisi CSS selesai dulu (opsional tapi lebih mulus)
         setTimeout(scrollToBottom, 100); 
-        
     } else {
-        // Tutup Window
         assistantWindow.classList.add('hidden');
     }
 }
 
-// Optional: Menutup assistant jika user klik di luar area assistant
+// Event listener click outside
 document.addEventListener('click', function(event) {
     const assistantWindow = document.getElementById('mt-assistant-window');
     const triggerBtn = document.getElementById('mt-assistant-trigger');
     
-    // Cek jika yang diklik BUKAN window dan BUKAN tombol trigger
-    if (!assistantWindow.contains(event.target) && !triggerBtn.contains(event.target) && !assistantWindow.classList.contains('hidden')) {
-        toggleAssistant();
+    if (assistantWindow && !assistantWindow.classList.contains('hidden')) {
+        if (!assistantWindow.contains(event.target) && !triggerBtn.contains(event.target)) {
+            toggleAssistant();
+        }
     }
 });
+
+// Setup Marked & Highlight
+if (typeof marked !== 'undefined') {
+    marked.setOptions({
+        highlight: function(code, lang) {
+            if (typeof hljs !== 'undefined') {
+                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                return hljs.highlight(code, { language }).value;
+            }
+            return code;
+        }
+    });
+}
+
+function appendMessage(message, ...classNames){
+    const chatBody = document.getElementById('mt-chat-body');
+    const messageContainer = document.createElement('div');
+    
+    // Tentukan avatar berdasarkan tipe pesan (user/bot)
+    let avatarSrc = '/static/Daylili.png'; // Default bot
+    let bubbleClass = 'mt-bubble-bot';
+    
+    // Cek apakah ini pesan user (berdasarkan classNames yang dikirim)
+    if (classNames.includes('mt-user-message')) {
+        avatarSrc = '/static/avatarUser.svg'; 
+        bubbleClass = 'mt-bubble-user';
+        
+        // Struktur HTML untuk User
+        messageContainer.className = 'mt-msg-container mt-msg-user';
+        messageContainer.innerHTML = `
+            <div class="mt-user-avatar-frame">
+                <img src="${avatarSrc}" alt="User Avatar" />
+            </div>
+            <div class="mt-bubble ${bubbleClass}">
+                ${typeof marked !== 'undefined' ? marked.parse(message) : message}
+            </div>
+        `;
+    } else {
+        // Struktur HTML untuk Assistant
+        messageContainer.className = 'mt-msg-container mt-msg-bot';
+        messageContainer.innerHTML = `
+            <div class="mt-avatar-frame">
+                <img src="${avatarSrc}" alt="Bot Avatar" style="width: 60px; height: 60px;"/>
+            </div>
+            <div class="mt-bubble ${bubbleClass}">
+                ${typeof marked !== 'undefined' ? marked.parse(message) : message}
+            </div>
+        `;
+    }
+
+    chatBody.appendChild(messageContainer);
+    scrollToBottom();
+}
+
+// Pindahkan handleKeyPress keluar agar bisa diakses HTML
+function handleKeyPress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault(); // Mencegah enter membuat baris baru
+        sendMessage();
+    }
+}
+
+function sendMessage(){
+    const userInput = document.getElementById('mt-user-input');
+    const message = userInput.value.trim();
+    const loadingIndicator = document.querySelector('.mt-loading-indicator');
+    
+    if(message === '') return;
+
+    // Tampilkan pesan user
+    appendMessage(message, 'mt-message', 'mt-user-message');
+    
+    userInput.value = '';
+    if(loadingIndicator) loadingIndicator.style.display = 'block';
+    scrollToBottom();
+
+    fetch('/assistant', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message: message })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(loadingIndicator) loadingIndicator.style.display = 'none';
+        
+        if (data.reply) {
+            appendMessage(data.reply, 'mt-message', 'mt-assistant-message');
+        } else if (data.error) {
+            appendMessage("Error: " + data.error, 'mt-message', 'mt-assistant-message');
+        }
+    })
+    .catch(error => {
+        if(loadingIndicator) loadingIndicator.style.display = 'none';
+        appendMessage('Terjadi kesalahan koneksi.', 'mt-message', 'mt-assistant-message');
+        console.error('Error:', error);
+    });
+}

@@ -1,16 +1,11 @@
-<!-- Floating Action Button (Tombol Bulat untuk Membuka Chat) -->
 <div id="mt-assistant-trigger" class="mt-trigger-btn" onclick="toggleAssistant()">
-    <!-- Icon Robot/Assistant (Placeholder) -->
     <img src="{{ url_for('static', filename='Daylili.png') }}" alt="Daylili Icon" style="width: 60px; height: 60px;" />
 </div>
 
-<!-- Main Assistant Window -->
 <div id="mt-assistant-window" class="mt-window hidden">
     
-    <!-- Background Decoration (Gambar Absolut yang di-rotate) -->
     <img class="mt-bg-decoration" alt="decoration" />
 
-    <!-- Header -->
     <div class="mt-header">
         <div class="mt-header-left">
             <img src="{{ url_for('static', filename='DayliliNoBG.png') }}" alt="Logo" class="mt-logo" style="width: 50px;" />
@@ -19,82 +14,30 @@
                 <div class="mt-subtitle">Smart Planner & Automatic Scheduler</div>
             </div>
         </div>
-        <!-- Minimize/Close Button -->
         <div class="mt-minimize-btn" onclick="toggleAssistant()">
             <div class="mt-minimize-line"></div>
         </div>
     </div>
 
-    <!-- Body (Chat Bubble Area) -->
     <div class="mt-body" id="mt-chat-body">
         <div class="mt-msg-container mt-msg-bot">
             <div class="mt-avatar-frame">
                 <img src="{{ url_for('static', filename='Daylili.png') }}" alt="Bot Avatar" style="width: 60px; height: 60px;"/>
             </div>
             <div class="mt-bubble mt-bubble-bot">
-                Hi there! I’m your MoneyTime Assistant.<br>
-                I can help you plan activities, auto schedule tasks, and sync with Google Calendar. What would you like to do today?
-            </div>
-        </div>
-
-        <div class="mt-msg-container mt-msg-user">
-            <div class="mt-user-avatar-frame">
-                <img src="{{ url_for('static', filename='avatarUser.svg') }}" alt="User Avatar" />
-            </div>
-            <div class="mt-bubble mt-bubble-user">
-                Saya ingin melihat jadwal saya untuk minggu depan, apakah padat?
-            </div>
-        </div>
-
-        <div class="mt-msg-container mt-msg-bot">
-            <div class="mt-avatar-frame">
-                <img src="{{ url_for('static', filename='Daylili.png') }}" alt="Bot Avatar" style="width: 60px; height: 60px;" />
-            </div>
-            <div class="mt-bubble mt-bubble-bot">
-                Jadwal minggu depan terlihat cukup padat. Anda memiliki:<br>
-                - 3 Deadline Tugas Kuliah<br>
-                - 2 Meeting Organisasi<br>
-                - 1 Jadwal Gym<br>
-                <br>
-                Apakah Anda ingin saya menyusun ulang waktu istirahat agar lebih seimbang?
-            </div>
-        </div>
-
-        <div class="mt-msg-container mt-msg-user">
-            <div class="mt-user-avatar-frame">
-                <img src="{{ url_for('static', filename='avatarUser.svg') }}" alt="User Avatar" />
-            </div>
-            <div class="mt-bubble mt-bubble-user">
-                Boleh, tolong aturkan di hari Selasa dan Kamis kosongkan waktu jam 7 malam.
-            </div>
-        </div>
-
-        <div class="mt-msg-container mt-msg-bot">
-            <div class="mt-avatar-frame">
-                <img src="{{ url_for('static', filename='Daylili.png') }}" alt="Bot Avatar" style="width: 60px; height: 60px;"/>
-            </div>
-            <div class="mt-bubble mt-bubble-bot">
-                Siap! Saya sudah memindahkan jadwal "Review Materi" ke hari Rabu pagi. Selasa dan Kamis malam kini kosong.<br>
-                Jangan lupa sync ke Google Calendar setelah ini ya!
-            </div>
-        </div>
-
-        <div class="mt-msg-container mt-msg-user">
-            <div class="mt-user-avatar-frame">
-                <img src="{{ url_for('static', filename='avatarUser.svg') }}" alt="User Avatar" />
-            </div>
-            <div class="mt-bubble mt-bubble-user">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.
+                Halo Aku Arvita! Mau kusiapkan makan, mandi, atau Aku? 💖💖💖
             </div>
         </div>
     </div>
 
-    <!-- Footer (Input Area) -->
+    <div class="mt-loading-indicator" style="display: none; text-align: center; font-size: 12px; color: #888; margin-bottom: 10px;">
+        Arvita is typing...
+    </div>
+
     <div class="mt-footer">
         <div class="mt-input-wrapper">
-            <input type="text" class="mt-chat-input" placeholder="Type your message..." />
-            <button class="mt-send-btn">
-                <!-- Icon Send (Panah) -->
+            <input type="text" id="mt-user-input" class="mt-chat-input" placeholder="Type your message..." onkeypress="handleKeyPress(event)" />
+            <button class="mt-send-btn" onclick="sendMessage()">
                 <img src="{{ url_for('static', filename='sendAssistant.svg') }}" alt="Send" />
             </button>
         </div>

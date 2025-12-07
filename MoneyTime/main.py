@@ -3,6 +3,8 @@ from markupsafe import escape
 from Controller.databaseController import db_connect
 from Controller.userController import UserController
 from Controller.finansialController import FinansialController
+from Controller.notificationController import NotificationController
+from Controller.assistantController import AssistantController
 import os
 import secrets
 
@@ -108,6 +110,11 @@ def time():
 def notification():
     if 'user' not in session:
         return redirect(url_for('auth'))
+
+    notification_controller = NotificationController()
+    user_id = session['user'].get('id')
+    
+
     return render_template('notification.html', user=session['user'])
 
 # Endpoint tambah transaksi
@@ -282,6 +289,47 @@ def verify_validation_otp():
 @app.route('/support-video')
 def support_video():
     return render_template('support_video.html')
+
+# Route untuk Assistant AI
+@app.route('/assistant', methods=['POST']) # Ubah ke POST
+def assistant():
+    if 'user' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    user_message = data.get('message', '')
+    
+    if not user_message:
+        return jsonify({'error': 'Empty message'}), 400
+
+    # 1. Ambil history dari Session Flask (agar bot ingat konteks)
+    # Format session history kita buat kompatibel dengan Gemini:
+    # [{'role': 'user', 'parts': ['msg']}, {'role': 'model', 'parts': ['msg']}]
+    chat_history = session.get('chat_history', [])
+
+    # 2. Panggil Controller
+    assistant_ctrl = AssistantController()
+    
+    # Kirim pesan dengan membawa history lama
+    ai_reply = assistant_ctrl.send_message_with_history(user_message, chat_history)
+
+    # 3. Update History di Session
+    # Tambahkan pesan user barusan
+    chat_history.append({
+        'role': 'user', 
+        'parts': [user_message]
+    })
+    # Tambahkan balasan AI
+    chat_history.append({
+        'role': 'model', 
+        'parts': [ai_reply]
+    })
+    
+    # Simpan kembali ke session (Batasi agar tidak terlalu panjang, misal 20 pesan terakhir)
+    session['chat_history'] = chat_history[-20:]
+
+    # 4. Return response ke Frontend
+    return jsonify({'reply': ai_reply})
 
 if __name__ == '__main__':
     app.run(debug=True)
