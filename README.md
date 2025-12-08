@@ -78,3 +78,4 @@ pip install pyodbc
 ## 📋 Requirements
 - Python Flask Framework
 - Microsoft Azure Database
+- Gemini API Key
