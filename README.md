@@ -21,10 +21,11 @@ seperti, penjadwalan, hingga perhitungan waktu. Pengguna juga dapat memanajemen 
 
 - **💵 Manajemen Keuangan**                : Pengguna dapat melakukan manajemen keuangan.
 
+- **🧠 AI Asistant**                       : Asisten AI yang dapat membantu pengguna mengelola keuangan dan aktivitasnya.   
+
 ## 🛠 Tech Stack
 
 **Frontend:**
-- Python (Flask)
 - HTML
 - CSS
 - JavaScript
@@ -32,6 +33,7 @@ seperti, penjadwalan, hingga perhitungan waktu. Pengguna juga dapat memanajemen 
 **Backend:**
 - Microsoft Azure Database
 - Python (Flask)
+- Gemini Flash 2.5
 
 ## 🚀 How to Run the Project
 
@@ -45,6 +47,9 @@ cd Proyek-Tugas-Besar-IMPAL_MoneyTime/MoneyTime
 ```bash
 pip install flask
 pip install requests
+pip install python-dotenv
+pip install google-generativeai
+pip install pyodbc
 ```
 
 ### Step 3 Setup Environtment
@@ -55,10 +60,12 @@ pip install requests
   FLASK_DEBUG=1
   FLASK_ENV=development
   FLASK_RUN_PORT=8080
+
+  GEMINI__API__KEY = INSERT YOUR KEY HERE
   ```
   
 ### Step 4 Access Azure Database
-- Access the Azure Database
+- Donwload Azure ODBC driver
 
 ### Step 5 Run the Project
 ```bash
