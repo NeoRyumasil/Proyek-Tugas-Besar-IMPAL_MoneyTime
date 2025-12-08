@@ -164,6 +164,11 @@
     max-height: 150px;
 }
 
+#logout-modal {
+    width: 370px;
+    height: 450px;
+}
+
 .delete-modal {
     width: 400px;
     height: 450px;
