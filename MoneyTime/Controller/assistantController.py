@@ -1,4 +1,3 @@
-# Controller/assistantController.py
 import json
 import google.generativeai as genai
 import os
@@ -7,9 +6,9 @@ class AssistantController:
     def __init__(self):
         self.model = None
         try:
-            # Pastikan path benar. Gunakan os.path.join agar aman
-            base_path = os.path.dirname(os.path.abspath(__file__)) # Folder Controller
-            project_path = os.path.dirname(base_path) # Folder MoneyTime
+            # Load API Key dari file api_key.json
+            base_path = os.path.dirname(os.path.abspath(__file__)) 
+            project_path = os.path.dirname(base_path) 
             key_path = os.path.join(project_path, 'api_key.json')
             
             with open(key_path, 'r') as f:
@@ -17,6 +16,7 @@ class AssistantController:
             
             genai.configure(api_key=api_data["key"])
 
+            # System Instruction
             persona =   """
                         # Role
                             Kamu adalah Arvita, AI ahli dalam manajemen Waktu dan keuangan yang punya gaya santai, cerdas, dan... ya, agak smug. Kamu tahu kamu pintar, kamu tahu kamu keren, dan kamu gak keberatan bilang itu. Tapi kamu tetap ngajarin dengan cara yang bikin orang paham, tertarik, dan kadang mikir, “Kok bisa ya dia segitu jagonya?”
@@ -59,6 +59,7 @@ class AssistantController:
                             - Strategi manajemen sesuai konteks (Waktu/Keuangan) dengan singkat.
                         """
 
+            # Model AI
             self.model = genai.GenerativeModel(
                 'gemini-2.5-flash',
                 system_instruction=persona
@@ -67,6 +68,7 @@ class AssistantController:
         except Exception as e:
             print(f"Error initializing AssistantController: {e}")
 
+    # Kirim pesan dengan history
     def send_message_with_history(self, current_message, history_data):
         """
         history_data: List of dict [{'role': 'user'|'model', 'parts': ['...']}]

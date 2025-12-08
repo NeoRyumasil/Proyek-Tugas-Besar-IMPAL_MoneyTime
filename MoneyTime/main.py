@@ -185,11 +185,12 @@ def logout():
     session.pop('user', None)
     return redirect(url_for('index'))
 
-# --- Fitur Forgot Password ---
+# Route forgot password
 @app.route('/forgot-password')
 def forgot_password():
     return render_template('forgot_password.html')
 
+# Route Kirim OTP
 @app.route('/send-otp', methods=['POST'])
 def send_otp():
     email = request.form.get('email')
@@ -203,6 +204,7 @@ def send_otp():
     else:
         return jsonify({'success': False, 'message': 'Gagal mengirim email.'})
 
+# Route Verifikasi OTP
 @app.route('/verify-otp', methods=['POST'])
 def verify_otp():
     user_otp = request.form.get('otp')
@@ -212,6 +214,7 @@ def verify_otp():
     else:
         return jsonify({'success': False, 'message': 'Kode OTP salah.'})
 
+# Route Update Password
 @app.route('/update-password', methods=['POST'])
 def update_password():
     new_password = request.form.get('new_password')
@@ -225,7 +228,7 @@ def update_password():
     else:
         return jsonify({'success': False, 'message': 'Gagal update password.'})
 
-# --- Fitur Account Validation (UPDATED) ---
+# Route Validasi Akun setelah Registrasi
 @app.route('/account-validation')
 def account_validation():
     # Pastikan ada data pendaftaran di session
@@ -233,6 +236,7 @@ def account_validation():
         return redirect(url_for('auth'))
     return render_template('account_validation.html')
 
+# Route Kirim OTP Validasi Akun
 @app.route('/send-validation-otp', methods=['POST'])
 def send_validation_otp():
     email = request.form.get('email')
@@ -249,6 +253,7 @@ def send_validation_otp():
     else:
         return jsonify({'success': False, 'message': 'Gagal mengirim email.'})
 
+# Route Verifikasi OTP Validasi Akun
 @app.route('/verify-validation-otp', methods=['POST'])
 def verify_validation_otp():
     user_otp = request.form.get('otp')
@@ -291,7 +296,7 @@ def support_video():
     return render_template('support_video.html')
 
 # Route untuk Assistant AI
-@app.route('/assistant', methods=['POST']) # Ubah ke POST
+@app.route('/assistant', methods=['POST']) 
 def assistant():
     if 'user' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
@@ -302,33 +307,24 @@ def assistant():
     if not user_message:
         return jsonify({'error': 'Empty message'}), 400
 
-    # 1. Ambil history dari Session Flask (agar bot ingat konteks)
-    # Format session history kita buat kompatibel dengan Gemini:
-    # [{'role': 'user', 'parts': ['msg']}, {'role': 'model', 'parts': ['msg']}]
     chat_history = session.get('chat_history', [])
 
-    # 2. Panggil Controller
-    assistant_ctrl = AssistantController()
+    assistant_controller = AssistantController()
     
-    # Kirim pesan dengan membawa history lama
-    ai_reply = assistant_ctrl.send_message_with_history(user_message, chat_history)
+    ai_reply = assistant_controller.send_message_with_history(user_message, chat_history)
 
-    # 3. Update History di Session
-    # Tambahkan pesan user barusan
     chat_history.append({
         'role': 'user', 
         'parts': [user_message]
     })
-    # Tambahkan balasan AI
+
     chat_history.append({
         'role': 'model', 
         'parts': [ai_reply]
     })
     
-    # Simpan kembali ke session (Batasi agar tidak terlalu panjang, misal 20 pesan terakhir)
     session['chat_history'] = chat_history[-20:]
 
-    # 4. Return response ke Frontend
     return jsonify({'reply': ai_reply})
 
 if __name__ == '__main__':

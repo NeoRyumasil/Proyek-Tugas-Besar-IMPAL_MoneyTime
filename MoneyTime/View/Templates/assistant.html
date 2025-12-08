@@ -1,11 +1,14 @@
+<!--Untuk membukka jendela asisten-->
 <div id="mt-assistant-trigger" class="mt-trigger-btn" onclick="toggleAssistant()">
     <img src="{{ url_for('static', filename='Daylili.png') }}" alt="Daylili Icon" style="width: 60px; height: 60px;" />
 </div>
 
+<!-- Jendela Asisten Virtual -->
 <div id="mt-assistant-window" class="mt-window hidden">
     
     <img class="mt-bg-decoration" alt="decoration" />
 
+    <!-- Header Asisten -->
     <div class="mt-header">
         <div class="mt-header-left">
             <img src="{{ url_for('static', filename='DayliliNoBG.png') }}" alt="Logo" class="mt-logo" style="width: 50px;" />
@@ -19,21 +22,24 @@
         </div>
     </div>
 
+    <!-- Body Chat Asisten -->
     <div class="mt-body" id="mt-chat-body">
         <div class="mt-msg-container mt-msg-bot">
             <div class="mt-avatar-frame">
                 <img src="{{ url_for('static', filename='Daylili.png') }}" alt="Bot Avatar" style="width: 60px; height: 60px;"/>
             </div>
             <div class="mt-bubble mt-bubble-bot">
-                Halo Aku Arvita! Mau kusiapkan makan, mandi, atau Aku? 💖💖💖
+                Halo Aku Arvita! Asisten virtual untuk membantu keuangan dan aktivitasmu.
             </div>
         </div>
     </div>
 
+    <!-- Indikator Loading -->
     <div class="mt-loading-indicator" style="display: none; text-align: center; font-size: 12px; color: #888; margin-bottom: 10px;">
-        Arvita is typing...
+        Arvita sedang mengetik...
     </div>
 
+    <!-- Footer Input Chat Asisten -->
     <div class="mt-footer">
         <div class="mt-input-wrapper">
             <input type="text" id="mt-user-input" class="mt-chat-input" placeholder="Type your message..." onkeypress="handleKeyPress(event)" />

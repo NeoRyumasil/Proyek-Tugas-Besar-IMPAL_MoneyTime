@@ -1,5 +1,4 @@
-/* View/static/scriptAssistant.js */
-
+// Fungsi untuk scroll ke bawah
 function scrollToBottom() {
     const chatBody = document.getElementById('mt-chat-body');
     if (chatBody) {
@@ -7,6 +6,7 @@ function scrollToBottom() {
     }
 }
 
+// Fungsi untuk toggle assistant window
 function toggleAssistant() {
     const assistantWindow = document.getElementById('mt-assistant-window');
     if (assistantWindow.classList.contains('hidden')) {
@@ -42,20 +42,18 @@ if (typeof marked !== 'undefined') {
     });
 }
 
+// Fungsi menampilkan pesan ke chat body
 function appendMessage(message, ...classNames){
     const chatBody = document.getElementById('mt-chat-body');
     const messageContainer = document.createElement('div');
     
-    // Tentukan avatar berdasarkan tipe pesan (user/bot)
-    let avatarSrc = '/static/Daylili.png'; // Default bot
+    let avatarSrc = '/static/Daylili.png'; 
     let bubbleClass = 'mt-bubble-bot';
     
-    // Cek apakah ini pesan user (berdasarkan classNames yang dikirim)
     if (classNames.includes('mt-user-message')) {
         avatarSrc = '/static/avatarUser.svg'; 
         bubbleClass = 'mt-bubble-user';
         
-        // Struktur HTML untuk User
         messageContainer.className = 'mt-msg-container mt-msg-user';
         messageContainer.innerHTML = `
             <div class="mt-user-avatar-frame">
@@ -66,7 +64,6 @@ function appendMessage(message, ...classNames){
             </div>
         `;
     } else {
-        // Struktur HTML untuk Assistant
         messageContainer.className = 'mt-msg-container mt-msg-bot';
         messageContainer.innerHTML = `
             <div class="mt-avatar-frame">
@@ -82,14 +79,15 @@ function appendMessage(message, ...classNames){
     scrollToBottom();
 }
 
-// Pindahkan handleKeyPress keluar agar bisa diakses HTML
+// Event listener untuk tombol kirim
 function handleKeyPress(event) {
     if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault(); // Mencegah enter membuat baris baru
+        event.preventDefault(); 
         sendMessage();
     }
 }
 
+// Fungsi untuk mengirim pesan ke backend
 function sendMessage(){
     const userInput = document.getElementById('mt-user-input');
     const message = userInput.value.trim();
@@ -97,7 +95,6 @@ function sendMessage(){
     
     if(message === '') return;
 
-    // Tampilkan pesan user
     appendMessage(message, 'mt-message', 'mt-user-message');
     
     userInput.value = '';
