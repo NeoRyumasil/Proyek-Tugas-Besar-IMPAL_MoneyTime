@@ -6,15 +6,10 @@ class AssistantController:
     def __init__(self):
         self.model = None
         try:
-            # Load API Key dari file api_key.json
-            base_path = os.path.dirname(os.path.abspath(__file__)) 
-            project_path = os.path.dirname(base_path) 
-            key_path = os.path.join(project_path, 'api_key.json')
+            # Load API Key dari file .env
+            api_key = os.environ.get("GEMINI_API_KEY")
             
-            with open(key_path, 'r') as f:
-                api_data = json.load(f)
-            
-            genai.configure(api_key=api_data["key"])
+            genai.configure(api_key=api_key)
 
             # System Instruction
             persona =   """

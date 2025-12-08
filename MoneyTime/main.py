@@ -1,12 +1,18 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from markupsafe import escape
+from dotenv import load_dotenv
+
 from Controller.databaseController import db_connect
 from Controller.userController import UserController
 from Controller.finansialController import FinansialController
 from Controller.notificationController import NotificationController
 from Controller.assistantController import AssistantController
+
 import os
 import secrets
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Inisialisasi Objek
 user_controller = UserController()
