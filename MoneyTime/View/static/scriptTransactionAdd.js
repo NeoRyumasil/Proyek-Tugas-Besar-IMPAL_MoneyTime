@@ -460,11 +460,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const category = document.getElementById("categoryInput")?.value;
 
             if (!description || !amount) {
-                alert('Please enter description and amount');
+                showToast('Please enter description and amount', 'error');
                 return;
             }
             if (!date) {
-                alert('Please select a date');
+                showToast('Please select a date', 'error');
                 return;
             }
 
@@ -482,21 +482,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (contentType && contentType.indexOf("application/json") !== -1) {
                     const body = await res.json();
                     if (res.ok && body.success) {
-                        alert('Transaction added');
+                        showSuccessModal();
                         clearForm();
                         closeModal();
                         location.reload();
                     } else {
-                        alert(body.message || 'Failed to add transaction');
+                        // Show error in transaction detail modal
+                        const detailModal = document.getElementById('transaction-detail-modal-overlay');
+                        if (detailModal) {
+                            detailModal.style.display = 'flex';
+                            const errorMsg = detailModal.querySelector('.error-message');
+                            if (errorMsg) {
+                                errorMsg.textContent = body.message || 'Failed to add transaction';
+                                errorMsg.style.display = 'block';
+                            }
+                        }
                     }
                 } else {
                     const text = await res.text();
                     console.error("Server Error:", text);
-                    alert("Terjadi kesalahan pada server.");
+                    // Show error in transaction detail modal
+                    const detailModal = document.getElementById('transaction-detail-modal-overlay');
+                    if (detailModal) {
+                        detailModal.style.display = 'flex';
+                        const errorMsg = detailModal.querySelector('.error-message');
+                        if (errorMsg) {
+                            errorMsg.textContent = "Terjadi kesalahan pada server.";
+                            errorMsg.style.display = 'block';
+                        }
+                    }
                 }
             } catch (err) {
                 console.error(err);
-                alert('Network error while adding transaction');
+                showToast('Network error while adding transaction', 'error');
             }
         });
     }

@@ -73,28 +73,28 @@ class FinansialController:
                 
                 # Query Income + Search (Filter Deskripsi ATAU Kategori)
                 sql_income = """
-                    SELECT p.deskripsi, p.nominal, p.Tanggal, f.kategori, 'Income' as tipe 
-                    FROM [dbo].[Pemasukkan] p 
-                    JOIN [dbo].[Finansial] f ON p.FinansialID = f.FinansialID 
+                    SELECT p.PemasukkanID, p.deskripsi, p.nominal, p.Tanggal, f.kategori, 'Income' as tipe
+                    FROM [dbo].[Pemasukkan] p
+                    JOIN [dbo].[Finansial] f ON p.FinansialID = f.FinansialID
                     WHERE f.UserID = ? AND (p.deskripsi LIKE ? OR f.kategori LIKE ?)
                 """
                 params_income = (user_id, search_pattern, search_pattern)
 
                 # Query Expense + Search (Filter Deskripsi ATAU Kategori)
                 sql_expense = """
-                    SELECT q.deskripsi, q.nominal, q.Tanggal, f.kategori, 'Expense' as tipe 
-                    FROM [dbo].[Pengeluaran] q 
-                    JOIN [dbo].[Finansial] f ON q.FinansialID = f.FinansialID 
+                    SELECT q.PengeluaranID, q.deskripsi, q.nominal, q.Tanggal, f.kategori, 'Expense' as tipe
+                    FROM [dbo].[Pengeluaran] q
+                    JOIN [dbo].[Finansial] f ON q.FinansialID = f.FinansialID
                     WHERE f.UserID = ? AND (q.deskripsi LIKE ? OR f.kategori LIKE ?)
                 """
                 params_expense = (user_id, search_pattern, search_pattern)
-                
+
             else:
                 # Query Normal (Tanpa Search)
-                sql_income = "SELECT p.deskripsi, p.nominal, p.Tanggal, f.kategori, 'Income' as tipe FROM [dbo].[Pemasukkan] p JOIN [dbo].[Finansial] f ON p.FinansialID = f.FinansialID WHERE f.UserID = ?"
+                sql_income = "SELECT p.PemasukkanID, p.deskripsi, p.nominal, p.Tanggal, f.kategori, 'Income' as tipe FROM [dbo].[Pemasukkan] p JOIN [dbo].[Finansial] f ON p.FinansialID = f.FinansialID WHERE f.UserID = ?"
                 params_income = (user_id,)
 
-                sql_expense = "SELECT q.deskripsi, q.nominal, q.Tanggal, f.kategori, 'Expense' as tipe FROM [dbo].[Pengeluaran] q JOIN [dbo].[Finansial] f ON q.FinansialID = f.FinansialID WHERE f.UserID = ?"
+                sql_expense = "SELECT q.PengeluaranID, q.deskripsi, q.nominal, q.Tanggal, f.kategori, 'Expense' as tipe FROM [dbo].[Pengeluaran] q JOIN [dbo].[Finansial] f ON q.FinansialID = f.FinansialID WHERE f.UserID = ?"
                 params_expense = (user_id,)
 
             # Eksekusi Query
@@ -108,23 +108,25 @@ class FinansialController:
             
             # Mapping hasil Income ke Dictionary
             for row in incomes:
-                deskripsi, nominal, tanggal, kategori, tipe = row
+                transaction_id, deskripsi, nominal, tanggal, kategori, tipe = row
                 results.append({
-                    'type': tipe, 
-                    'deskripsi': deskripsi, 
-                    'nominal': int(nominal), 
-                    'tanggal': str(tanggal) if tanggal else None, 
+                    'id': int(transaction_id),
+                    'type': tipe,
+                    'deskripsi': deskripsi,
+                    'nominal': int(nominal),
+                    'tanggal': str(tanggal) if tanggal else None,
                     'kategori': kategori
                 })
-                
+
             # Mapping hasil Expense ke Dictionary
             for row in expenses:
-                deskripsi, nominal, tanggal, kategori, tipe = row
+                transaction_id, deskripsi, nominal, tanggal, kategori, tipe = row
                 results.append({
-                    'type': tipe, 
-                    'deskripsi': deskripsi, 
-                    'nominal': int(nominal), 
-                    'tanggal': str(tanggal) if tanggal else None, 
+                    'id': int(transaction_id),
+                    'type': tipe,
+                    'deskripsi': deskripsi,
+                    'nominal': int(nominal),
+                    'tanggal': str(tanggal) if tanggal else None,
                     'kategori': kategori
                 })
                 
@@ -138,6 +140,78 @@ class FinansialController:
         except Exception as e:
             print(f"[FinansialController] get_transactions error: {e}")
             return []
+
+    def delete_transaction(self, user_id: str, transaction_id: int, transaction_type: str) -> bool:
+        """
+        Menghapus transaksi berdasarkan ID dan tipe (Income/Expense).
+        Pastikan transaksi milik user yang benar.
+        """
+        try:
+            conn = db_connect()
+            cursor = conn.cursor()
+
+            if transaction_type.lower() == 'income':
+                # Cek kepemilikan dan hapus dari Pemasukkan
+                cursor.execute("""
+                    DELETE p FROM [dbo].[Pemasukkan] p
+                    JOIN [dbo].[Finansial] f ON p.FinansialID = f.FinansialID
+                    WHERE p.PemasukkanID = ? AND f.UserID = ?
+                """, (transaction_id, user_id))
+            elif transaction_type.lower() == 'expense':
+                # Cek kepemilikan dan hapus dari Pengeluaran
+                cursor.execute("""
+                    DELETE q FROM [dbo].[Pengeluaran] q
+                    JOIN [dbo].[Finansial] f ON q.FinansialID = f.FinansialID
+                    WHERE q.PengeluaranID = ? AND f.UserID = ?
+                """, (transaction_id, user_id))
+            else:
+                return False
+
+            conn.commit()
+            return cursor.rowcount > 0  # Return True jika ada baris yang terhapus
+        except Exception as e:
+            print(f"[FinansialController] delete_transaction error: {e}")
+            return False
+
+    def edit_transaction(self, user_id: str, transaction_id: int, transaction_type: str,
+                        deskripsi: str, nominal: int, tanggal: str, kategori: str) -> bool:
+        """
+        Mengedit transaksi berdasarkan ID dan tipe.
+        Jika kategori berubah, mungkin perlu update FinansialID juga.
+        """
+        try:
+            conn = db_connect()
+            cursor = conn.cursor()
+
+            # Dapatkan FinansialID baru berdasarkan kategori
+            finansial_id = self.get_or_create_finansial(user_id, kategori, status='Pemasukan' if transaction_type.lower() == 'income' else 'Pengeluaran')
+            if not finansial_id:
+                return False
+
+            if transaction_type.lower() == 'income':
+                # Update Pemasukkan
+                cursor.execute("""
+                    UPDATE p SET p.deskripsi = ?, p.nominal = ?, p.Tanggal = ?, p.FinansialID = ?
+                    FROM [dbo].[Pemasukkan] p
+                    JOIN [dbo].[Finansial] f ON p.FinansialID = f.FinansialID
+                    WHERE p.PemasukkanID = ? AND f.UserID = ?
+                """, (deskripsi, nominal, tanggal, finansial_id, transaction_id, user_id))
+            elif transaction_type.lower() == 'expense':
+                # Update Pengeluaran
+                cursor.execute("""
+                    UPDATE q SET q.deskripsi = ?, q.nominal = ?, q.Tanggal = ?, q.FinansialID = ?
+                    FROM [dbo].[Pengeluaran] q
+                    JOIN [dbo].[Finansial] f ON q.FinansialID = f.FinansialID
+                    WHERE q.PengeluaranID = ? AND f.UserID = ?
+                """, (deskripsi, nominal, tanggal, finansial_id, transaction_id, user_id))
+            else:
+                return False
+
+            conn.commit()
+            return cursor.rowcount > 0  # Return True jika ada baris yang terupdate
+        except Exception as e:
+            print(f"[FinansialController] edit_transaction error: {e}")
+            return False
 
     def get_categories(self, user_id: str) -> Dict[str, List[str]]:
         """

@@ -296,11 +296,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 7. CONFIRM ---
     if (confirmBtn) {
-        confirmBtn.addEventListener('click', () => {
-            if (!descInput.value || !dateDisplayInput.value || !timeDisplay.value) { alert("Please fill all fields."); return; }
-            console.log("Updated:", { desc: descInput.value, date: dateHiddenInput.value });
-            alert("Schedule updated successfully!");
-            closeModal();
+        confirmBtn.addEventListener('click', async () => {
+            if (!descInput.value || !dateDisplayInput.value || !timeDisplay.value) { showToast("Please fill all fields.", "error"); return; }
+
+            const scheduleId = window.currentScheduleDetail ? window.currentScheduleDetail.id : null;
+            if (!scheduleId) {
+                showToast("Error: Schedule ID not found.", "error");
+                return;
+            }
+
+            try {
+                const response = await fetch('/edit-schedule', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: scheduleId,
+                        description: descInput.value.trim(),
+                        date: dateHiddenInput.value,
+                        time: timeHidden.value,
+                        category: categoryInput.value.trim(),
+                        priority: priorityHidden.value
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast("Data has been edited", "success");
+                    closeModal();
+                    // Refresh dashboard data
+                    if (typeof fetchSchedules === 'function') {
+                        fetchSchedules();
+                    } else {
+                        location.reload();
+                    }
+                } else {
+                    showToast("Failed to update schedule: " + result.message, "error");
+                }
+            } catch (error) {
+                console.error('Error updating schedule:', error);
+                showToast("Error updating schedule. Please try again.", "error");
+            }
         });
     }
 });

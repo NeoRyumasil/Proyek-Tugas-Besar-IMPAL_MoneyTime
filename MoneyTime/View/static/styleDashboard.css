@@ -1153,7 +1153,42 @@ body {
 }
 
 .notif-view-all-spacer {
-    width: 11px; 
-    height: 18px; 
+    width: 11px;
+    height: 18px;
     /* background: white; */ /* Optional decorative block from design */
 }
+
+/* ================= TOAST NOTIFICATION ================= */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.toast {
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-family: 'Poppins', sans-serif;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transform: translateY(15px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    max-width: 300px;
+    word-wrap: break-word;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.error {
+    background-color: #f44336;
+}
+
+.toast.success {

@@ -273,8 +273,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (calNext) calNext.onclick = (e) => { e.stopPropagation(); if (currentView === 'days') calDate.setMonth(calDate.getMonth() + 1); else calDate.setFullYear(calDate.getFullYear() + 1); renderCalendar(); };
     document.addEventListener('click', (e) => { if (calPopup && calPopup.classList.contains('active')) { if (!dateWrapper.contains(e.target)) calPopup.classList.remove('active'); } });
 
-    if (confirmBtn) confirmBtn.addEventListener('click', () => {
-        if (!descInput.value || !dateDisplayInput.value || !timeDisplay.value) { alert('Please fill in Description, Date, and Time'); return; }
-        alert('Schedule added successfully!'); closeModal();
+    if (confirmBtn) confirmBtn.addEventListener('click', async () => {
+        if (!descInput.value || !dateDisplayInput.value || !timeDisplay.value) { showToast('Please fill in Description, Date, and Time', 'error'); return; }
+        try {
+            const response = await fetch('/add-schedule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    description: descInput.value.trim(),
+                    date: dateHiddenInput.value,
+                    time: timeHidden.value,
+                    category: categoryInput.value.trim(),
+                    priority: priorityHidden.value
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showToast("Data has been added", "success");
+                clearForm();
+                closeModal();
+                location.reload();
+            } else {
+                showToast(result.message || 'Failed to add schedule', 'error');
+            }
+        } catch (error) {
+            console.error('Error adding schedule:', error);
+            showToast("Error adding schedule. Please try again.", "error");
+        }
     });
 });

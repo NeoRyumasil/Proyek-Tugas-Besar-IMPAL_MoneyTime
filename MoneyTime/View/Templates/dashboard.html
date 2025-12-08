@@ -27,6 +27,8 @@
 </head>
 
 <body>
+    <div class="toast-container" id="toast-container"></div>
+
     <div class="header-guest">
         <div class="header-guest-container">
             <div class="name-and-logo">
@@ -697,6 +699,13 @@
     </div>
     <div id="logout-modal-overlay" class="modal-overlay" style="display: none; z-index: 1300;">
         {% include 'logoutModal.html' %}
+    </div>
+    <div id="success-modal-overlay" class="modal-overlay" style="display: none; z-index: 1400;">
+        <div class="modal">
+            <div class="modal-content success-modal-content">
+                <img src="{{ url_for('static', filename='contreng (2).png') }}" alt="Success" class="success-image">
+            </div>
+        </div>
     </div>
 
     <div class="footer">

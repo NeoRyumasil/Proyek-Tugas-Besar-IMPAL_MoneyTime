@@ -58,10 +58,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!isNaN(parsedDate)) {
                     editCalDate = parsedDate;
                     selectedEditDate = parsedDate;
+                    // Also set the hidden date field
+                    const fmtMonth = String(parsedDate.getMonth() + 1).padStart(2, '0');
+                    const fmtDay = String(parsedDate.getDate()).padStart(2, '0');
+                    if (editDateHidden) editDateHidden.value = `${parsedDate.getFullYear()}-${fmtMonth}-${fmtDay}`;
                 }
             } else {
                 editDateDisplay.value = "";
                 selectedEditDate = null;
+                if (editDateHidden) editDateHidden.value = "";
             }
 
             editCategoryInput.value = currentCat;
@@ -363,25 +368,93 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 7. TOMBOL CONFIRM ---
     if (confirmEditBtn) {
-        confirmEditBtn.addEventListener('click', () => {
-            if (!editDescInput.value || !editAmountInput.value || !editDateDisplay.value) {
-                alert("Please fill all fields.");
+        confirmEditBtn.addEventListener('click', async () => {
+            // Validate all required fields
+            if (!editDescInput.value.trim()) {
+                showToast("Please enter a description.", "error");
+                editDescInput.focus();
                 return;
             }
 
-            console.log("Simulasi Update Data:", {
-                id: document.getElementById('editTransactionId').value,
-                type: currentEditType,
-                desc: editDescInput.value,
-                amount: editAmountInput.value,
-                date: editDateDisplay.value,
-                category: editCategoryInput.value
-            });
+            if (!editAmountInput.value.trim()) {
+                showToast("Please enter an amount.", "error");
+                editAmountInput.focus();
+                return;
+            }
 
-            alert("Transaction Updated Successfully!");
+            if (!editDateDisplay.value.trim()) {
+                showToast("Please select a date.", "error");
+                return;
+            }
 
-            closeEditModal();
-            location.reload();
+            if (!editCategoryInput.value.trim()) {
+                showToast("Please select a category.", "error");
+                return;
+            }
+
+            const transactionId = window.currentTransactionDetail ? window.currentTransactionDetail.id : null;
+            if (!transactionId) {
+                showToast("Error: Transaction ID not found.", "error");
+                return;
+            }
+
+            // Parse amount (remove formatting)
+            const rawAmount = editAmountInput.value.replace(/[^0-9]/g, '');
+            if (!rawAmount || parseInt(rawAmount) <= 0) {
+                showToast("Please enter a valid amount.", "error");
+                editAmountInput.focus();
+                return;
+            }
+
+            // Ensure date is in correct format
+            if (!editDateHidden.value) {
+                showToast("Please select a valid date.", "error");
+                return;
+            }
+
+            try {
+                const response = await fetch('/edit-transaction', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: transactionId,
+                        type: currentEditType,
+                        description: editDescInput.value.trim(),
+                        amount: rawAmount,
+                        date: editDateHidden.value,
+                        category: editCategoryInput.value.trim()
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showSuccessModal();
+                    closeEditModal();
+                    // Refresh dashboard data
+                    if (typeof fetchTransactions === 'function') {
+                        fetchTransactions();
+                    } else {
+                        location.reload();
+                    }
+                } else {
+                    // Show error in transaction detail modal
+                    const detailModal = document.getElementById('transaction-detail-modal-overlay');
+                    if (detailModal) {
+                        detailModal.style.display = 'flex';
+                        const errorMsg = detailModal.querySelector('.error-message');
+                        if (errorMsg) {
+                            errorMsg.textContent = result.message || 'Failed to update transaction';
+                            errorMsg.style.display = 'block';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating transaction:', error);
+                showToast("Error updating transaction. Please try again.", "error");
+            }
         });
     }
 });

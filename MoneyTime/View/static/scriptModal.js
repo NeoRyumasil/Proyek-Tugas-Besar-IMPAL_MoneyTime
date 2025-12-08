@@ -72,4 +72,36 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    // --- SUCCESS MODAL LOGIC ---
+    const successOverlay = document.getElementById('success-modal-overlay');
+    const successModal = successOverlay ? successOverlay.querySelector('.modal') : null;
+
+    window.showSuccessModal = function() {
+        if (successOverlay) {
+            successOverlay.style.display = 'flex';
+            setTimeout(() => {
+                if (successModal) successModal.classList.add('show');
+            }, 10);
+            // Auto-close after 2 seconds
+            setTimeout(() => {
+                if (successModal) successModal.classList.remove('show');
+                setTimeout(() => {
+                    successOverlay.style.display = 'none';
+                }, 300);
+            }, 2000);
+        }
+    };
+
+    // Close on click
+    if (successOverlay) {
+        successOverlay.addEventListener('click', (e) => {
+            if (e.target === successOverlay) {
+                if (successModal) successModal.classList.remove('show');
+                setTimeout(() => {
+                    successOverlay.style.display = 'none';
+                }, 300);
+            }
+        });
+    }
 });

@@ -1,6 +1,34 @@
 document.addEventListener('DOMContentLoaded', function () {
 
   // =========================================
+  // 0. TOAST NOTIFICATION SYSTEM
+  // =========================================
+  const toastContainer = document.getElementById('toast-container');
+
+  function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+
+      toastContainer.appendChild(toast);
+
+      // Animation in
+      setTimeout(() => toast.classList.add('show'), 100);
+
+      setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => {
+              if (toastContainer.contains(toast)) {
+                  toastContainer.removeChild(toast);
+              }
+          }, 300);
+      }, 3000);
+  }
+
+  // Make showToast globally available for other scripts
+  window.showToast = showToast;
+
+  // =========================================
   // 1. NAVBAR & UI UTILS
   // =========================================
   const navToggle = document.getElementById('navToggle');

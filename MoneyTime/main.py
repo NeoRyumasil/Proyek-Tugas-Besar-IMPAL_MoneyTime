@@ -185,6 +185,56 @@ def api_categories():
 
     return jsonify({'success': True, 'categories': categories})
 
+# Endpoint hapus transaksi
+@app.route('/delete-transaction', methods=['DELETE'])
+def delete_transaction():
+    if 'user' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+
+    data = request.get_json() or {}
+    transaction_id = data.get('id')
+    transaction_type = data.get('type')
+
+    if not transaction_id or not transaction_type:
+        return jsonify({'success': False, 'message': 'Missing transaction ID or type'}), 400
+
+    user_id = session['user'].get('id')
+    success = finansial_controller.delete_transaction(user_id, int(transaction_id), transaction_type)
+
+    if success:
+        return jsonify({'success': True, 'message': 'Transaction deleted successfully'})
+    return jsonify({'success': False, 'message': 'Failed to delete transaction'}), 500
+
+# Endpoint edit transaksi
+@app.route('/edit-transaction', methods=['PUT'])
+def edit_transaction():
+    if 'user' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+
+    data = request.get_json() or {}
+    transaction_id = data.get('id')
+    transaction_type = data.get('type')
+    description = data.get('description')
+    amount = data.get('amount')
+    date = data.get('date')
+    category = data.get('category')
+
+    if not all([transaction_id, transaction_type, description, amount, date, category]):
+        return jsonify({'success': False, 'message': 'Missing required fields'}), 400
+
+    try:
+        nominal = int(amount)
+    except Exception:
+        return jsonify({'success': False, 'message': 'Invalid amount'}), 400
+
+    user_id = session['user'].get('id')
+    success = finansial_controller.edit_transaction(user_id, int(transaction_id), transaction_type,
+                                                  description, nominal, date, category)
+
+    if success:
+        return jsonify({'success': True, 'message': 'Transaction updated successfully'})
+    return jsonify({'success': False, 'message': 'Failed to update transaction'}), 500
+
 # Route logout
 @app.route('/logout')
 def logout():

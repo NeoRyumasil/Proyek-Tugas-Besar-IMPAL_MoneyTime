@@ -38,7 +38,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (editDetailBtn) {
         editDetailBtn.addEventListener('click', () => {
-            alert("Fitur Edit: Coming Soon!");
+            // Open edit modal - the logic is handled in scriptTransactionEdit.js
+            const editModalOverlay = document.getElementById('edit-transaction-modal-overlay');
+            if (editModalOverlay) {
+                // Close detail modal
+                closeDetailModal();
+                // The edit modal opening logic is in scriptTransactionEdit.js
+                // It will be triggered by the edit button click there
+            }
         });
     }
 
@@ -64,15 +71,56 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (deleteYesBtn) {
-        deleteYesBtn.addEventListener('click', () => {
+        deleteYesBtn.addEventListener('click', async () => {
+            // Ambil data transaksi dari modal detail
+            const transactionType = document.getElementById('detailTypeIncome').classList.contains('tab-active-blue') ? 'Income' : 'Expense';
+            const transactionId = window.currentTransactionDetail ? window.currentTransactionDetail.id : null;
 
-            console.log("Menghapus data...");
-            alert("Simulasi: Data berhasil dihapus!");
+            if (!transactionId) {
+                showToast("Error: Transaction ID not found.", "error");
+                return;
+            }
 
-            closeDeleteModal();
+            try {
+                const response = await fetch('/delete-transaction', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: transactionId,
+                        type: transactionType
+                    })
+                });
 
-            closeDetailModal();
+                const result = await response.json();
 
+                if (result.success) {
+                    showSuccessModal();
+                    closeDeleteModal();
+                    closeDetailModal();
+                    // Refresh dashboard data
+                    if (typeof fetchTransactions === 'function') {
+                        fetchTransactions();
+                    } else {
+                        location.reload();
+                    }
+                } else {
+                    // Show error in transaction detail modal
+                    const detailModal = document.getElementById('transaction-detail-modal-overlay');
+                    if (detailModal) {
+                        detailModal.style.display = 'flex';
+                        const errorMsg = detailModal.querySelector('.error-message');
+                        if (errorMsg) {
+                            errorMsg.textContent = result.message || 'Failed to delete transaction';
+                            errorMsg.style.display = 'block';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error deleting transaction:', error);
+                showToast("Error deleting transaction. Please try again.", "error");
+            }
         });
     }
 });
@@ -80,6 +128,9 @@ document.addEventListener('DOMContentLoaded', () => {
 function openTransactionDetail(transaction) {
     const detailModalOverlay = document.getElementById('transaction-detail-modal-overlay');
     if (!detailModalOverlay) return;
+
+    // Store transaction data globally for delete/edit operations
+    window.currentTransactionDetail = transaction;
 
     const typeIncome = document.getElementById('detailTypeIncome');
     const typeExpense = document.getElementById('detailTypeExpense');

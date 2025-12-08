@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (wontDoConfirmBtn) {
         wontDoConfirmBtn.addEventListener('click', () => {
-            alert("Schedule marked as 'Won't Do'!");
+            showToast("Data has been edited", "success");
             if (wontDoModal) wontDoModal.classList.remove('show');
             setTimeout(() => {
                 if (wontDoOverlay) wontDoOverlay.style.display = 'none';
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
 
                 newYesBtn.addEventListener('click', () => {
-                    alert("Schedule deleted successfully!");
+                    showToast("Data has been deleted", "success");
                     globalDeleteModal.classList.remove('show');
                     setTimeout(() => {
                         globalDeleteOverlay.style.display = 'none';
