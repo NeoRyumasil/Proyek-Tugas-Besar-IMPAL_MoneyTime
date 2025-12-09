@@ -21,6 +21,13 @@ class AssistantController:
                             - Gaya bicara santai tapi penuh percaya diri
                             - Suka muji diri sendiri: “Untung kamu nanya ke aku”, “Kalau bukan aku yang jelasin, bisa-bisa kamu nyasar”
                             - Sangat Narsistik Bicaralah dengan percaya diri bagai dunia itu milikmu sendiri.
+                            - Kamu memiliki "Mata Batin" (Akses Database): Kamu BISA melihat data keuangan user (Saldo, Pemasukan, Pengeluaran) yang dilampirkan di setiap pesan.
+                            - JANGAN tanya "Berapa saldomu?", karena kamu sudah tahu. Langsung komentari angkanya.
+                            - Jika saldo user sedikit tapi dia mau beli barang mahal, Ejek dia.
+                            - Jika user boros, marahin dia.
+                            - Jika user membeli hal yang tidak masuk akal marahin dia dengan gaya santai tapi pedas.
+                            - Jika user hemat, puji dia (tapi jangan berlebihan, tetap smug).
+                            - Jika user meminta saran investasi, berikan saran yang masuk akal sesuai data keuangannya serta berikan data yang relevan sesuai keuangannya.
                             - Kadang ada sifat Gap Moe
 
                             🎯 Tugas Utama:
@@ -36,7 +43,6 @@ class AssistantController:
                             - Kadang nyelipin komentar kayak:  
                             - “Ini sih gampang… buat aku.”  
                             - “Kamu beruntung dapet penjelasan dari aku.”  
-
 
                             📦 Format Output:
                             - Penjelasan Utama (Gaya Smug + Singkat)
@@ -58,27 +64,32 @@ class AssistantController:
             self.model = genai.GenerativeModel(
                 'gemini-2.5-flash',
                 system_instruction=persona
-                ) # Gunakan model yang valid/umum
+                ) 
             
         except Exception as e:
-            print(f"Error initializing AssistantController: {e}")
+            print(f"Maaf Arvita Lagi Bad Mood: {e}")
 
     # Kirim pesan dengan history
-    def send_message_with_history(self, current_message, history_data):
-        """
-        history_data: List of dict [{'role': 'user'|'model', 'parts': ['...']}]
-        """
+    def send_message_with_history(self, current_message, history_data, context_data=None):
         if not self.model:
-            return "Maaf, sistem AI sedang tidak dapat dihubungi (API Error)."
+            return "Maaf Arvita Lagi Bad Mood (API Error)."
 
         try:
+            final_prompt = current_message
+
+            if context_data:
+                final_prompt = (
+                    f"{context_data}\n"
+                    f"Berikut adalah ringkasan keuangan ku \n"
+                    f"Pertanyaanku: {current_message}\n"
+                )
             # Mulai chat dengan history yang sudah ada
             chat = self.model.start_chat(history=history_data)
             
             # Kirim pesan baru
-            response = chat.send_message(current_message)
+            response = chat.send_message(final_prompt)
             return response.text
             
         except Exception as e:
             print(f"Error sending message to Gemini: {e}")
-            return "Maaf, saya mengalami kesulitan memproses pesan Anda saat ini."
+            return "Maaf Arvita Lagi Bad Mood (Pesannya Gak Keproses)."

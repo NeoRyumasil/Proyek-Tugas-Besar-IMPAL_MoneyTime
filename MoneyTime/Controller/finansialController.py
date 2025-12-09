@@ -262,3 +262,32 @@ class FinansialController:
                 "Income": ["Gaji", "Return Investasi", "Jual Barang", "Other"],
                 "Expense": ["Academic", "Project", "Organization", "Entertainment", "Other"]
             }
+    
+    # buat ringkasan keuangan untuk Arvita
+    def get_financial_summary(self, user_id: str) -> str:
+        try:
+            transactions = self.get_transactions(user_id)
+            
+            total_income = sum(t['nominal'] for t in transactions if t['type'] == 'Income')
+            total_expense = sum(t['nominal'] for t in transactions if t['type'] == 'Expense')
+            balance = total_income - total_expense
+            
+            recent_tx = transactions[:3] 
+            recent_tx_str = ""
+            for tx in recent_tx:
+                recent_tx_str += f"- {tx['deskripsi']} ({tx['type']}): Rp {tx['nominal']:,}\n"
+
+            summary = (
+                f"DATA KEUANGAN USER SAAT INI:\n"
+                f"- Total Pemasukan: Rp {total_income:,}\n"
+                f"- Total Pengeluaran: Rp {total_expense:,}\n"
+                f"- Sisa Saldo: Rp {balance:,}\n"
+                f"- 3 Transaksi Terakhir:\n{recent_tx_str}"
+                f"[INSTRUKSI KHUSUS: Gunakan data di atas untuk memberi saran. "
+                f"Jika saldo minus atau tipis, marahi user dengan gaya Arvita!]"
+            )
+            return summary
+        
+        except Exception as e:
+            print(f"Error summary: {e}")
+            return "Data keuangan tidak tersedia saat ini."

@@ -363,11 +363,18 @@ def assistant():
     if not user_message:
         return jsonify({'error': 'Empty message'}), 400
 
+    user_id = session['user'].get('id')
     chat_history = session.get('chat_history', [])
 
     assistant_controller = AssistantController()
     
-    ai_reply = assistant_controller.send_message_with_history(user_message, chat_history)
+    financial_summary = finansial_controller.get_financial_summary(user_id)
+
+    ai_reply = assistant_controller.send_message_with_history(
+        user_message, 
+        chat_history,
+        context_data=financial_summary
+    )
 
     chat_history.append({
         'role': 'user', 
