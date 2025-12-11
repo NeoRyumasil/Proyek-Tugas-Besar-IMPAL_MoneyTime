@@ -33,7 +33,7 @@ seperti, penjadwalan, hingga perhitungan waktu. Pengguna juga dapat memanajemen 
 **Backend:**
 - Microsoft Azure Database
 - Python (Flask)
-- Gemini Flash 2.5
+- groq
 
 ## 🚀 How to Run the Project
 
@@ -48,7 +48,7 @@ cd Proyek-Tugas-Besar-IMPAL_MoneyTime/MoneyTime
 pip install flask
 pip install requests
 pip install python-dotenv
-pip install google-generativeai
+pip install groq
 pip install pyodbc
 ```
 
@@ -61,7 +61,7 @@ pip install pyodbc
   FLASK_ENV=development
   FLASK_RUN_PORT=8080
 
-  GEMINI__API__KEY = INSERT YOUR KEY HERE
+  GROQ__API__KEY = INSERT YOUR KEY HERE
   ```
   
 ### Step 4 Access Azure Database
@@ -78,4 +78,4 @@ pip install pyodbc
 ## 📋 Requirements
 - Python Flask Framework
 - Microsoft Azure Database
-- Gemini API Key
+- Groq API Key

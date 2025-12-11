@@ -17,6 +17,7 @@ load_dotenv()
 # Inisialisasi Objek
 user_controller = UserController()
 finansial_controller = FinansialController()
+assistant_controller = AssistantController(finansial_controller)
 
 app = Flask(__name__,
     template_folder='View/Templates',
@@ -343,7 +344,6 @@ def verify_validation_otp():
     elif not pending_reg:
         return jsonify({'success': False, 'message': 'Session expired. Please register again.'})
     else:
-        # PESAN ERROR BAHASA INGGRIS (Untuk ditampilkan di form)
         return jsonify({'success': False, 'message': 'Invalid verification code.'})
 
 # Route Khusus untuk Halaman Video troll ke windah tol cipularang
@@ -365,8 +365,6 @@ def assistant():
 
     user_id = session['user'].get('id')
     chat_history = session.get('chat_history', [])
-
-    assistant_controller = AssistantController()
     
     financial_summary = finansial_controller.get_financial_summary(user_id)
 
