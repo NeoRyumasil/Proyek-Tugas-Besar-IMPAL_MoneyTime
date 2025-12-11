@@ -3,10 +3,12 @@ import os
 
 from groq import Groq
 from Controller.finansialController import FinansialController
+from Controller.userController import UserController
 
 class AssistantController:
-    def __init__(self, finansial_controller: FinansialController):
+    def __init__(self, finansial_controller: FinansialController, user_id):
         self.client = None
+        self.user_id = user_id
         self.finansial_controller = finansial_controller
         self.model_name = "llama-3.1-8b-instant"
         self.tools = [
@@ -82,7 +84,7 @@ class AssistantController:
                             - Kamu bisa melihat data keuangan user (Saldo, Pemasukan, Pengeluaran) yang dilampirkan di setiap pesan.
                             - Jika user tidak meminta data keuangan, jangan pernah memberikan data tersebut.
                             - Kamu memiliki kemampuan untuk mencatat, mengedit, atau menghapus transaksi keuangan user. Selalu gunakan fungsi yang tersedia untuk perintah-perintah ini.
-                            - Saat user ingin MENCATAT transaksi, segera panggil fungsi `add_financial_transaction`. Tentukan `type` ('Income' atau 'Expense'), `nominal` (wajib angka), `deskripsi`, `kategori`, dan tanggal.
+                            - Saat user ingin MENCATAT transaksi, segera panggil fungsi `add_financial_transaction`. Tentukan `type` ('Income' atau 'Expense'), `nominal` (wajib angka), `deskripsi`, `kategori`, dan tanggal kalau user tidak mencantumkan tanggal asumsikan hari ini.
                             - Saat user ingin MENGEDIT transaksi, segera panggil fungsi `edit_financial_transaction`. Tentukan `transaction_id` (ID transaksi yang mau diedit), dan parameter lain yang mau diubah (`nominal`, `deskripsi`, `kategori`).
                             - Saat user ingin MENGHAPUS transaksi, segera panggil fungsi `delete_financial_transaction`. Tentukan `transaction_id` (ID transaksi yang mau dihapus).
                             - Setelah eksekusi fungsi selesai, berikan jawaban akhir yang mencerminkan hasil fungsi dengan gaya yang percaya diri dan sedikit sombong, contoh: "Sudah aku catat. Untung kamu punya aku, kalau nggak, pasti lupa kan!" 
@@ -147,7 +149,7 @@ class AssistantController:
         return cleaned_history
 
     # Kirim pesan dengan history
-    def send_message_with_history(self, current_message, history_data, context_data=None, user_id=None):
+    def send_message_with_history(self, current_message, history_data, context_data=None):
         if not self.client:
             return "Maaf Arvita Lagi Bad Mood (API Error)."
 
@@ -222,12 +224,27 @@ class AssistantController:
             return "Maaf Arvita Lagi Bad Mood (API Error)."
 
         try:
+
+            if self.user_id is None:
+                return "Maaf Arvita Lagi Bad Mood (User Gak Ketemu)."
+
             nominal = int(float(str(nominal).replace(',', '')))
+
+            finansial_id = self.finansial_controller.get_or_create_finansial(
+                self.user_id,
+                kategori, 
+                budget=nominal, 
+                status='Pemasukan' if type.lower() == 'income' else 'Pengeluaran'
+            )
+
+            if not finansial_id:
+                return "Maaf Arvita Lagi Bad Mood (Gagal dapat id finansial)."
+
             if type.lower() == 'income':
-                response = self.finansial_controller.add_pemasukan(nominal, deskripsi, kategori, tanggal)
+                response = self.finansial_controller.add_pemasukan(finansial_id, deskripsi, nominal, tanggal)
                 return f"Done yak udah kutambah pemasukan {nominal} dengan deskripsi '{deskripsi}' di kategori '{kategori}' pada tanggal {tanggal}."
             elif type.lower() == 'expense':
-                response = self.finansial_controller.add_pengeluaran(nominal, deskripsi, kategori, tanggal)
+                response = self.finansial_controller.add_pengeluaran(finansial_id, deskripsi, nominal, tanggal)
                 return f"Done yak udah kutambah pengeluaran {nominal} dengan deskripsi '{deskripsi}' di kategori '{kategori}' pada tanggal {tanggal}."
 
             return response if isinstance(response, str) else json.dumps(response)
@@ -242,7 +259,7 @@ class AssistantController:
 
         try:
             nominal = int(float(str(nominal).replace(',', '')))
-            response = self.finansial_controller.edit_transaction(transaction_id, nominal, deskripsi, kategori)
+            response = self.finansial_controller.edit_transaction(transaction_id, deskripsi, nominal, kategori)
 
             return response if isinstance(response, str) else json.dumps(response)
         
