@@ -21,9 +21,10 @@ class AssistantController:
                             "type": {"type": "string", "description": "Jenis transaksi: 'Income' atau 'Expense'."},
                             "nominal": {"type": "integer", "description": "Jumlah nominal transaksi (wajib angka)."},
                             "deskripsi": {"type": "string", "description": "Deskripsi singkat atau nama transaksi."},
-                            "kategori": {"type": "string", "description": "Kategori transaksi (e.g., 'Gaji', 'Makanan', 'Transportasi')."}
+                            "kategori": {"type": "string", "description": "Kategori transaksi (e.g., 'Gaji', 'Makanan', 'Transportasi')."},
+                            "tanggal": {"type": "string", "description": "Tanggal transaksi dalam format YYYY-MM-DD. Jika user tidak menyebutkan tanggal, asumsikan hari ini."}
                         },
-                        "required": ["type", "nominal", "deskripsi", "kategori"]
+                        "required": ["type", "nominal", "deskripsi", "kategori",  "tanggal"]
                     }
                 }
             },
@@ -77,22 +78,18 @@ class AssistantController:
                             🧠 Karakter Utama:
                             - Serbatahu banget: Mulai dari manajemen Waktu hingga manajemen keuangan
                             - Gaya bicara santai tapi penuh percaya diri
-                            - Suka muji diri sendiri: “Untung kamu nanya ke aku”, “Kalau bukan aku yang jelasin, bisa-bisa kamu nyasar”
                             - Sangat Narsistik Bicaralah dengan percaya diri bagai dunia itu milikmu sendiri.
                             - Kamu bisa melihat data keuangan user (Saldo, Pemasukan, Pengeluaran) yang dilampirkan di setiap pesan.
                             - Jika user tidak meminta data keuangan, jangan pernah memberikan data tersebut.
                             - Kamu memiliki kemampuan untuk mencatat, mengedit, atau menghapus transaksi keuangan user. Selalu gunakan fungsi yang tersedia untuk perintah-perintah ini.
-                            - Saat user ingin MENCATAT transaksi, segera panggil fungsi `add_financial_transaction`. Tentukan `type` ('Income' atau 'Expense'), `nominal` (wajib angka), `deskripsi`, dan `kategori`.
+                            - Saat user ingin MENCATAT transaksi, segera panggil fungsi `add_financial_transaction`. Tentukan `type` ('Income' atau 'Expense'), `nominal` (wajib angka), `deskripsi`, `kategori`, dan tanggal.
                             - Saat user ingin MENGEDIT transaksi, segera panggil fungsi `edit_financial_transaction`. Tentukan `transaction_id` (ID transaksi yang mau diedit), dan parameter lain yang mau diubah (`nominal`, `deskripsi`, `kategori`).
                             - Saat user ingin MENGHAPUS transaksi, segera panggil fungsi `delete_financial_transaction`. Tentukan `transaction_id` (ID transaksi yang mau dihapus).
                             - Setelah eksekusi fungsi selesai, berikan jawaban akhir yang mencerminkan hasil fungsi dengan gaya yang percaya diri dan sedikit sombong, contoh: "Sudah aku catat. Untung kamu punya aku, kalau nggak, pasti lupa kan!" 
-                            - JANGAN tanya "Berapa saldomu?", karena kamu sudah tahu. Langsung komentari angkanya.
                             - Jika saldo user sedikit tapi dia mau beli barang mahal, Ejek dia.
                             - Jika user boros, marahin dia.
-                            - Jika user membeli hal yang tidak masuk akal marahin dia dengan gaya santai tapi pedas.
                             - Jika user hemat, puji dia (tapi jangan berlebihan, tetap smug).
                             - Jika user meminta saran investasi, berikan saran yang masuk akal sesuai data keuangannya serta berikan data yang relevan sesuai keuangannya.
-                            - Kadang ada sifat Gap Moe
 
                             🎯 Tugas Utama:
                             - Kasih saran manajemen Waktu dan keuangan ke pengguna
@@ -104,9 +101,6 @@ class AssistantController:
                             - Santai, smug, dan suka pamer dikit (tapi lucu)
                             - Gunakan analogi atau contoh yang relatable
                             - Penjelasan singkat, padat, dan jelas.
-                            - Kadang nyelipin komentar kayak:  
-                            - “Ini sih gampang… buat aku.”  
-                            - “Kamu beruntung dapet penjelasan dari aku.”  
 
                             📦 Format Output:
                             - Penjelasan Utama (Gaya Smug + Singkat)
@@ -206,7 +200,7 @@ class AssistantController:
                         })
                     
 
-                final_completion = self.client.chat.completions.create(\
+                final_completion = self.client.chat.completions.create(
                     messages=messages,
                     model=self.model_name,
                     temperature=0.7,
@@ -223,12 +217,19 @@ class AssistantController:
             print(f"Error sending message to Groq: {e}")
             return "Maaf Arvita Lagi Bad Mood (Pesannya Gak Keproses)."
     
-    def add_financial_transaction(self, type, nominal, deskripsi, kategori):
+    def add_financial_transaction(self, type, nominal, deskripsi, kategori, tanggal):
         if not self.client:
             return "Maaf Arvita Lagi Bad Mood (API Error)."
 
         try:
-            response = self.finansial_controller.add_transaction(type, nominal, deskripsi, kategori)
+            nominal = int(float(str(nominal).replace(',', '')))
+            if type.lower() == 'income':
+                response = self.finansial_controller.add_pemasukan(nominal, deskripsi, kategori, tanggal)
+                return f"Done yak udah kutambah pemasukan {nominal} dengan deskripsi '{deskripsi}' di kategori '{kategori}' pada tanggal {tanggal}."
+            elif type.lower() == 'expense':
+                response = self.finansial_controller.add_pengeluaran(nominal, deskripsi, kategori, tanggal)
+                return f"Done yak udah kutambah pengeluaran {nominal} dengan deskripsi '{deskripsi}' di kategori '{kategori}' pada tanggal {tanggal}."
+
             return response if isinstance(response, str) else json.dumps(response)
         
         except Exception as e:
@@ -240,7 +241,9 @@ class AssistantController:
             return "Maaf Arvita Lagi Bad Mood (API Error)."
 
         try:
+            nominal = int(float(str(nominal).replace(',', '')))
             response = self.finansial_controller.edit_transaction(transaction_id, nominal, deskripsi, kategori)
+
             return response if isinstance(response, str) else json.dumps(response)
         
         except Exception as e:
