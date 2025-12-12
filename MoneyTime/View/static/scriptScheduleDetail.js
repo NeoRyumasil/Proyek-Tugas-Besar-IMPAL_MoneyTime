@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeBtn = document.getElementById('closeSchDetailModalIcon');
     const deleteBtn = document.getElementById('schDetailDeleteBtn');
     const wontDoBtn = document.getElementById('schDetailWontDoBtn');
+    const editBtn = document.getElementById('schDetailEditBtn'); // Tombol Edit
 
     // Modals
     const globalDeleteOverlay = document.getElementById('delete-modal-overlay');
@@ -24,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- WON'T DO ---
+    // --- WON'T DO LOGIC ---
     if (wontDoBtn) {
         wontDoBtn.addEventListener('click', () => {
             if (wontDoOverlay) {
@@ -33,16 +34,30 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
     if (wontDoConfirmBtn) {
-        wontDoConfirmBtn.addEventListener('click', () => {
-            showToast("Data has been edited", "success");
-            if (wontDoModal) wontDoModal.classList.remove('show');
-            setTimeout(() => {
-                if (wontDoOverlay) wontDoOverlay.style.display = 'none';
-                closeDetail();
-            }, 300);
+        wontDoConfirmBtn.addEventListener('click', async () => {
+            if (!window.currentScheduleDetail) return;
+            try {
+                const response = await fetch('/update-schedule-status', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ id: window.currentScheduleDetail.id, status: 'WontDo' })
+                });
+                if((await response.json()).success) {
+                    if (typeof showToast === 'function') showToast("Marked as Won't Do", "success");
+                    if(wontDoModal) wontDoModal.classList.remove('show');
+                    setTimeout(() => {
+                        if(wontDoOverlay) wontDoOverlay.style.display = 'none';
+                        closeDetail();
+                        // REFRESH HALAMAN
+                        if (typeof window.fetchSchedules === 'function') window.fetchSchedules();
+                    }, 300);
+                }
+            } catch(e) { console.error(e); }
         });
     }
+
     if (wontDoCancelBtn) {
         wontDoCancelBtn.addEventListener('click', () => {
             if (wontDoModal) wontDoModal.classList.remove('show');
@@ -50,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- DELETE ---
+    // --- DELETE LOGIC ---
     if (deleteBtn) {
         deleteBtn.addEventListener('click', () => {
             if (globalDeleteOverlay) {
@@ -61,13 +76,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 const newYesBtn = yesBtn.cloneNode(true);
                 yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
 
-                newYesBtn.addEventListener('click', () => {
-                    showToast("Data has been deleted", "success");
-                    globalDeleteModal.classList.remove('show');
-                    setTimeout(() => {
-                        globalDeleteOverlay.style.display = 'none';
-                        closeDetail();
-                    }, 300);
+                newYesBtn.addEventListener('click', async () => {
+                    const schId = window.currentScheduleDetail ? window.currentScheduleDetail.id : null;
+                    if(!schId) return;
+
+                    try {
+                        const response = await fetch('/delete-schedule', {
+                            method: 'DELETE',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({ id: schId })
+                        });
+
+                        const res = await response.json();
+                        if (res.success) {
+                            if (typeof showToast === 'function') showToast("Activity deleted", "success");
+                            globalDeleteModal.classList.remove('show');
+                            setTimeout(() => {
+                                globalDeleteOverlay.style.display = 'none';
+                                closeDetail(); // TUTUP MODAL
+                                // REFRESH OTOMATIS
+                                if (typeof window.fetchSchedules === 'function') window.fetchSchedules();
+                            }, 300);
+                        } else {
+                            if (typeof showToast === 'function') showToast("Failed to delete", "error");
+                        }
+                    } catch(e) { console.error(e); }
                 });
 
                 const noBtn = document.getElementById('deleteNoBtn');
@@ -82,55 +115,64 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// --- GLOBAL FUNCTION ---
+// --- GLOBAL FUNCTION UTAMA ---
 function openScheduleDetail(data) {
     const detailOverlay = document.getElementById('schedule-detail-modal-overlay');
     if (!detailOverlay) return;
 
-    // Helper Format Tanggal Konsisten
+    window.currentScheduleDetail = data;
+
     function formatFullDate(dateInput) {
         if (!dateInput) return '-';
         let dateObj = new Date(dateInput);
-
-        // Fallback ke 2025 jika invalid
-        if (isNaN(dateObj.getTime()) || dateObj.getFullYear() === 2001) {
-            dateObj = new Date(`${dateInput}, 2025`);
-        }
-
         if (isNaN(dateObj.getTime())) return dateInput;
-
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
         return `${days[dateObj.getDay()]}, ${dateObj.getDate()} ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
     }
 
-    document.getElementById('schDetailDescription').value = data.description || '-';
+    // Populate Fields
+    const titleEl = document.getElementById('schDetailTitle'); 
+    const descEl = document.getElementById('schDetailDescription'); 
+    
+    if(titleEl) titleEl.value = data.title || '-'; 
+    if(descEl) descEl.value = data.description || ''; 
+    
     document.getElementById('schDetailTime').value = data.time || '-';
-
-    // Terapkan format
     document.getElementById('schDetailDate').value = formatFullDate(data.date);
-
     document.getElementById('schDetailCategory').value = data.category || '-';
 
-    // Setup Priority
+    // Priority Styling
     const prioContainer = document.getElementById('schDetailPriorityContainer');
     const options = prioContainer.querySelectorAll('.priority-option');
     options.forEach(opt => opt.classList.remove('active'));
 
     const targetPrio = (data.priority || 'None').toLowerCase();
     const matchingOption = prioContainer.querySelector(`.priority-option.${targetPrio}`);
+    if (matchingOption) matchingOption.classList.add('active');
+    
+    // --- [LOGIKA PENTING: SEMBUNYIKAN EDIT JIKA RESTRICTED] ---
+    const editBtn = document.getElementById('schDetailEditBtn');
+    const wontDoBtn = document.getElementById('schDetailWontDoBtn');
+    
+    // Hitung Waktu
+    const now = new Date();
+    const timeString = data.time ? data.time : "00:00";
+    const itemDateTime = new Date(`${data.date}T${timeString}:00`);
+    
+    // Cek Kondisi: Apakah Expired ATAU Statusnya Won't Do?
+    const isExpired = itemDateTime < now;
+    const isRestricted = (data.status === 'WontDo' || isExpired);
 
-    if (matchingOption) {
-        matchingOption.classList.add('active');
-    } else {
-        const noneOption = prioContainer.querySelector('.priority-option.none');
-        if (noneOption) noneOption.classList.add('active');
+    if (editBtn) {
+        if (isRestricted) {
+            editBtn.style.display = 'none';   // Hilangkan Edit
+            if(wontDoBtn) wontDoBtn.style.display = 'none'; // Hilangkan tombol WontDo juga jika sudah di grup bawah
+        } else {
+            editBtn.style.display = 'flex';   // Tampilkan Edit
+            if(wontDoBtn) wontDoBtn.style.display = 'flex';
+        }
     }
-
-    // Set hidden input
-    const hiddenPrio = document.getElementById('schDetailPriority');
-    if (hiddenPrio) hiddenPrio.value = data.priority || 'None';
 
     detailOverlay.style.display = 'flex';
 }

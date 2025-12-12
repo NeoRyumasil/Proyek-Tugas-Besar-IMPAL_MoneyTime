@@ -1,39 +1,24 @@
 document.addEventListener('DOMContentLoaded', function () {
 
   // =========================================
-  // 0. TOAST NOTIFICATION SYSTEM
+  // 0. TOAST & NAVBAR
   // =========================================
   const toastContainer = document.getElementById('toast-container');
-
   function showToast(message, type = 'success') {
       const toast = document.createElement('div');
       toast.className = `toast ${type}`;
       toast.textContent = message;
-
       toastContainer.appendChild(toast);
-
-      // Animation in
       setTimeout(() => toast.classList.add('show'), 100);
-
       setTimeout(() => {
           toast.classList.remove('show');
-          setTimeout(() => {
-              if (toastContainer.contains(toast)) {
-                  toastContainer.removeChild(toast);
-              }
-          }, 300);
+          setTimeout(() => { if (toastContainer.contains(toast)) toastContainer.removeChild(toast); }, 300);
       }, 3000);
   }
-
-  // Make showToast globally available for other scripts
   window.showToast = showToast;
 
-  // =========================================
-  // 1. NAVBAR & UI UTILS
-  // =========================================
   const navToggle = document.getElementById('navToggle');
   const header = document.querySelector('.header-guest');
-
   if (navToggle) {
     navToggle.addEventListener('click', () => {
       const expanded = navToggle.getAttribute('aria-expanded') === 'true';
@@ -42,196 +27,120 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  document.querySelectorAll('.page-switch .page-link').forEach(a => {
-    a.addEventListener('click', () => {
-      if (header.classList.contains('menu-open')) {
-        header.classList.remove('menu-open');
-        navToggle.setAttribute('aria-expanded', 'false');
-      }
-    });
-  });
-
-  // --- PROFILE DROPDOWN LOGIC ---
+  // --- DROPDOWN ---
   const profilePill = document.getElementById('profilePill');
   const profileContainer = document.querySelector('.profile-container');
+  const notifWrapper = document.getElementById('notificationWrapper');
+  const notifDropdown = document.getElementById('notificationDropdown');
 
   if (profilePill && profileContainer) {
     profilePill.addEventListener('click', (e) => {
-      // Close notif if open
       if (notifWrapper) notifWrapper.classList.remove('active');
-      
       profileContainer.classList.toggle('active');
       e.stopPropagation();
     });
   }
-
-  // --- NOTIFICATION DROPDOWN LOGIC (NEW) ---
-  const notifWrapper = document.getElementById('notificationWrapper');
-  const notifDropdown = document.getElementById('notificationDropdown');
-
   if (notifWrapper && notifDropdown) {
     notifWrapper.addEventListener('click', (e) => {
-      // Close profile if open
       if (profileContainer) profileContainer.classList.remove('active');
-
-      // Toggle Active Class
       notifWrapper.classList.toggle('active');
       e.stopPropagation();
     });
-
-    // Prevent closing when clicking inside the dropdown itself
-    notifDropdown.addEventListener('click', (e) => {
-      e.stopPropagation();
-    });
+    notifDropdown.addEventListener('click', (e) => e.stopPropagation());
   }
-
-  // Global Click listener to close dropdowns
   document.addEventListener('click', (e) => {
-    if (profileContainer && !profileContainer.contains(e.target)) {
-      profileContainer.classList.remove('active');
-    }
-    if (notifWrapper && !notifWrapper.contains(e.target)) {
-      notifWrapper.classList.remove('active');
-    }
+    if (profileContainer && !profileContainer.contains(e.target)) profileContainer.classList.remove('active');
+    if (notifWrapper && !notifWrapper.contains(e.target)) notifWrapper.classList.remove('active');
   });
 
-
   // =========================================
-  // 2. CORE VARIABLES & HELPERS
+  // 2. TRANSACTION LOGIC (MONEY)
   // =========================================
   let allTransactions = [];
   let currentViewDate = new Date();
   let chartInstance = null;
   let currentStatsType = 'Expense';
 
-  // Elements
-  const prevBtn = document.getElementById('prevMonthBtn');
-  const nextBtn = document.getElementById('nextMonthBtn');
-  const monthLabel = document.getElementById('currentMonthLabel');
-  const searchInput = document.getElementById('searchInput');
-  
-  // Dashboard UI Elements
-  const listContainer = document.getElementById('transactionListContainer');
-  const incomeEl = document.getElementById('monthly-income');
-  const expenseEl = document.getElementById('monthly-expenses');
-  const balanceEl = document.getElementById('total-balance');
-  const legendContainer = document.getElementById('statsLegend');
-  const chartCanvas = document.getElementById('moneyPieChart');
-
-  // Custom Date Picker Elements
-  const pickerContainer = document.getElementById('datePickerContainer');
-  const pickerYearLabel = document.getElementById('pickerYearLabel');
-  const pickerMonthsGrid = document.getElementById('pickerMonthsGrid');
-  const pickerPrevYear = document.getElementById('pickerPrevYear');
-  const pickerNextYear = document.getElementById('pickerNextYear');
-  let pickerYearView = currentViewDate.getFullYear();
-  const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-  // Helper: Format Rupiah
   const formatRupiah = (num) => new Intl.NumberFormat('id-ID', {
     style: 'currency', currency: 'IDR', minimumFractionDigits: 0
   }).format(num);
 
-  // --- COLOR LOGIC: SEQUENTIAL UNIQUE MAPPING ---
-  // Palet 30 Warna Berbeda (High Contrast & Distinct)
-  const distinctColors = [
+  const distinctColorsMoney = [
       "#FF0000", "#0000FF", "#008000", "#FFD700", "#800080", 
       "#00FFFF", "#FF00FF", "#FF4500", "#00CED1", "#2E8B57", 
-      "#8B4513", "#4682B4", "#D2691E", "#9ACD32", "#4B0082", 
-      "#DC143C", "#000080", "#DAA520", "#808000", "#708090", 
-      "#FF1493", "#7B68EE", "#00FA9A", "#C71585", "#191970", 
-      "#556B2F", "#FF6347", "#40E0D0", "#8B0000", "#9932CC"
+      "#8B4513", "#4682B4", "#D2691E", "#9ACD32", "#4B0082"
   ];
-
-  let categoryColorMap = {}; 
-
+  let categoryColorMapMoney = {}; 
   function assignColorsToCategories(transactions) {
-      categoryColorMap = {}; 
+      categoryColorMapMoney = {}; 
       const uniqueCategories = [...new Set(transactions.map(t => t.kategori))]; 
-      
       uniqueCategories.forEach((cat, index) => {
-          const colorIndex = index % distinctColors.length;
-          categoryColorMap[cat] = distinctColors[colorIndex];
+          categoryColorMapMoney[cat] = distinctColorsMoney[index % distinctColorsMoney.length];
       });
   }
+  function getColorMoney(cat) { return categoryColorMapMoney[cat] || '#999999'; }
 
-  function getColor(cat) {
-      if (!cat) return '#999999';
-      return categoryColorMap[cat] || '#999999';
+  // --- COLOR GENERATOR FOR SCHEDULE ---
+  const distinctColorsSchedule = [
+      "#1F77B4", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD", 
+      "#8C564B", "#E377C2", "#7F7F7F", "#BCBD22", "#17BECF",
+      "#E6194B", "#3CB44B", "#FFE119", "#4363D8", "#F58231"
+  ];
+  
+  function getCategoryColorSchedule(categoryName) {
+      if (!categoryName) return "#333333";
+      let hash = 0;
+      const str = categoryName.toString().toLowerCase().trim();
+      for (let i = 0; i < str.length; i++) {
+          const char = str.charCodeAt(i);
+          hash = ((hash << 5) - hash) + char;
+          hash = hash & hash;
+      }
+      const index = Math.abs(hash) % distinctColorsSchedule.length;
+      return distinctColorsSchedule[index];
   }
 
-  // =========================================
-  // 3. DATE PICKER LOGIC
-  // =========================================
-  function renderPicker() {
-    if (!pickerYearLabel || !pickerMonthsGrid) return;
-    pickerYearLabel.textContent = pickerYearView;
-    pickerMonthsGrid.innerHTML = '';
+  // --- DATE PICKER (MONEY) ---
+  const pickerContainer = document.getElementById('datePickerContainer');
+  let pickerYearView = currentViewDate.getFullYear();
+  const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+  function renderPicker() {
+    const label = document.getElementById('pickerYearLabel');
+    const grid = document.getElementById('pickerMonthsGrid');
+    if (!label || !grid) return;
+    label.textContent = pickerYearView;
+    grid.innerHTML = '';
     shortMonths.forEach((mName, index) => {
       const monthDiv = document.createElement('div');
-      monthDiv.classList.add('month-item');
+      monthDiv.className = 'month-item';
       monthDiv.textContent = mName;
-      if (pickerYearView === currentViewDate.getFullYear() && index === currentViewDate.getMonth()) {
-        monthDiv.classList.add('selected');
-      }
-      monthDiv.addEventListener('click', (e) => {
+      if (pickerYearView === currentViewDate.getFullYear() && index === currentViewDate.getMonth()) monthDiv.classList.add('selected');
+      monthDiv.onclick = (e) => {
         e.stopPropagation();
         currentViewDate.setFullYear(pickerYearView);
         currentViewDate.setMonth(index);
         currentViewDate.setDate(1);
-        
-        if (searchInput) searchInput.value = ''; 
         updateDashboard();
-        closePicker();
+        pickerContainer.classList.remove('active');
+      };
+      grid.appendChild(monthDiv);
+    });
+  }
+  if(pickerContainer) {
+      pickerContainer.addEventListener('click', (e) => {
+          if(!e.target.closest('.custom-date-popup')) pickerContainer.classList.toggle('active');
+          if(pickerContainer.classList.contains('active')) {
+              pickerYearView = currentViewDate.getFullYear();
+              renderPicker();
+          }
       });
-      pickerMonthsGrid.appendChild(monthDiv);
-    });
   }
+  document.getElementById('pickerPrevYear')?.addEventListener('click', (e) => { e.stopPropagation(); pickerYearView--; renderPicker(); });
+  document.getElementById('pickerNextYear')?.addEventListener('click', (e) => { e.stopPropagation(); pickerYearView++; renderPicker(); });
+  document.getElementById('prevMonthBtn')?.addEventListener('click', () => { currentViewDate.setMonth(currentViewDate.getMonth() - 1); updateDashboard(); });
+  document.getElementById('nextMonthBtn')?.addEventListener('click', () => { currentViewDate.setMonth(currentViewDate.getMonth() + 1); updateDashboard(); });
 
-  function togglePicker() {
-    pickerContainer.classList.contains('active') ? closePicker() : openPicker();
-  }
-
-  function openPicker() {
-    pickerYearView = currentViewDate.getFullYear();
-    renderPicker();
-    pickerContainer.classList.add('active');
-  }
-
-  function closePicker() {
-    pickerContainer.classList.remove('active');
-  }
-
-  if (pickerContainer) {
-    pickerContainer.addEventListener('click', (e) => {
-      if (!e.target.closest('.custom-date-popup')) togglePicker();
-    });
-  }
-  if (pickerPrevYear) pickerPrevYear.addEventListener('click', (e) => { e.stopPropagation(); pickerYearView--; renderPicker(); });
-  if (pickerNextYear) pickerNextYear.addEventListener('click', (e) => { e.stopPropagation(); pickerYearView++; renderPicker(); });
-  
-  document.addEventListener('click', (e) => {
-    if (pickerContainer && !pickerContainer.contains(e.target)) closePicker();
-  });
-
-  if (prevBtn) prevBtn.addEventListener('click', () => {
-    currentViewDate.setMonth(currentViewDate.getMonth() - 1);
-    if(searchInput) searchInput.value = ''; 
-    updateDashboard();
-  });
-
-  if (nextBtn) nextBtn.addEventListener('click', () => {
-    currentViewDate.setMonth(currentViewDate.getMonth() + 1);
-    if(searchInput) searchInput.value = ''; 
-    updateDashboard();
-  });
-
-  // =========================================
-  // 4. TRANSACTION LOGIC (FETCH, SEARCH, RENDER)
-  // =========================================
-  
-  // --- FETCH DATA ---
   async function fetchTransactions() {
     try {
       const response = await fetch('/api/transactions');
@@ -240,475 +149,365 @@ document.addEventListener('DOMContentLoaded', function () {
         allTransactions = data.transactions;
         assignColorsToCategories(allTransactions);
         updateDashboard();
-      } else {
-        if (listContainer) listContainer.innerHTML = '<div style="text-align:center;">Failed to load data.</div>';
       }
-    } catch (error) {
-      console.error('Error:', error);
-      if (listContainer) listContainer.innerHTML = '<div style="text-align:center;">Connection error.</div>';
-    }
+    } catch (error) { console.error('Error:', error); }
   }
 
-  // --- SEARCH HANDLER ---
-  if (searchInput) {
-    let timeout = null;
-    searchInput.addEventListener('input', (e) => {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        updateDashboard();
-      }, 300);
-    });
-  }
-
-  // --- UPDATE DASHBOARD (LOGIC SEARCH + FILTER) ---
   function updateDashboard() {
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
-    const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-    let displayData = [];
-
-    // Reset Container
-    if (listContainer) listContainer.innerHTML = '';
-
-    if (query.length > 0) {
-        // [A] MODE SEARCH: Global Filter
-        if (monthLabel) monthLabel.textContent = `Search: "${searchInput.value}"`;
-        
-        displayData = allTransactions.filter(t => 
-            t.deskripsi.toLowerCase().includes(query) ||
-            t.kategori.toLowerCase().includes(query) ||
-            t.type.toLowerCase().includes(query)
-        );
-
-        // Empty State Search
-        if (displayData.length === 0) {
-            listContainer.innerHTML = `
-                <div style="text-align:center; padding:40px; color:#888;">
-                    <i class="fa-solid fa-magnifying-glass" style="font-size: 24px; margin-bottom: 10px;"></i><br>
-                    Data "${searchInput.value}" not found.
-                </div>`;
-        }
-
-    } else {
-        // [B] MODE NORMAL: Filter by Month
-        if (monthLabel) monthLabel.textContent = `${monthNames[month]} ${year}`;
-
-        displayData = allTransactions.filter(t => {
-            if (!t.tanggal) return false;
-            const d = new Date(t.tanggal);
-            return d.getFullYear() === year && d.getMonth() === month;
-        });
-
-        // Empty State Normal
-        if (displayData.length === 0) {
-            listContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No transactions found this month.</div>';
-        }
-    }
-
-    // Hitung Summary (Berdasarkan data yang TAMPIL)
-    let displayedIncome = 0;
-    let displayedExpense = 0;
-
-    displayData.forEach(t => {
-      if (t.type === 'Income') displayedIncome += t.nominal;
-      else displayedExpense += t.nominal;
+    document.getElementById('currentMonthLabel').textContent = `${monthNames[month]} ${year}`;
+    
+    const displayData = allTransactions.filter(t => {
+        if (!t.tanggal) return false;
+        const d = new Date(t.tanggal);
+        return d.getFullYear() === year && d.getMonth() === month;
     });
 
-    // Total Balance Selalu Global (Saldo Akhir dari SEMUA data)
-    let globalBalance = allTransactions.reduce((acc, t) => {
-        return t.type === 'Income' ? acc + t.nominal : acc - t.nominal;
-    }, 0);
+    let inc = 0, exp = 0;
+    displayData.forEach(t => { if(t.type === 'Income') inc += t.nominal; else exp += t.nominal; });
+    const globalBal = allTransactions.reduce((acc, t) => t.type === 'Income' ? acc + t.nominal : acc - t.nominal, 0);
 
-    // Update UI Cards
-    if (incomeEl) incomeEl.textContent = formatRupiah(displayedIncome);
-    if (expenseEl) expenseEl.textContent = formatRupiah(displayedExpense);
-    if (balanceEl) balanceEl.textContent = formatRupiah(globalBalance);
+    document.getElementById('monthly-income').textContent = formatRupiah(inc);
+    document.getElementById('monthly-expenses').textContent = formatRupiah(exp);
+    document.getElementById('total-balance').textContent = formatRupiah(globalBal);
 
-    // Render List & Chart
-    if (displayData.length > 0) {
-        renderList(displayData);
-    }
+    renderList(displayData);
     renderChart(displayData);
   }
 
-  // --- RENDER LIST ---
   function renderList(transactions) {
-    if (!listContainer) return;
-
+    const container = document.getElementById('transactionListContainer');
+    if(!container) return;
+    container.innerHTML = '';
+    if(transactions.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No transactions found this month.</div>';
+        return;
+    }
     const grouped = {};
     transactions.forEach(t => {
-      const dateKey = t.tanggal || 'No Date';
-      if (!grouped[dateKey]) grouped[dateKey] = [];
-      grouped[dateKey].push(t);
+      const k = t.tanggal || 'No Date';
+      if(!grouped[k]) grouped[k] = [];
+      grouped[k].push(t);
     });
-
-    const sortedDates = Object.keys(grouped).sort((a, b) => {
-        if (a === 'No Date') return 1;
-        if (b === 'No Date') return -1;
-        return new Date(b) - new Date(a);
-    });
-
-    sortedDates.forEach(dateStr => {
-      let dateDisplay = dateStr;
-      let dateNum = '';
-      if(dateStr !== 'No Date'){
-          const dateObj = new Date(dateStr);
-          dateNum = dateObj.getDate();
-          dateDisplay = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
-      }
-
-      let dInc = 0, dExp = 0;
-      let itemsHtml = '';
-
-      grouped[dateStr].forEach(t => {
-        if (t.type === 'Income') dInc += t.nominal;
-        else dExp += t.nominal;
-
-        const color = getColor(t.kategori);
-        const isInc = t.type === 'Income';
-        const sign = isInc ? '+' : '-';
-        const valClass = isInc ? 'val-green' : 'val-red';
-        const transactionString = encodeURIComponent(JSON.stringify(t));
-        const safeDesc = t.deskripsi.replace(/"/g, '&quot;');
-
-        itemsHtml += `
-            <div class="t-item" 
-                 onclick="openTransactionDetail(JSON.parse(decodeURIComponent('${transactionString}')))"
-                 data-desc="${safeDesc}"
-                 data-date="${t.tanggal || '-'}"
-                 data-nominal="${formatRupiah(t.nominal)}"
-                 data-type="${t.type}"
-                 data-category="${t.kategori}">
-                 
+    Object.keys(grouped).sort((a,b) => new Date(b) - new Date(a)).forEach(dateStr => {
+        const dateObj = new Date(dateStr);
+        let dInc = 0, dExp = 0;
+        let itemsHtml = '';
+        grouped[dateStr].forEach(t => {
+            if(t.type==='Income') dInc+=t.nominal; else dExp+=t.nominal;
+            const itemData = encodeURIComponent(JSON.stringify(t));
+            itemsHtml += `
+            <div class="t-item" onclick="openTransactionDetail(JSON.parse(decodeURIComponent('${itemData}')))">
                 <span class="t-desc">${t.deskripsi}</span>
-                <span class="t-badge" style="background-color: ${color}">${t.kategori}</span>
-                <span class="t-val ${valClass}">${sign} ${formatRupiah(t.nominal)}</span>
-            </div>
-        `;
-      });
-
-      const cardHtml = `
-                <div class="day-card">
-                    <div class="day-header">
-                        <div class="dh-left">
-                            <div class="date-box">${dateNum}</div>
-                            <span class="day-name">${dateDisplay}</span>
-                        </div>
-                        <div class="dh-right">
-                            <span class="val-green"><i class="fa-solid fa-arrow-trend-up"></i> ${formatRupiah(dInc)}</span>
-                            <span class="val-red"><i class="fa-solid fa-arrow-trend-down"></i> ${formatRupiah(dExp)}</span>
-                        </div>
-                    </div>
-                    <div class="trans-items">${itemsHtml}</div>
-                </div>
-            `;
-      listContainer.innerHTML += cardHtml;
-    });
-  }
-
-  // --- RENDER CHART (WITH EMPTY STATE) ---
-// --- RENDER CHART (UPDATED COLOR LOGIC) ---
-  function renderChart(transactions) {
-    if (!chartCanvas) return;
-
-    // 1. Filter Data
-    const filteredTrans = transactions.filter(t => t.type === currentStatsType);
-    const catTotals = {};
-    let totalAmount = 0;
-
-    filteredTrans.forEach(t => {
-      const catName = t.kategori || 'Uncategorized';
-      if (!catTotals[catName]) catTotals[catName] = 0;
-      catTotals[catName] += t.nominal;
-      totalAmount += t.nominal;
-    });
-
-    const labels = Object.keys(catTotals);
-    const dataVal = Object.values(catTotals);
-    const colors = labels.map(l => getColor(l));
-
-    // 2. Render Legend
-    if (legendContainer) {
-      legendContainer.innerHTML = '';
-      if (labels.length === 0) {
-        legendContainer.innerHTML = '<div style="text-align:center; color:#888; font-size:14px; padding: 10px;">Data not found</div>';
-      } else {
-        // --- LOGIKA WARNA BARU DI SINI ---
-        // Jika sedang tab Income, gunakan 'val-green', jika Expense gunakan 'val-red'
-        const amountClass = currentStatsType === 'Income' ? 'val-green' : 'val-red';
-
-        labels.forEach((cat, idx) => {
-          const pct = totalAmount > 0 ? ((dataVal[idx] / totalAmount) * 100).toFixed(2) + '%' : '0%';
-          
-          legendContainer.innerHTML += `
-              <div class="l-item">
-                  <div class="l-left">
-                      <span class="l-pct" style="background-color: ${colors[idx]}">${pct}</span>
-                      <span class="l-name">${cat}</span>
-                  </div>
-                  <span class="l-val ${amountClass}">${formatRupiah(dataVal[idx])}</span>
-              </div>
-          `;
+                <span class="t-badge" style="background-color: ${getColorMoney(t.kategori)}">${t.kategori}</span>
+                <span class="t-val ${t.type==='Income'?'val-green':'val-red'}">${t.type==='Income'?'+':'-'} ${formatRupiah(t.nominal)}</span>
+            </div>`;
         });
-      }
-    }
-
-    // 3. Destroy Old Chart
-    if (chartInstance) chartInstance.destroy();
-
-    // 4. Config for Chart
-    let chartData, chartOptions;
-
-    if (labels.length > 0) {
-        // NORMAL STATE
-        chartData = {
-            labels: labels,
-            datasets: [{
-                data: dataVal,
-                backgroundColor: colors,
-                borderWidth: 0,
-                hoverOffset: 6
-            }]
-        };
-        chartOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: function (context) {
-                            let label = context.label || '';
-                            if (label) label += ': ';
-                            if (context.parsed !== null) label += formatRupiah(context.parsed);
-                            return label;
-                        }
-                    }
-                }
-            },
-            cutout: '0%'
-        };
-    } else {
-        // EMPTY STATE (Gray Placeholder)
-        chartData = {
-            labels: ["No Data"],
-            datasets: [{
-                data: [1], 
-                backgroundColor: ["#E5E7EB"], 
-                borderWidth: 0,
-                hoverOffset: 0
-            }]
-        };
-        chartOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: { enabled: false } 
-            },
-            cutout: '0%'
-        };
-    }
-
-    // 5. Create Chart
-    chartInstance = new Chart(chartCanvas, {
-        type: 'pie',
-        data: chartData,
-        options: chartOptions
+        container.innerHTML += `
+        <div class="day-card">
+            <div class="day-header">
+                <div class="dh-left">
+                    <div class="date-box">${dateObj.getDate()}</div>
+                    <span class="day-name">${dateObj.toLocaleDateString('en-US', { weekday: 'long' })}</span>
+                </div>
+                <div class="dh-right">
+                    <span class="val-green"><i class="fa-solid fa-arrow-trend-up"></i> ${formatRupiah(dInc)}</span>
+                    <span class="val-red"><i class="fa-solid fa-arrow-trend-down"></i> ${formatRupiah(dExp)}</span>
+                </div>
+            </div>
+            <div class="trans-items">${itemsHtml}</div>
+        </div>`;
     });
   }
 
-  // --- STATS TOGGLE ---
+  function renderChart(transactions) {
+    const ctx = document.getElementById('moneyPieChart');
+    if(!ctx) return;
+    const filtered = transactions.filter(t => t.type === currentStatsType);
+    const totals = {};
+    filtered.forEach(t => { totals[t.kategori] = (totals[t.kategori] || 0) + t.nominal; });
+    const labels = Object.keys(totals);
+    const values = Object.values(totals);
+    const colors = labels.map(l => getColorMoney(l));
+
+    if(chartInstance) chartInstance.destroy();
+    if(labels.length > 0) {
+        chartInstance = new Chart(ctx, {
+            type: 'pie',
+            data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth:0 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display:false} }, cutout: '0%' }
+        });
+    } else {
+        const context = ctx.getContext('2d');
+        context.clearRect(0,0, ctx.width, ctx.height);
+    }
+    const legend = document.getElementById('statsLegend');
+    if(legend) {
+        legend.innerHTML = '';
+        if(labels.length === 0) legend.innerHTML = '<div style="text-align:center; color:#888;">No data</div>';
+        else {
+            const total = values.reduce((a,b)=>a+b,0);
+            labels.forEach((l, i) => {
+                legend.innerHTML += `
+                <div class="l-item">
+                    <div class="l-left">
+                        <span class="l-pct" style="background-color:${colors[i]}">${((values[i]/total)*100).toFixed(1)}%</span>
+                        <span class="l-name">${l}</span>
+                    </div>
+                    <span class="l-val ${currentStatsType==='Income'?'val-green-stats':''}">${formatRupiah(values[i])}</span>
+                </div>`;
+            });
+        }
+    }
+  }
   const statsIncomeBtn = document.getElementById('statsIncomeBtn');
   const statsExpenseBtn = document.getElementById('statsExpenseBtn');
-
-  if (statsIncomeBtn && statsExpenseBtn) {
-    statsIncomeBtn.addEventListener('click', () => {
-      if (currentStatsType !== 'Income') {
-        currentStatsType = 'Income';
-        statsIncomeBtn.classList.add('active');
-        statsExpenseBtn.classList.remove('active');
-        updateDashboard();
-      }
-    });
-
-    statsExpenseBtn.addEventListener('click', () => {
-      if (currentStatsType !== 'Expense') {
-        currentStatsType = 'Expense';
-        statsExpenseBtn.classList.add('active');
-        statsIncomeBtn.classList.remove('active');
-        updateDashboard();
-      }
-    });
+  if(statsIncomeBtn && statsExpenseBtn) {
+      statsIncomeBtn.onclick = () => { currentStatsType = 'Income'; statsIncomeBtn.classList.add('active'); statsExpenseBtn.classList.remove('active'); updateDashboard(); };
+      statsExpenseBtn.onclick = () => { currentStatsType = 'Expense'; statsExpenseBtn.classList.add('active'); statsIncomeBtn.classList.remove('active'); updateDashboard(); };
   }
-
-  // --- ADD TRANSACTION BUTTON ---
-  const addBtn = document.getElementById('openTransactionModalBtn');
-  const popup = document.getElementById('add-transaction-modal-overlay');
-  if (addBtn && popup) {
-    addBtn.addEventListener('click', () => { popup.style.display = 'flex'; });
-  }
+  document.getElementById('openTransactionModalBtn')?.addEventListener('click', () => {
+      document.getElementById('add-transaction-modal-overlay').style.display = 'flex';
+  });
 
   // =========================================
-  // 5. SCHEDULE LOGIC (Dashboard Specific)
+  // 5. SCHEDULE LOGIC (UPDATED FOR DASHBOARD)
   // =========================================
-  
-  const MAX_ITEMS = 4;
-  function initViewMore(group) {
-    if (group.id === 'group-today') {
-      const btn = group.querySelector('.view-more');
-      if (btn) btn.style.display = 'none';
-      return;
-    }
-    const items = group.querySelectorAll('.schedule-row');
-    const btn = group.querySelector('.view-more');
-
-    if (items.length > MAX_ITEMS) {
-      items.forEach((item, index) => {
-        if (index >= MAX_ITEMS) item.classList.add('hidden-task');
-        else item.classList.remove('hidden-task');
-      });
-
-      if (btn) {
-        btn.style.display = 'block';
-        btn.textContent = 'View more';
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-
-        newBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const isExpanded = newBtn.textContent === 'View less';
-          if (isExpanded) {
-            items.forEach((item, idx) => {
-              if (idx >= MAX_ITEMS) item.classList.add('hidden-task');
-            });
-            newBtn.textContent = 'View more';
-          } else {
-            items.forEach(item => item.classList.remove('hidden-task'));
-            newBtn.textContent = 'View less';
+  async function fetchAndRenderSchedules() {
+      try {
+          const response = await fetch('/api/schedules');
+          const data = await response.json();
+          if (data.success) {
+              renderGroupedSchedules(data.schedules);
+              const pendingCount = data.schedules.filter(s => s.status === 'Pending').length;
+              const schCard = document.getElementById('upcoming-schedule-count');
+              if(schCard) schCard.textContent = pendingCount;
           }
-        });
-      }
-    } else {
-      items.forEach(item => item.classList.remove('hidden-task'));
-      if (btn) btn.style.display = 'none';
-    }
+      } catch (error) { console.error('Error fetching schedules:', error); }
+  }
+  window.fetchSchedules = fetchAndRenderSchedules;
+
+  function renderGroupedSchedules(schedules) {
+      const containers = {
+          today: document.querySelector('#group-today .trans-items'),
+          next7: document.querySelector('#group-next7 .trans-items'),
+          later: document.querySelector('#group-later .trans-items'),
+          completed: document.querySelector('#group-completed .trans-items')
+      };
+      Object.values(containers).forEach(el => { if(el) el.innerHTML = ''; });
+
+      const now = new Date();
+      const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+      const next7DaysEnd = new Date(todayStart); next7DaysEnd.setDate(todayStart.getDate() + 7);
+
+      const counts = { today: 0, next7: 0, later: 0, completed: 0 };
+
+      schedules.forEach(sch => {
+          if(!sch.date) return;
+          const timeString = sch.time ? sch.time : "00:00";
+          const schDateTime = new Date(`${sch.date}T${timeString}:00`); 
+          const schDateOnly = new Date(sch.date); schDateOnly.setHours(0,0,0,0);
+
+          let grp = null;
+          const status = (sch.status || 'Pending');
+
+          if (status === 'WontDo' || schDateTime < now) {
+              grp = 'completed';
+          } else {
+              if (schDateOnly.getTime() === todayStart.getTime()) grp = 'today';
+              else if (schDateOnly > todayStart && schDateOnly <= next7DaysEnd) grp = 'next7';
+              else if (schDateOnly > next7DaysEnd) grp = 'later';
+          }
+
+          if(grp && containers[grp]) {
+              counts[grp]++;
+              containers[grp].insertAdjacentHTML('beforeend', createScheduleItemHTML(sch, now));
+          }
+      });
+
+      updateGroupHeader('group-today', 'Today', counts.today);
+      updateGroupHeader('group-next7', 'Next 7 Days', counts.next7);
+      updateGroupHeader('group-later', 'Later', counts.later);
+      updateGroupHeader('group-completed', 'Completed & Won\'t Do', counts.completed);
+      
+      attachScheduleListeners();
   }
 
-  const groups = document.querySelectorAll('.day-card');
-  groups.forEach(g => initViewMore(g));
+  function createScheduleItemHTML(sch, now) {
+      const timeString = sch.time ? sch.time : "00:00";
+      const schDateTime = new Date(`${sch.date}T${timeString}:00`);
+      const isExpired = schDateTime < now;
 
-  const toggleHeaders = document.querySelectorAll('.toggle-group-btn');
-  toggleHeaders.forEach(header => {
-    header.addEventListener('click', () => {
-      const card = header.closest('.day-card');
-      const content = card.querySelector('.trans-items');
-      const icon = header.querySelector('.toggle-icon');
-      const viewMore = card.querySelector('.view-more');
+      const dateObj = new Date(sch.date);
+      const dateStr = dateObj.toLocaleDateString('en-US', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+      
+      const inCompletedGroup = (sch.status === 'WontDo' || isExpired);
+      let onClickAttribute = inCompletedGroup ? '' : `onclick="toggleStatus(event, ${sch.id}, '${sch.status}')"`;
 
-      if (content.style.display === 'none') {
-        content.style.display = 'block';
-        icon.style.transform = 'rotate(0deg)';
-        initViewMore(card);
-      } else {
-        content.style.display = 'none';
-        icon.style.transform = 'rotate(-90deg)';
-        if (viewMore) viewMore.style.display = 'none';
+      let dateHTML = `<span class="sch-date">${dateStr}</span>`;
+      let checkboxClass = 'sch-checkbox';
+      let iconHTML = '<i class="fa-solid fa-check check-mark"></i>';
+      
+      if(sch.status === 'Completed') {
+          checkboxClass += ' checked';
+      } else if(sch.status === 'WontDo') { 
+          checkboxClass += ' wontdo'; 
+          iconHTML = '<i class="fa-solid fa-xmark x-mark"></i>'; 
+      } else if(isExpired && sch.status === 'Pending') {
+          checkboxClass += ' failed';
+          iconHTML = '<i class="fa-solid fa-xmark x-mark"></i>'; 
+          dateHTML = `<span class="sch-date text-red">${dateStr}<br><span class="overdue-text">(Expired)</span></span>`;
       }
-    });
-  });
 
-  const tabs = document.querySelectorAll('.time-tab');
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      const target = tab.dataset.target;
+      const bgColor = getCategoryColorSchedule(sch.category||"Other");
+      
+      // [UPDATE] Teks Putih
+      const textColor = '#ffffff';
 
-      groups.forEach(group => {
-        const content = group.querySelector('.trans-items');
-        const icon = group.querySelector('.toggle-icon');
-        if (content) content.style.display = 'block';
-        if (icon) icon.style.transform = 'rotate(0deg)';
+      const itemJson = JSON.stringify(sch).replace(/"/g, '&quot;');
 
-        if (target === 'all') {
-          group.style.display = 'block';
+      return `
+      <div class="t-item schedule-row" data-json="${itemJson}">
+          <div class="sch-left">
+              <div class="priority-dot ${(sch.priority||'none').toLowerCase()}"></div>
+              <div class="${checkboxClass}" ${onClickAttribute}>
+                  ${iconHTML}
+              </div>
+              <div class="sch-info">
+                  <div class="sch-title">${sch.title}</div>
+                  <div class="sch-time">${sch.time}</div>
+              </div>
+          </div>
+          <div class="sch-center">
+            <span class="t-badge" style="background-color: ${bgColor}; color: ${textColor};">${sch.category}</span>
+          </div>
+          <div class="sch-right">${dateHTML}</div>
+      </div>`;
+  }
+
+  function updateGroupHeader(id, title, count) {
+      const el = document.getElementById(id);
+      if(el) {
+          el.querySelector('.day-name').textContent = `${title} (${count})`;
+          el.style.display = count > 0 ? 'block' : 'none';
+          
+          const items = el.querySelectorAll('.schedule-row');
+          const btn = el.querySelector('.view-more');
+          const MAX_ITEMS = 5;
+
+          if(items.length > MAX_ITEMS) {
+              items.forEach((it, i) => { if(i >= MAX_ITEMS) it.classList.add('hidden-task'); });
+              if(btn) {
+                  btn.style.display = 'block';
+                  const newBtn = btn.cloneNode(true);
+                  btn.parentNode.replaceChild(newBtn, btn);
+
+                  newBtn.onclick = (e) => {
+                      e.stopPropagation();
+                      const expand = newBtn.textContent === 'View more';
+                      items.forEach((it, i) => { if(i >= MAX_ITEMS) it.classList.toggle('hidden-task', !expand); });
+                      newBtn.textContent = expand ? 'View less' : 'View more';
+                  };
+              }
+          } else {
+              items.forEach(it => it.classList.remove('hidden-task'));
+              if(btn) btn.style.display = 'none';
+          }
+      }
+  }
+
+  window.toggleStatus = async function(e, id, currentStatus) {
+        e.stopPropagation();
+        let newStatus = (currentStatus === 'Completed' || currentStatus === 'WontDo') ? 'Pending' : 'Completed';
+
+        const item = e.target.closest('.t-item');
+        const checkbox = item.querySelector('.sch-checkbox'); 
+        const icon = checkbox.querySelector('i'); 
+
+        const originalCheckboxClass = checkbox.className;
+        const originalIconDisplay = icon ? icon.style.display : 'none';
+        const originalOnclick = checkbox.getAttribute('onclick'); 
+
+        if (newStatus === 'Completed') {
+            checkbox.className = 'sch-checkbox checked';
+            if(icon) {
+                icon.className = 'fa-solid fa-check check-mark';
+                icon.style.display = 'block';
+            }
         } else {
-          if (group.id === target) group.style.display = 'block';
-          else group.style.display = 'none';
+            checkbox.className = 'sch-checkbox';
+            if(icon) icon.style.display = 'none';
         }
-        if (group.style.display !== 'none') initViewMore(group);
+
+        checkbox.setAttribute('onclick', `toggleStatus(event, ${id}, '${newStatus}')`);
+
+        try {
+            const response = await fetch('/update-schedule-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id, status: newStatus })
+            });
+            const res = await response.json();
+            if (!res.success) throw new Error("Gagal update status");
+        } catch (err) {
+            console.error('Failed to update status', err);
+            checkbox.className = originalCheckboxClass;
+            if(icon) icon.style.display = originalIconDisplay;
+            checkbox.setAttribute('onclick', originalOnclick);
+            if (typeof showToast === 'function') showToast("Koneksi gagal, status dikembalikan.", "error");
+        }
+    };
+
+  function attachScheduleListeners() {
+      document.querySelectorAll('.schedule-row').forEach(row => {
+          row.addEventListener('click', () => {
+              const data = JSON.parse(row.getAttribute('data-json'));
+              const modalData = {
+                  id: data.id,
+                  title: data.title, 
+                  description: data.description, 
+                  time: data.time,
+                  date: data.date,
+                  category: data.category,
+                  priority: data.priority,
+                  status: data.status
+              };
+              if(typeof openScheduleDetail === 'function') openScheduleDetail(modalData);
+          });
       });
-    });
+  }
+
+  // --- DROPDOWN DASHBOARD ---
+  const groupHeaders = document.querySelectorAll('.toggle-group-btn');
+  groupHeaders.forEach(header => {
+      header.addEventListener('click', (e) => {
+          e.stopPropagation(); 
+          const card = header.closest('.day-card');
+          const content = card.querySelector('.trans-items');
+          const icon = header.querySelector('.toggle-icon');
+          const viewMoreBtn = card.querySelector('.view-more');
+
+          const isHidden = content.style.display === 'none';
+
+          if (isHidden) {
+              content.style.display = 'block';
+              if (icon) icon.style.transform = 'rotate(0deg)';
+              const hasHiddenItems = content.querySelector('.hidden-task');
+              const isExpandedMode = viewMoreBtn && viewMoreBtn.textContent === 'View less';
+              if (viewMoreBtn && (hasHiddenItems || isExpandedMode)) {
+                  viewMoreBtn.style.display = 'block';
+              }
+          } else {
+              content.style.display = 'none';
+              if (icon) icon.style.transform = 'rotate(-90deg)';
+              if (viewMoreBtn) viewMoreBtn.style.display = 'none';
+          }
+      });
   });
 
-  const checkboxes = document.querySelectorAll('.sch-checkbox');
-  checkboxes.forEach(box => {
-    box.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (box.classList.contains('wontdo')) return;
-      box.classList.toggle('checked');
-    });
-  });
-
-  // =========================================
-  // 6. TOOLTIP LOGIC (HOVER DETAIL)
-  // =========================================
-  const tooltipEl = document.createElement('div');
-  tooltipEl.className = 'transaction-tooltip';
-  document.body.appendChild(tooltipEl);
-
-  document.addEventListener('mouseover', (e) => {
-      const item = e.target.closest('.t-item');
-      if (item && item.hasAttribute('data-desc')) {
-          const desc = item.getAttribute('data-desc');
-          const date = item.getAttribute('data-date');
-          const nominal = item.getAttribute('data-nominal');
-          const type = item.getAttribute('data-type');
-          const category = item.getAttribute('data-category');
-
-          tooltipEl.innerHTML = `
-              <div class="tooltip-header">
-                  <span>${category}</span>
-                  <span style="font-weight:400; opacity:0.8; font-size:12px;">${type}</span>
-              </div>
-              <div class="tooltip-row">
-                  <span class="tooltip-label">Date:</span>
-                  <span class="tooltip-val">${date}</span>
-              </div>
-              <div class="tooltip-row">
-                  <span class="tooltip-label">Desc:</span>
-                  <span class="tooltip-val" style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${desc}</span>
-              </div>
-              <div class="tooltip-row" style="margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 4px;">
-                  <span class="tooltip-label">Amount:</span>
-                  <span class="tooltip-val" style="font-size: 14px;">${nominal}</span>
-              </div>
-          `;
-          tooltipEl.style.display = 'block';
-      }
-  });
-
-  document.addEventListener('mousemove', (e) => {
-      if (tooltipEl.style.display === 'block') {
-          let top = e.clientY + 15;
-          let left = e.clientX + 15;
-          
-          if (left + 220 > window.innerWidth) left = e.clientX - 230;
-          if (top + 150 > window.innerHeight) top = e.clientY - 160;
-          
-          tooltipEl.style.top = `${top}px`;
-          tooltipEl.style.left = `${left}px`;
-      }
-  });
-
-  document.addEventListener('mouseout', (e) => {
-      const item = e.target.closest('.t-item');
-      if (item) tooltipEl.style.display = 'none';
-  });
-
-  // Init Data
+  // --- INIT ---
   fetchTransactions();
+  fetchAndRenderSchedules();
 });

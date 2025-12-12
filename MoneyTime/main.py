@@ -2,21 +2,25 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 from markupsafe import escape
 from dotenv import load_dotenv
 
+# Import Controllers
 from Controller.databaseController import db_connect
 from Controller.userController import UserController
 from Controller.finansialController import FinansialController
 from Controller.notificationController import NotificationController
 from Controller.assistantController import AssistantController
+from Controller.scheduleController import ScheduleController 
 
 import os
 import secrets
 
-# Load environment variables from .env file
+# Load environment variables
 load_dotenv()
 
-# Inisialisasi Objek
+# Inisialisasi Objek Controller
 user_controller = UserController()
 finansial_controller = FinansialController()
+notification_controller = NotificationController()
+schedule_controller = ScheduleController()
 assistant_controller = AssistantController(finansial_controller)
 
 app = Flask(__name__,
@@ -26,17 +30,46 @@ app = Flask(__name__,
 # Secret key untuk session management
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 
-# Route untuk landing page
+# ==========================================
+#              PAGE ROUTES
+# ==========================================
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# Route untuk halaman auth (register/login)
 @app.route('/auth')
 def auth():
     return render_template('RegisLogin.html')
 
-# Route register (UPDATED: Simpan ke Session, BUKAN Database)
+@app.route('/dashboard')
+def dashboard():
+    if 'user' not in session:
+        return redirect(url_for('auth'))
+    return render_template('dashboard.html', user=session['user'])
+
+@app.route('/money')
+def money():
+    if 'user' not in session:
+        return redirect(url_for('auth'))
+    return render_template('money.html', user=session['user'])
+
+@app.route('/time')
+def time():
+    if 'user' not in session:
+        return redirect(url_for('auth'))
+    return render_template('time.html', user=session['user'])
+
+@app.route('/notification')
+def notification():
+    if 'user' not in session:
+        return redirect(url_for('auth'))
+    return render_template('notification.html', user=session['user'])
+
+# ==========================================
+#           AUTHENTICATION ROUTES
+# ==========================================
+
 @app.route('/register', methods=['POST'])
 def register():
     username = request.form.get('register_username')
@@ -45,23 +78,22 @@ def register():
     confirm = request.form.get('register_confirm')
 
     if password == confirm:
-        # Cek apakah username/email sudah terpakai
+        # Cek ketersediaan username/email
         if user_controller.check_username_exists(username):
             return jsonify({'success': False, 'message': 'Username already exists.'})
         if user_controller.check_email_exists(email):
             return jsonify({'success': False, 'message': 'Email already exists.'})
 
-        # SIMPAN SEMENTARA DI SESSION (Belum masuk DB)
+        # Simpan sementara di session (Password Plain Text, nanti di-hash di controller saat verifikasi)
         session['pending_registration'] = {
             'username': username,
             'email': email,
             'password': password
         }
         
-        # Simpan email untuk keperluan validasi
+        # Simpan email untuk validasi
         session['pending_validation_email'] = email
 
-        # Redirect ke halaman validasi
         return jsonify({
             'success': True, 
             'message': 'Please verify your email.', 
@@ -70,61 +102,143 @@ def register():
     
     return jsonify({'success': False, 'message': 'Passwords do not match.'})
 
-# Route login
 @app.route('/login', methods=['POST'])
 def login():
-    username = request.form.get('login_username')
-    email = username
-    password = request.form.get('login_password')
+    # Mengambil input (username bisa berupa email atau username biasa)
+    username_input = request.form.get('login_username')
+    password_input = request.form.get('login_password')
     remember_me = request.form.get('remember_me')
 
-    if user_controller.login(username, email, password):
+    # Controller login akan mengecek apakah input cocok dengan email ATAU username di DB
+    if user_controller.login(username_input, username_input, password_input):
         user = user_controller.get_current_user()
+        
+        # Simpan data penting ke session
         session['user'] = {
             'id': user.get_user_id(),
             'username': user.username,
             'email': user.email_address
         }
+        
         if remember_me == 'on':
             session.permanent = True
+            
         return jsonify({'success': True, 'message': 'Login successful'})
     else:
         return jsonify({'success': False, 'message': 'Invalid email or password'})
 
-# Route dashboard
-@app.route('/dashboard')
-def dashboard():
-    if 'user' not in session:
-        return redirect(url_for('auth'))
-    return render_template('dashboard.html', user=session['user'])
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    return redirect(url_for('index'))
 
-# Route Money
-@app.route('/money')
-def money():
-    if 'user' not in session:
-        return redirect(url_for('auth'))
-    return render_template('money.html', user=session['user'])
+# ==========================================
+#           ACCOUNT VALIDATION
+# ==========================================
 
-# Route Time
-@app.route('/time')
-def time():
-    if 'user' not in session:
+@app.route('/account-validation')
+def account_validation():
+    if 'pending_registration' not in session:
         return redirect(url_for('auth'))
-    return render_template('time.html', user=session['user'])
+    return render_template('account_validation.html')
 
-# Route Notification
-@app.route('/notification')
-def notification():
-    if 'user' not in session:
-        return redirect(url_for('auth'))
+@app.route('/send-validation-otp', methods=['POST'])
+def send_validation_otp():
+    email = request.form.get('email')
+    if not email:
+        email = session.get('pending_validation_email')
+    if not email:
+        return jsonify({'success': False, 'message': 'Email not found. Please register again.'})
+        
+    otp = user_controller.send_validation_otp(email)
+    if otp:
+        session['validation_otp'] = otp
+        session['validation_email'] = email
+        return jsonify({'success': True, 'message': 'OTP sent.'})
+    else:
+        return jsonify({'success': False, 'message': 'Failed to send OTP.'})
 
-    notification_controller = NotificationController()
-    user_id = session['user'].get('id')
+@app.route('/verify-validation-otp', methods=['POST'])
+def verify_validation_otp():
+    user_otp = request.form.get('otp')
+    server_otp = session.get('validation_otp')
     
+    pending_reg = session.get('pending_registration')
 
-    return render_template('notification.html', user=session['user'])
+    if server_otp and user_otp == str(server_otp) and pending_reg:
+        # === SIMPAN KE DATABASE (Final Step) ===
+        reg_username = pending_reg['username']
+        reg_password = pending_reg['password']
+        reg_email = pending_reg['email']
 
-# Endpoint tambah transaksi
+        # Controller akan melakukan Hashing Password sebelum Insert
+        result = user_controller.registrasi(reg_username, reg_password, reg_email)
+        
+        if result == True:
+            # Bersihkan session
+            session.pop('validation_otp', None)
+            session.pop('validation_email', None)
+            session.pop('pending_validation_email', None)
+            session.pop('pending_registration', None)
+            
+            return jsonify({'success': True, 'message': 'Account verified successfully.'})
+        else:
+            return jsonify({'success': False, 'message': 'Database error or User exists.'})
+            
+    elif not pending_reg:
+        return jsonify({'success': False, 'message': 'Session expired. Please register again.'})
+    else:
+        return jsonify({'success': False, 'message': 'Invalid verification code.'})
+
+# ==========================================
+#           FORGOT PASSWORD
+# ==========================================
+
+@app.route('/forgot-password')
+def forgot_password():
+    return render_template('forgot_password.html')
+
+@app.route('/send-otp', methods=['POST'])
+def send_otp():
+    email = request.form.get('email')
+    if not user_controller.check_email_exists(email):
+        return jsonify({'success': False, 'message': 'Email not found.'})
+    
+    otp = user_controller.send_otp(email)
+    if otp:
+        session['reset_otp'] = otp
+        session['reset_email'] = email
+        return jsonify({'success': True, 'message': 'OTP sent.'})
+    else:
+        return jsonify({'success': False, 'message': 'Failed to send email.'})
+
+@app.route('/verify-otp', methods=['POST'])
+def verify_otp():
+    user_otp = request.form.get('otp')
+    server_otp = session.get('reset_otp')
+    if server_otp and user_otp == str(server_otp):
+        return jsonify({'success': True, 'message': 'OTP Valid.'})
+    else:
+        return jsonify({'success': False, 'message': 'Invalid OTP.'})
+
+@app.route('/update-password', methods=['POST'])
+def update_password():
+    new_password = request.form.get('new_password')
+    email = session.get('reset_email')
+    if not email:
+        return jsonify({'success': False, 'message': 'Session expired.'})
+    
+    if user_controller.update_password(email, new_password):
+        session.pop('reset_otp', None)
+        session.pop('reset_email', None)
+        return jsonify({'success': True, 'message': 'Password updated successfully.'})
+    else:
+        return jsonify({'success': False, 'message': 'Failed to update password.'})
+
+# ==========================================
+#           TRANSACTION ROUTES
+# ==========================================
+
 @app.route('/add-transaction', methods=['POST'])
 def add_transaction():
     if 'user' not in session:
@@ -140,18 +254,17 @@ def add_transaction():
     if not ttype or not description or not amount or not date:
         return jsonify({'success': False, 'message': 'Missing fields'}), 400
 
-    user = session['user']
-    user_id = user.get('id')
-
+    user_id = session['user'].get('id')
     status_finansial = 'Pemasukan' if str(ttype).lower() == 'income' else 'Pengeluaran'
+    
     finansial_id = finansial_controller.get_or_create_finansial(user_id, category, status=status_finansial)
     
     if not finansial_id:
-        return jsonify({'success': False, 'message': 'Failed to create finansial record'}), 500
+        return jsonify({'success': False, 'message': 'Failed to create record'}), 500
 
     try:
         nominal = int(amount)
-    except Exception:
+    except:
         return jsonify({'success': False, 'message': 'Invalid amount'}), 400
 
     if str(ttype).lower() == 'income':
@@ -161,9 +274,8 @@ def add_transaction():
 
     if ok:
         return jsonify({'success': True, 'message': 'Transaction added'})
-    return jsonify({'success': False, 'message': 'Failed to add transaction'}), 500
+    return jsonify({'success': False, 'message': 'Database error'}), 500
 
-# Endpoint ambil data transaksi
 @app.route('/api/transactions', methods=['GET'])
 def api_transactions():
     if 'user' not in session:
@@ -172,186 +284,105 @@ def api_transactions():
     user_id = session['user'].get('id')
     keyword = request.args.get('q', '')
     transactions = finansial_controller.get_transactions(user_id, keyword)
-
     return jsonify({'success': True, 'transactions': transactions})
 
-# Endpoint ambil kategori dinamis
 @app.route('/api/categories', methods=['GET'])
 def api_categories():
     if 'user' not in session:
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
-
     user_id = session['user'].get('id')
     categories = finansial_controller.get_categories(user_id)
-
     return jsonify({'success': True, 'categories': categories})
 
-# Endpoint hapus transaksi
 @app.route('/delete-transaction', methods=['DELETE'])
 def delete_transaction():
     if 'user' not in session:
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
-
     data = request.get_json() or {}
     transaction_id = data.get('id')
     transaction_type = data.get('type')
-
+    
     if not transaction_id or not transaction_type:
-        return jsonify({'success': False, 'message': 'Missing transaction ID or type'}), 400
+        return jsonify({'success': False, 'message': 'Invalid Data'}), 400
 
     user_id = session['user'].get('id')
-    success = finansial_controller.delete_transaction(user_id, int(transaction_id), transaction_type)
+    if finansial_controller.delete_transaction(user_id, int(transaction_id), transaction_type):
+        return jsonify({'success': True, 'message': 'Deleted successfully'})
+    return jsonify({'success': False, 'message': 'Delete failed'}), 500
 
-    if success:
-        return jsonify({'success': True, 'message': 'Transaction deleted successfully'})
-    return jsonify({'success': False, 'message': 'Failed to delete transaction'}), 500
-
-# Endpoint edit transaksi
 @app.route('/edit-transaction', methods=['PUT'])
 def edit_transaction():
     if 'user' not in session:
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
-
     data = request.get_json() or {}
-    transaction_id = data.get('id')
-    transaction_type = data.get('type')
-    description = data.get('description')
-    amount = data.get('amount')
-    date = data.get('date')
-    category = data.get('category')
-
-    if not all([transaction_id, transaction_type, description, amount, date, category]):
-        return jsonify({'success': False, 'message': 'Missing required fields'}), 400
-
+    
     try:
-        nominal = int(amount)
-    except Exception:
-        return jsonify({'success': False, 'message': 'Invalid amount'}), 400
+        transaction_id = int(data.get('id'))
+        nominal = int(data.get('amount'))
+    except:
+        return jsonify({'success': False, 'message': 'Invalid ID or Amount'}), 400
 
     user_id = session['user'].get('id')
-    success = finansial_controller.edit_transaction(user_id, int(transaction_id), transaction_type,
-                                                  description, nominal, date, category)
+    success = finansial_controller.edit_transaction(
+        user_id, transaction_id, data.get('type'),
+        data.get('description'), nominal, data.get('date'), data.get('category')
+    )
 
     if success:
-        return jsonify({'success': True, 'message': 'Transaction updated successfully'})
-    return jsonify({'success': False, 'message': 'Failed to update transaction'}), 500
+        return jsonify({'success': True, 'message': 'Updated successfully'})
+    return jsonify({'success': False, 'message': 'Update failed'}), 500
 
-# Route logout
-@app.route('/logout')
-def logout():
-    session.pop('user', None)
-    return redirect(url_for('index'))
+# ==========================================
+#           SCHEDULE ROUTES (BARU)
+# ==========================================
 
-# Route forgot password
-@app.route('/forgot-password')
-def forgot_password():
-    return render_template('forgot_password.html')
+@app.route('/add-schedule', methods=['POST'])
+def add_schedule():
+    if 'user' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
 
-# Route Kirim OTP
-@app.route('/send-otp', methods=['POST'])
-def send_otp():
-    email = request.form.get('email')
-    if not user_controller.check_email_exists(email):
-        return jsonify({'success': False, 'message': 'Email tidak terdaftar.'})
-    otp = user_controller.send_otp(email)
-    if otp:
-        session['reset_otp'] = otp
-        session['reset_email'] = email
-        return jsonify({'success': True, 'message': 'OTP terkirim.'})
-    else:
-        return jsonify({'success': False, 'message': 'Gagal mengirim email.'})
-
-# Route Verifikasi OTP
-@app.route('/verify-otp', methods=['POST'])
-def verify_otp():
-    user_otp = request.form.get('otp')
-    server_otp = session.get('reset_otp')
-    if server_otp and user_otp == server_otp:
-        return jsonify({'success': True, 'message': 'OTP Valid.'})
-    else:
-        return jsonify({'success': False, 'message': 'Kode OTP salah.'})
-
-# Route Update Password
-@app.route('/update-password', methods=['POST'])
-def update_password():
-    new_password = request.form.get('new_password')
-    email = session.get('reset_email')
-    if not email:
-        return jsonify({'success': False, 'message': 'Sesi habis, ulangi proses.'})
-    if user_controller.update_password(email, new_password):
-        session.pop('reset_otp', None)
-        session.pop('reset_email', None)
-        return jsonify({'success': True, 'message': 'Password berhasil diubah.'})
-    else:
-        return jsonify({'success': False, 'message': 'Gagal update password.'})
-
-# Route Validasi Akun setelah Registrasi
-@app.route('/account-validation')
-def account_validation():
-    # Pastikan ada data pendaftaran di session
-    if 'pending_registration' not in session:
-        return redirect(url_for('auth'))
-    return render_template('account_validation.html')
-
-# Route Kirim OTP Validasi Akun
-@app.route('/send-validation-otp', methods=['POST'])
-def send_validation_otp():
-    email = request.form.get('email')
-    if not email:
-        email = session.get('pending_validation_email')
-    if not email:
-        return jsonify({'success': False, 'message': 'Email tidak ditemukan. Silakan daftar ulang.'})
-        
-    otp = user_controller.send_validation_otp(email)
-    if otp:
-        session['validation_otp'] = otp
-        session['validation_email'] = email
-        return jsonify({'success': True, 'message': 'OTP terkirim.'})
-    else:
-        return jsonify({'success': False, 'message': 'Gagal mengirim email.'})
-
-# Route Verifikasi OTP Validasi Akun
-@app.route('/verify-validation-otp', methods=['POST'])
-def verify_validation_otp():
-    user_otp = request.form.get('otp')
-    server_otp = session.get('validation_otp')
-    email = session.get('validation_email')
+    data = request.get_json()
     
-    # Ambil data user dari session (karena belum ada di DB)
-    pending_reg = session.get('pending_registration')
+    # Ambil data terpisah (Clean)
+    title = data.get('title')          # Activity Name
+    description = data.get('description') # Details
+    date = data.get('date')
+    time = data.get('time')
+    category = data.get('category')
+    priority = data.get('priority')
 
-    if server_otp and user_otp == server_otp and pending_reg:
+    user_id = session['user'].get('id')
+    
+    if schedule_controller.add_schedule(user_id, title, description, date, time, category, priority):
+        return jsonify({'success': True, 'message': 'Schedule added successfully'})
+    return jsonify({'success': False, 'message': 'Failed to add schedule'}), 500
+
+@app.route('/api/schedules', methods=['GET'])
+def get_schedules():
+    if 'user' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    user_id = session['user'].get('id')
+    schedules = schedule_controller.get_schedules(user_id)
+    return jsonify({'success': True, 'schedules': schedules})
+
+@app.route('/update-schedule-status', methods=['POST'])
+def update_schedule_status():
+    if 'user' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
         
-        # === SIMPAN KE DATABASE SEKARANG ===
-        reg_username = pending_reg['username']
-        reg_password = pending_reg['password']
-        reg_email = pending_reg['email']
+    data = request.get_json()
+    schedule_id = data.get('id')
+    status = data.get('status') 
+    
+    if schedule_controller.update_status(schedule_id, status):
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'message': 'Update failed'}), 500
 
-        # Panggil Controller Registrasi (yang melakukan INSERT)
-        result = user_controller.registrasi(reg_username, reg_password, reg_email)
-        
-        if result == True:
-            # Sukses simpan, bersihkan session
-            session.pop('validation_otp', None)
-            session.pop('validation_email', None)
-            session.pop('pending_validation_email', None)
-            session.pop('pending_registration', None)
-            
-            return jsonify({'success': True, 'message': 'Account verified successfully.'})
-        else:
-            return jsonify({'success': False, 'message': 'Database error.'})
-            
-    elif not pending_reg:
-        return jsonify({'success': False, 'message': 'Session expired. Please register again.'})
-    else:
-        return jsonify({'success': False, 'message': 'Invalid verification code.'})
+# ==========================================
+#           AI ASSISTANT & SUPPORT
+# ==========================================
 
-# Route Khusus untuk Halaman Video troll ke windah tol cipularang
-@app.route('/support-video')
-def support_video():
-    return render_template('support_video.html')
-
-# Route untuk Assistant AI
 @app.route('/assistant', methods=['POST']) 
 def assistant():
     if 'user' not in session:
@@ -374,19 +405,61 @@ def assistant():
         context_data=financial_summary
     )
 
-    chat_history.append({
-        'role': 'user', 
-        'parts': [user_message]
-    })
-
-    chat_history.append({
-        'role': 'model', 
-        'parts': [ai_reply]
-    })
+    chat_history.append({'role': 'user', 'parts': [user_message]})
+    chat_history.append({'role': 'model', 'parts': [ai_reply]})
     
     session['chat_history'] = chat_history[-20:]
 
     return jsonify({'reply': ai_reply})
+
+@app.route('/support-video')
+def support_video():
+    return render_template('support_video.html')
+
+# ... (Import dan kode lain tetap sama)
+
+# --- Tambahkan Route ini di bawah route Schedule lainnya ---
+
+@app.route('/edit-schedule', methods=['PUT'])
+def edit_schedule():
+    if 'user' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+
+    data = request.get_json()
+    schedule_id = data.get('id')
+    
+    # AMBIL DATA TERPISAH (Clean Architecture)
+    title = data.get('title')          # Activity Name
+    description = data.get('description') # Description Details
+    date = data.get('date')
+    time = data.get('time')
+    category = data.get('category')
+    priority = data.get('priority')
+
+    if schedule_controller.edit_schedule(schedule_id, title, description, date, time, category, priority):
+        return jsonify({'success': True, 'message': 'Schedule updated successfully'})
+    return jsonify({'success': False, 'message': 'Failed to update schedule'}), 500
+
+@app.route('/delete-schedule', methods=['DELETE'])
+def delete_schedule():
+    if 'user' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+
+    data = request.get_json()
+    schedule_id = data.get('id')
+
+    if schedule_controller.delete_schedule(schedule_id):
+        return jsonify({'success': True, 'message': 'Schedule deleted successfully'})
+    return jsonify({'success': False, 'message': 'Failed to delete schedule'}), 500
+
+@app.route('/api/schedule-categories', methods=['GET'])
+def api_schedule_categories():
+    if 'user' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    user_id = session['user'].get('id')
+    categories = schedule_controller.get_categories(user_id)
+    return jsonify({'success': True, 'categories': categories})
 
 if __name__ == '__main__':
     app.run(debug=True)

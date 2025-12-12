@@ -208,7 +208,8 @@
     margin-bottom: 16px;
 }
 
-#discard-changes-modal {
+#discard-changes-modal,
+#wont-do-modal {
     width: 470px;
     height: 470px;
     background-color: #fafafa;

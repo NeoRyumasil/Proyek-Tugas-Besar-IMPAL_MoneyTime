@@ -1246,3 +1246,50 @@ body {
     height: 18px; 
     /* background: white; */ /* Optional decorative block from design */
 }
+
+/* ... (kode CSS lainnya tetap sama) ... */
+
+/* ================= TOAST NOTIFICATION (Money Page) ================= */
+.toast-container {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;   /* POSISI KIRI BAWAH */
+    z-index: 9999;
+}
+
+.toast {
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    font-size: 15px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    
+    /* PERUBAHAN DI SINI */
+    width: fit-content;  /* Lebar menyesuaikan isi teks */
+    max-width: 300px;    /* Batas maksimal diperkecil dari 450px */
+    
+    word-wrap: break-word;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.error {
+    background-color: #D32F2F; /* Merah */
+}
+
+.toast.success {
+    background-color: #28a745; /* Biru MoneyTime */
+}
