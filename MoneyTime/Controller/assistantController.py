@@ -5,12 +5,14 @@ from groq import Groq
 from datetime import datetime
 
 from Controller.finansialController import FinansialController
+from Controller.scheduleController import ScheduleController
 
 class AssistantController:
-    def __init__(self, finansial_controller: FinansialController, user_id):
+    def __init__(self, finansial_controller: FinansialController, schedule_controller : ScheduleController, user_id):
         self.client = None
         self.user_id = user_id
         self.finansial_controller = finansial_controller
+        self.schedule_controller = schedule_controller
         self.model_name = "llama-3.1-8b-instant"
         self.tools = [
             {
@@ -30,47 +32,11 @@ class AssistantController:
                         "required": ["type", "nominal", "deskripsi", "kategori",  "tanggal"]
                     }
                 }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "edit_financial_transaction",
-                    "description": "Mengedit detail transaksi keuangan yang sudah ada berdasarkan ID transaksi.",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "transaction_id": {"type": "integer", "description": "ID unik transaksi yang akan diedit."},
-                            "transaction_type": {"type": "string", "enum": ["Income", "Expense"], "description": "Tipe transaksi (Income/Expense)."},
-                            "nominal": {"type": "integer", "description": "Nominal transaksi (angka)."},
-                            "deskripsi": {"type": "string", "description": "Deskripsi transaksi."},
-                            "kategori": {"type": "string", "description": "Kategori transaksi."},
-                            "tanggal": {"type": "string", "description": "Tanggal transaksi (YYYY-MM-DD)."}
-                        },
-                        "required": ["transaction_id", "transaction_type", "nominal", "deskripsi", "kategori", "tanggal"]
-                    }
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "delete_financial_transaction",
-                    "description": "Menghapus transaksi keuangan berdasarkan ID.",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "transaction_id": {"type": "string", "description": "ID unik transaksi yang akan dihapus."},
-                            "transaction_type": {"type": "string", "enum": ["Income", "Expense"], "description": "Tipe transaksi (Income/Expense)."}
-                        },
-                        "required": ["transaction_id", "transaction_type"]
-                    }
-                }
             }
-        ]
+        ]   
 
         self.available_tools = {
             "add_financial_transaction": self.add_financial_transaction,
-            "edit_financial_transaction": self.edit_financial_transaction,
-            "delete_financial_transaction": self.delete_financial_transaction,
         }
 
         try:
@@ -101,17 +67,7 @@ class AssistantController:
                                 - Gunakan tool 'add_financial_transaction'.
                                 - Tentukan `transaction_type` ('Income' atau 'Expense'), `nominal` (wajib angka), `deskripsi`, `kategori`, dan tanggal. 
                                 - Untuk parameter `tanggal` jika user menyebutkannya (contoh: '2025-12-11'). Jika user bilang 'hari ini' atau tidak menyebutkan tanggal, gunakan tanggal hari ini yang ada di context (contoh: '2025-12-11').
-
-                        2. **Edit Transaction**
-                            - Jika pengguna minta untuk megubah transaksi (kata kunci: "Ubah", "Edit"):
-                                - Gunakan tool 'edit_financial_transaction'.
-                                - Tentukan `transaction_id` (ID transaksi yang mau diedit), dan parameter lain yang mau diubah (`nominal`, `deskripsi`, `kategori`).
-
-                        3. **Delete Transaction**
-                        - Jika pengguna minta untuk menghapus transaksi (kata kunci: "Hapus" , "Hilangkan"):
-                            - Gunakan tool 'delete_financial_transaction'
-                            - Tentukan `transaction_id` (ID transaksi yang mau dihapus) dan transaction_type (Income atau Expense).
-
+                            
                         # OUTPUT
                         - Penjelasan Utama (Gaya Smug + Singkat)
                         - Marahin pengguna jika aktivitas ada yang telat dan keuangannya menurun drastis.
@@ -234,6 +190,7 @@ class AssistantController:
             print(f"Error sending message to Groq: {e}")
             return "Maaf Arvita Lagi Bad Mood (Pesannya Gak Keproses)."
     
+    # Menambahkan transaksi keuangan
     def add_financial_transaction(self, type, nominal, deskripsi, kategori, tanggal):
         if not self.client:
             return "Maaf Arvita Lagi Bad Mood (API Error)."
@@ -268,47 +225,4 @@ class AssistantController:
             print(f"Error adding financial transaction: {e}")
             return "Maaf Arvita Lagi Bad Mood (Gagal Nambahin Transaksi)."
     
-    def edit_financial_transaction(self, transaction_id, transaction_type, nominal, deskripsi, kategori, tanggal):
-        if not self.client:
-            return "Maaf Arvita Lagi Bad Mood (API Error)."
 
-        try:
-            nominal = int(float(str(nominal).replace(',', '')))
-            response = self.finansial_controller.edit_transaction(
-                user_id=self.user_id,
-                transaction_id=int(transaction_id),
-                transaction_type=transaction_type,
-                deskripsi=deskripsi,
-                nominal=nominal,
-                tanggal=tanggal,
-                kategori=kategori
-            )
-
-            if response :
-                return f"Done yak udah kuedit transaksi mu menjadi tipe '{transaction_type}', nominal {nominal}, deskripsi '{deskripsi}', kategori '{kategori}', tanggal {tanggal}."
-            else :
-                return "Maaf Arvita Lagi Bad Mood (Gagal Ngedit Transaksi)."
-            
-        except Exception as e:
-            print(f"Error editing financial transaction: {e}")
-            return "Maaf Arvita Lagi Bad Mood (Gagal Ngedit Transaksi)."
-    
-    def delete_financial_transaction(self, transaction_id, transaction_type):
-        if not self.client:
-            return "Maaf Arvita Lagi Bad Mood (API Error)."
-
-        try:
-            response = self.finansial_controller.delete_transaction(
-                user_id=self.user_id,
-                transaction_id=int(transaction_id),
-                transaction_type=transaction_type
-            )
-
-            if response :
-                return f"Done yak udah kuhapus transaksi mu dengan tipe '{transaction_type}'."
-            else :
-                return "Maaf Arvita Lagi Bad Mood (Gagal Ngapus Transaksi)."
-        
-        except Exception as e:
-            print(f"Error deleting financial transaction: {e}")
-            return "Maaf Arvita Lagi Bad Mood (Gagal Ngapus Transaksi)."

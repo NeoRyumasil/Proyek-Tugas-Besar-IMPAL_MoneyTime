@@ -21,7 +21,6 @@ user_controller = UserController()
 finansial_controller = FinansialController()
 notification_controller = NotificationController()
 schedule_controller = ScheduleController()
-# assistant_controller = AssistantController(finansial_controller)  <-- Karena baris ini berada di tingkat global (dijalankan saat aplikasi baru mulai), belum ada pengguna yang login, sehingga tidak ada user_id yang bisa diberikan.
 
 app = Flask(__name__,
     template_folder='View/Templates',
@@ -397,7 +396,7 @@ def assistant():
     user_id = session['user'].get('id')
     chat_history = session.get('chat_history', [])
 
-    assistant_controller = AssistantController(finansial_controller, user_id)
+    assistant_controller = AssistantController(finansial_controller, schedule_controller, user_id)
     
     financial_summary = finansial_controller.get_financial_summary(user_id)
 
