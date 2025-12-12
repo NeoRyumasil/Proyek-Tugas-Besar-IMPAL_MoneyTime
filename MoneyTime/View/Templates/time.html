@@ -6,12 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Time - MoneyTime</title>
 
+    <link rel="icon" href="{{ url_for('static', filename='logoMoneyTime.svg') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styleTime.css') }}">
-
     <link rel="stylesheet" href="{{ url_for('static', filename='styleScheduleAdd.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styleModal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styleScheduleDetail.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styleScheduleEdit.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleDashboard.css') }}"> 
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap"
@@ -21,6 +22,8 @@
 </head>
 
 <body>
+    <div class="toast-container" id="toast-container"></div>
+
     <div class="header-guest">
         <div class="header-guest-container">
             <div class="name-and-logo">
@@ -82,83 +85,7 @@
                             </div>
                         </div>
                         <div class="notif-divider-main"></div>
-
-                        <div class="notif-card">
-                            <div class="notif-card-header">
-                                <div class="notif-card-title-group">
-                                    <span class="notif-tag">Overdue:</span>
-                                    <span class="notif-subject">Nama jadwal</span>
-                                </div>
-                                <div class="notif-time">5h ago</div>
-                            </div>
-                            <div class="notif-card-body">
-                                <div class="notif-desc-row">
-                                    <span class="notif-label">Description: </span>
-                                    <span class="notif-desc-bold">X days past deadline • Was due DATE at HH:MM</span>
-                                </div>
-                            </div>
-                            <div class="notif-card-footer">
-                                Category: Kategorinya
-                            </div>
-                        </div>
-
-                        <div class="notif-card">
-                            <div class="notif-card-header">
-                                <div class="notif-card-title-group">
-                                    <span class="notif-tag">Reminder:</span>
-                                    <span class="notif-subject">Nama jadwal</span>
-                                </div>
-                                <div class="notif-time">7h ago</div>
-                            </div>
-                            <div class="notif-card-body">
-                                <div class="notif-desc-row">
-                                    <span class="notif-label">Description: </span>
-                                    <span class="notif-desc-bold">X minutes left • Due today at HH:MM</span>
-                                </div>
-                            </div>
-                            <div class="notif-card-footer">
-                                Category: Kategorinya
-                            </div>
-                        </div>
-
-                        <div class="notif-card">
-                            <div class="notif-card-header">
-                                <div class="notif-card-title-group">
-                                    <span class="notif-tag">Reminder:</span>
-                                    <span class="notif-subject">Nama jadwal</span>
-                                </div>
-                                <div class="notif-time">9h ago</div>
-                            </div>
-                            <div class="notif-card-body">
-                                <div class="notif-desc-row">
-                                    <span class="notif-label">Description: </span>
-                                    <span class="notif-desc-bold">X hours left • Due today at HH:MM</span>
-                                </div>
-                            </div>
-                            <div class="notif-card-footer">
-                                Category: Kategorinya
-                            </div>
-                        </div>
-
-                        <div class="notif-card">
-                            <div class="notif-card-header">
-                                <div class="notif-card-title-group">
-                                    <span class="notif-tag">Reminder:</span>
-                                    <span class="notif-subject">Nama jadwal</span>
-                                </div>
-                                <div class="notif-time">12h ago</div>
-                            </div>
-                            <div class="notif-card-body">
-                                <div class="notif-desc-row">
-                                    <span class="notif-label">Description: </span>
-                                    <span class="notif-desc-bold">X days left • Due DATE at HH:MM</span>
-                                </div>
-                            </div>
-                            <div class="notif-card-footer">
-                                Category: Kategorinya
-                            </div>
-                        </div>
-
+                        <div style="padding: 20px; text-align: center; color: #888;">No new notifications</div>
                         <a href="{{ url_for('notification') }}" class="notif-view-all">
                             View All
                             <div class="notif-view-all-spacer"></div>
@@ -219,21 +146,21 @@
                     <i class="fa-regular fa-clock"></i>
                     <span>Upcoming Schedule</span>
                 </div>
-                <div class="card-amount">11</div>
+                <div class="card-amount">0</div>
             </div>
             <div class="m-card card-green">
                 <div class="card-icon-label">
                     <i class="fa-solid fa-check-double"></i>
                     <span>Schedule Completed</span>
                 </div>
-                <div class="card-amount">3</div>
+                <div class="card-amount">0</div>
             </div>
             <div class="m-card card-red">
                 <div class="card-icon-label">
                     <i class="fa-solid fa-circle-exclamation"></i>
                     <span>Overdue</span>
                 </div>
-                <div class="card-amount">2</div>
+                <div class="card-amount">0</div>
             </div>
         </div>
 
@@ -260,342 +187,48 @@
 
         <div class="schedule-list-section">
 
-            <div class="day-card" id="group-today">
+            <div class="day-card" id="group-today" style="display: none;">
                 <div class="day-header clickable toggle-group-btn">
                     <div class="dh-left">
-                        <i class="fa-solid fa-chevron-down toggle-icon"
-                            style="color: #1a3e7f; transition: transform 0.3s;"></i>
-                        <span class="day-name">Today (5)</span>
+                        <i class="fa-solid fa-chevron-down toggle-icon" style="color: #1a3e7f; transition: transform 0.3s;"></i>
+                        <span class="day-name">Today (0)</span>
                     </div>
                 </div>
-
-                <div class="trans-items">
-                    <div class="t-item schedule-row">
-                        <div class="sch-left">
-                            <div class="priority-dot critical"></div>
-                            <div class="sch-checkbox failed"><i class="fa-solid fa-check check-mark"></i></div>
-                            <div class="sch-info">
-                                <div class="sch-title">Final Project Submission</div>
-                                <div class="sch-time">23:59</div>
-                            </div>
-                        </div>
-                        <div class="sch-center">
-                            <span class="t-badge badge-academic">Academic</span>
-                        </div>
-                        <div class="sch-right">
-                            <span class="sch-date text-red">Wednesday, 10 December 2025 (Overdue)</span>
-                        </div>
-                    </div>
-
-                    <div class="t-item schedule-row">
-                        <div class="sch-left">
-                            <div class="priority-dot high"></div>
-                            <div class="sch-checkbox failed"><i class="fa-solid fa-check check-mark"></i></div>
-                            <div class="sch-info">
-                                <div class="sch-title">Pay Electricity Bill</div>
-                                <div class="sch-time">10:00</div>
-                            </div>
-                        </div>
-                        <div class="sch-center">
-                            <span class="t-badge badge-dark">Other</span>
-                        </div>
-                        <div class="sch-right">
-                            <span class="sch-date text-red">Thursday, 11 December 2025 (Overdue)</span>
-                        </div>
-                    </div>
-
-                    <div class="t-item schedule-row">
-                        <div class="sch-left">
-                            <div class="priority-dot low"></div>
-                            <div class="sch-checkbox"><i class="fa-solid fa-check check-mark"></i></div>
-                            <div class="sch-info">
-                                <div class="sch-title">Morning Jog</div>
-                                <div class="sch-time">06:00</div>
-                            </div>
-                        </div>
-                        <div class="sch-center">
-                            <span class="t-badge badge-entertain">Personal</span>
-                        </div>
-                        <div class="sch-right">
-                            <span class="sch-date">Friday, 12 December 2025</span>
-                        </div>
-                    </div>
-
-                    <div class="t-item schedule-row">
-                        <div class="sch-left">
-                            <div class="priority-dot medium"></div>
-                            <div class="sch-checkbox"><i class="fa-solid fa-check check-mark"></i></div>
-                            <div class="sch-info">
-                                <div class="sch-title">Team Standup</div>
-                                <div class="sch-time">09:00</div>
-                            </div>
-                        </div>
-                        <div class="sch-center">
-                            <span class="t-badge badge-org">Organization</span>
-                        </div>
-                        <div class="sch-right">
-                            <span class="sch-date">Friday, 12 December 2025</span>
-                        </div>
-                    </div>
-
-                    <div class="t-item schedule-row">
-                        <div class="sch-left">
-                            <div class="priority-dot high"></div>
-                            <div class="sch-checkbox"><i class="fa-solid fa-check check-mark"></i></div>
-                            <div class="sch-info">
-                                <div class="sch-title">Client Meeting</div>
-                                <div class="sch-time">13:00</div>
-                            </div>
-                        </div>
-                        <div class="sch-center">
-                            <span class="t-badge badge-project">Project</span>
-                        </div>
-                        <div class="sch-right">
-                            <span class="sch-date">Friday, 12 December 2025</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="view-more">View more</div>
+                <div class="trans-items"></div>
+                <div class="view-more" style="display: none;">View more</div>
             </div>
 
-            <div class="day-card" id="group-next7">
+            <div class="day-card" id="group-next7" style="display: none;">
                 <div class="day-header clickable toggle-group-btn">
                     <div class="dh-left">
-                        <i class="fa-solid fa-chevron-down toggle-icon"
-                            style="color: #1a3e7f; transition: transform 0.3s;"></i>
-                        <span class="day-name">Next 7 Days (5)</span>
+                        <i class="fa-solid fa-chevron-down toggle-icon" style="color: #1a3e7f; transition: transform 0.3s;"></i>
+                        <span class="day-name">Next 7 Days (0)</span>
                     </div>
                 </div>
-                <div class="trans-items">
-                    <div class="t-item schedule-row">
-                        <div class="sch-left">
-                            <div class="priority-dot low"></div>
-                            <div class="sch-checkbox"><i class="fa-solid fa-check check-mark"></i></div>
-                            <div class="sch-info">
-                                <div class="sch-title">Grocery Shopping</div>
-                                <div class="sch-time">10:00</div>
-                            </div>
-                        </div>
-                        <div class="sch-center">
-                            <span class="t-badge badge-dark">Personal</span>
-                        </div>
-                        <div class="sch-right">
-                            <span class="sch-date">Saturday, 13 December 2025</span>
-                        </div>
-                    </div>
-
-                    <div class="t-item schedule-row">
-                        <div class="sch-left">
-                            <div class="priority-dot medium"></div>
-                            <div class="sch-checkbox"><i class="fa-solid fa-check check-mark"></i></div>
-                            <div class="sch-info">
-                                <div class="sch-title">Weekly Review</div>
-                                <div class="sch-time">09:00</div>
-                            </div>
-                        </div>
-                        <div class="sch-center">
-                            <span class="t-badge badge-org">Organization</span>
-                        </div>
-                        <div class="sch-right">
-                            <span class="sch-date">Monday, 15 December 2025</span>
-                        </div>
-                    </div>
-
-                    <div class="t-item schedule-row">
-                        <div class="sch-left">
-                            <div class="priority-dot high"></div>
-                            <div class="sch-checkbox"><i class="fa-solid fa-check check-mark"></i></div>
-                            <div class="sch-info">
-                                <div class="sch-title">Dentist Appointment</div>
-                                <div class="sch-time">15:00</div>
-                            </div>
-                        </div>
-                        <div class="sch-center">
-                            <span class="t-badge badge-dark">Other</span>
-                        </div>
-                        <div class="sch-right">
-                            <span class="sch-date">Tuesday, 16 December 2025</span>
-                        </div>
-                    </div>
-
-                    <div class="t-item schedule-row">
-                        <div class="sch-left">
-                            <div class="priority-dot low"></div>
-                            <div class="sch-checkbox"><i class="fa-solid fa-check check-mark"></i></div>
-                            <div class="sch-info">
-                                <div class="sch-title">Badminton Match</div>
-                                <div class="sch-time">19:00</div>
-                            </div>
-                        </div>
-                        <div class="sch-center">
-                            <span class="t-badge badge-entertain">Entertainment</span>
-                        </div>
-                        <div class="sch-right">
-                            <span class="sch-date">Wednesday, 17 December 2025</span>
-                        </div>
-                    </div>
-
-                    <div class="t-item schedule-row">
-                        <div class="sch-left">
-                            <div class="priority-dot medium"></div>
-                            <div class="sch-checkbox"><i class="fa-solid fa-check check-mark"></i></div>
-                            <div class="sch-info">
-                                <div class="sch-title">Study Group</div>
-                                <div class="sch-time">16:00</div>
-                            </div>
-                        </div>
-                        <div class="sch-center">
-                            <span class="t-badge badge-academic">Academic</span>
-                        </div>
-                        <div class="sch-right">
-                            <span class="sch-date">Thursday, 18 December 2025</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="view-more">View more</div>
+                <div class="trans-items"></div>
+                <div class="view-more" style="display: none;">View more</div>
             </div>
 
-            <div class="day-card" id="group-later">
+            <div class="day-card" id="group-later" style="display: none;">
                 <div class="day-header clickable toggle-group-btn">
                     <div class="dh-left">
-                        <i class="fa-solid fa-chevron-down toggle-icon"
-                            style="color: #1a3e7f; transition: transform 0.3s;"></i>
-                        <span class="day-name">Later (3)</span>
+                        <i class="fa-solid fa-chevron-down toggle-icon" style="color: #1a3e7f; transition: transform 0.3s;"></i>
+                        <span class="day-name">Later (0)</span>
                     </div>
                 </div>
-                <div class="trans-items">
-                    <div class="t-item schedule-row">
-                        <div class="sch-left">
-                            <div class="priority-dot high"></div>
-                            <div class="sch-checkbox"><i class="fa-solid fa-check check-mark"></i></div>
-                            <div class="sch-info">
-                                <div class="sch-title">Birthday Party</div>
-                                <div class="sch-time">18:00</div>
-                            </div>
-                        </div>
-                        <div class="sch-center">
-                            <span class="t-badge badge-entertain">Entertainment</span>
-                        </div>
-                        <div class="sch-right">
-                            <span class="sch-date">Thursday, 25 December 2025</span>
-                        </div>
-                    </div>
-
-                    <div class="t-item schedule-row">
-                        <div class="sch-left">
-                            <div class="priority-dot critical"></div>
-                            <div class="sch-checkbox"><i class="fa-solid fa-check check-mark"></i></div>
-                            <div class="sch-info">
-                                <div class="sch-title">New Year Eve</div>
-                                <div class="sch-time">22:00</div>
-                            </div>
-                        </div>
-                        <div class="sch-center">
-                            <span class="t-badge badge-entertain">Entertainment</span>
-                        </div>
-                        <div class="sch-right">
-                            <span class="sch-date">Wednesday, 31 December 2025</span>
-                        </div>
-                    </div>
-
-                    <div class="t-item schedule-row">
-                        <div class="sch-left">
-                            <div class="priority-dot high"></div>
-                            <div class="sch-checkbox"><i class="fa-solid fa-check check-mark"></i></div>
-                            <div class="sch-info">
-                                <div class="sch-title">Pay Apartment Rent</div>
-                                <div class="sch-time">09:00</div>
-                            </div>
-                        </div>
-                        <div class="sch-center">
-                            <span class="t-badge badge-dark">Other</span>
-                        </div>
-                        <div class="sch-right">
-                            <span class="sch-date">Thursday, 01 January 2026</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="view-more">View more</div>
+                <div class="trans-items"></div>
+                <div class="view-more" style="display: none;">View more</div>
             </div>
 
-            <div class="day-card" id="group-completed">
+            <div class="day-card" id="group-completed" style="display: none;">
                 <div class="day-header clickable toggle-group-btn">
                     <div class="dh-left">
-                        <i class="fa-solid fa-chevron-down toggle-icon"
-                            style="color: #1a3e7f; transition: transform 0.3s;"></i>
-                        <span class="day-name">Completed & Won't Do (4)</span>
+                        <i class="fa-solid fa-chevron-down toggle-icon" style="color: #1a3e7f; transition: transform 0.3s;"></i>
+                        <span class="day-name">Completed & Won't Do (0)</span>
                     </div>
                 </div>
-                <div class="trans-items">
-                    <div class="t-item schedule-row">
-                        <div class="sch-left">
-                            <div class="priority-dot medium"></div>
-                            <div class="sch-checkbox wontdo"><i class="fa-solid fa-xmark x-mark"></i></div>
-                            <div class="sch-info">
-                                <div class="sch-title">Cancel Subscription (Won't Do)</div>
-                                <div class="sch-time">12:00</div>
-                            </div>
-                        </div>
-                        <div class="sch-center">
-                            <span class="t-badge badge-dark">Other</span>
-                        </div>
-                        <div class="sch-right">
-                            <span class="sch-date">Friday, 05 December 2025</span>
-                        </div>
-                    </div>
-
-                    <div class="t-item schedule-row">
-                        <div class="sch-left">
-                            <div class="priority-dot low"></div>
-                            <div class="sch-checkbox checked"><i class="fa-solid fa-check check-mark"></i></div>
-                            <div class="sch-info">
-                                <div class="sch-title">Buy Milk</div>
-                                <div class="sch-time">17:00</div>
-                            </div>
-                        </div>
-                        <div class="sch-center">
-                            <span class="t-badge badge-dark">Personal</span>
-                        </div>
-                        <div class="sch-right">
-                            <span class="sch-date">Thursday, 11 December 2025</span>
-                        </div>
-                    </div>
-
-                    <div class="t-item schedule-row">
-                        <div class="sch-left">
-                            <div class="priority-dot medium"></div>
-                            <div class="sch-checkbox checked"><i class="fa-solid fa-check check-mark"></i></div>
-                            <div class="sch-info">
-                                <div class="sch-title">Intro to AI Class</div>
-                                <div class="sch-time">08:00</div>
-                            </div>
-                        </div>
-                        <div class="sch-center">
-                            <span class="t-badge badge-academic">Academic</span>
-                        </div>
-                        <div class="sch-right">
-                            <span class="sch-date">Wednesday, 10 December 2025</span>
-                        </div>
-                    </div>
-
-                    <div class="t-item schedule-row">
-                        <div class="sch-left">
-                            <div class="priority-dot critical"></div>
-                            <div class="sch-checkbox checked"><i class="fa-solid fa-check check-mark"></i></div>
-                            <div class="sch-info">
-                                <div class="sch-title">Fix Bug #404</div>
-                                <div class="sch-time">14:00</div>
-                            </div>
-                        </div>
-                        <div class="sch-center">
-                            <span class="t-badge badge-project">Project</span>
-                        </div>
-                        <div class="sch-right">
-                            <span class="sch-date">Tuesday, 09 December 2025</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="view-more">View more</div>
+                <div class="trans-items"></div>
+                <div class="view-more" style="display: none;">View more</div>
             </div>
 
         </div>
@@ -673,5 +306,4 @@
     <script src="{{ url_for('static', filename='scriptAssistant.js') }}"></script>
 
 </body>
-
 </html>

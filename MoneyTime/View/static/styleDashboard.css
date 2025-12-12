@@ -665,8 +665,9 @@ body {
 .priority-dot.critical { background-color: #FF6B6B; border: 2px solid #7a1a1a; }
 
 /* Checkboxes */
+/* Checkbox Styles */
 .sch-checkbox {
-    width: 18px;
+    width: 18px; /* Ukuran dashboard sedikit lebih kecil biasanya */
     height: 18px;
     border: 2px solid #252525;
     border-radius: 4px;
@@ -676,12 +677,48 @@ body {
     justify-content: center;
     background-color: white;
 }
-.sch-checkbox .check-mark { display: none; color: white; font-size: 12px; }
-.sch-checkbox.checked, .sch-checkbox.failed { 
-    background-color: #1a3e7f; border-color: #1a3e7f; 
+
+.sch-checkbox .check-mark,
+.sch-checkbox .x-mark {
+    display: none;
+    font-size: 12px;
 }
-.sch-checkbox.checked .check-mark, .sch-checkbox.failed .check-mark { display: block; }
-.sch-checkbox.wontdo { background-color: #E45700; border-color: #E45700; }
+
+/* Status Selesai */
+.sch-checkbox.checked { 
+    background-color: #1a3e7f; 
+    border-color: #1a3e7f; 
+}
+.sch-checkbox.checked .check-mark {
+    display: block;
+    color: white;
+}
+
+/* [PERBAIKAN] Won't Do (Background Merah, X Putih) */
+.sch-checkbox.wontdo {
+    background-color: #D32F2F;
+    border-color: #D32F2F;
+}
+.sch-checkbox.wontdo .x-mark {
+    display: block;
+    color: white !important;
+}
+.sch-checkbox.wontdo .check-mark { 
+    display: none; 
+}
+
+/* [PERBAIKAN] Failed/Expired (Background Merah, X Putih) */
+.sch-checkbox.failed {
+    background-color: #D32F2F;
+    border-color: #D32F2F;
+}
+.sch-checkbox.failed .x-mark {
+    display: block;
+    color: white !important;
+}
+.sch-checkbox.failed .check-mark { 
+    display: none; 
+}
 
 .sch-info { display: flex; flex-direction: column; }
 .sch-title { font-weight: 600; font-size: 14px; color: #000; }
@@ -1158,28 +1195,34 @@ body {
     /* background: white; */ /* Optional decorative block from design */
 }
 
-/* ================= TOAST NOTIFICATION ================= */
+/* ... (kode CSS lainnya tetap sama) ... */
+
+/* ================= TOAST NOTIFICATION (UPDATED) ================= */
 .toast-container {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
+    bottom: 30px; /* Jarak dari bawah */
+    left: 30px;   /* PINDAH KE KIRI (Sebelumnya right: 20px) */
+    z-index: 9999;
 }
 
 .toast {
     background-color: #4CAF50;
     color: white;
-    padding: 8px 12px;
-    border-radius: 6px;
-    margin-bottom: 8px;
-    font-size: 12px;
-    font-family: 'Poppins', sans-serif;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 16px 24px; /* DIPERBESAR (Sebelumnya 8px 12px) */
+    border-radius: 12px; /* Lebih rounded */
+    margin-bottom: 12px;
+    font-size: 16px;    /* FONT DIPERBESAR (Sebelumnya 12px) */
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     opacity: 0;
-    transform: translateY(15px);
+    transform: translateY(20px);
     transition: opacity 0.3s ease, transform 0.3s ease;
-    max-width: 300px;
+    max-width: 450px;   /* LEBAR DIPERBESAR (Sebelumnya 300px) */
     word-wrap: break-word;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .toast.show {
@@ -1188,7 +1231,21 @@ body {
 }
 
 .toast.error {
-    background-color: #f44336;
+    background-color: #D32F2F; /* Merah Modern */
 }
 
 .toast.success {
+    background-color: #28a745; /* Biru MoneyTime (Sesuai Branding) */
+}
+    /* ... [STYLE YANG LAIN TETAP] ... */
+
+/* [UPDATE] Checkbox Failed / Expired */
+.sch-checkbox.failed {
+    background-color: #D32F2F; /* Merah */
+    border-color: #D32F2F;
+    color: white;
+}
+.sch-checkbox.failed .x-mark { display: block; }
+.sch-checkbox.failed .check-mark { display: none; }
+
+/* ... [SISA STYLE TETAP] ... */

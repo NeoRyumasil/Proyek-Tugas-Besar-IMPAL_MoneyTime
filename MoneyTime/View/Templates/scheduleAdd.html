@@ -9,11 +9,11 @@
     <div class="schedule-form">
         <div class="schedule-form-row">
             <div class="schedule-form-field">
-                <label class="schedule-form-label" for="scheduleDescription">Description</label>
+                <label class="schedule-form-label" for="scheduleActivityName">Activity Name</label>
                 <div class="schedule-form-input">
                     <div class="schedule-text-input">
-                        <input type="text" class="schedule-input-field" id="scheduleDescription"
-                            placeholder="Enter Description">
+                        <input type="text" class="schedule-input-field" id="scheduleActivityName"
+                            placeholder="Enter Activity Name">
                     </div>
                 </div>
             </div>
@@ -22,47 +22,35 @@
                 <label class="schedule-form-label" for="scheduleTimeDisplay">Time</label>
                 <div class="schedule-form-input">
                     <div class="schedule-time-picker-wrapper" id="scheduleTimePickerWrapper">
-
                         <div class="schedule-text-input">
                             <input type="text" id="scheduleTimeDisplay" class="schedule-input-field"
                                 placeholder="Select Time" readonly style="cursor: pointer;">
                             <input type="hidden" id="scheduleTime" name="time">
                             <i class="fa-regular fa-clock" style="color: #555; font-size: 16px;"></i>
                         </div>
-
                         <div class="custom-time-popup" id="customTimePopup">
                             <div class="time-popup-title">Select Time</div>
-
                             <div class="time-picker-container">
                                 <div class="time-column">
-                                    <button type="button" class="time-nav-btn" id="timeHourUp"><i
-                                            class="fa-solid fa-chevron-up"></i></button>
+                                    <button type="button" class="time-nav-btn" id="timeHourUp"><i class="fa-solid fa-chevron-up"></i></button>
                                     <div class="time-scroll-view" id="hourScrollView">
                                         <div class="time-value prev" id="hourPrev">--</div>
-                                        <input type="text" class="time-value current time-input" id="hourInput"
-                                            value="12" maxlength="2" inputmode="numeric">
+                                        <input type="text" class="time-value current time-input" id="hourInput" value="12" maxlength="2" inputmode="numeric">
                                         <div class="time-value next" id="hourNext">--</div>
                                     </div>
-                                    <button type="button" class="time-nav-btn" id="timeHourDown"><i
-                                            class="fa-solid fa-chevron-down"></i></button>
+                                    <button type="button" class="time-nav-btn" id="timeHourDown"><i class="fa-solid fa-chevron-down"></i></button>
                                 </div>
-
                                 <div class="time-separator">:</div>
-
                                 <div class="time-column">
-                                    <button type="button" class="time-nav-btn" id="timeMinuteUp"><i
-                                            class="fa-solid fa-chevron-up"></i></button>
+                                    <button type="button" class="time-nav-btn" id="timeMinuteUp"><i class="fa-solid fa-chevron-up"></i></button>
                                     <div class="time-scroll-view" id="minuteScrollView">
                                         <div class="time-value prev" id="minutePrev">--</div>
-                                        <input type="text" class="time-value current time-input" id="minuteInput"
-                                            value="00" maxlength="2" inputmode="numeric">
+                                        <input type="text" class="time-value current time-input" id="minuteInput" value="00" maxlength="2" inputmode="numeric">
                                         <div class="time-value next" id="minuteNext">--</div>
                                     </div>
-                                    <button type="button" class="time-nav-btn" id="timeMinuteDown"><i
-                                            class="fa-solid fa-chevron-down"></i></button>
+                                    <button type="button" class="time-nav-btn" id="timeMinuteDown"><i class="fa-solid fa-chevron-down"></i></button>
                                 </div>
                             </div>
-
                             <div class="time-popup-actions">
                                 <button type="button" class="time-btn-confirm" id="timeOkBtn">OK</button>
                                 <button type="button" class="time-btn-cancel" id="timeCancelBtn">Cancel</button>
@@ -86,22 +74,13 @@
                         </div>
                         <div class="schedule-calendar-popup" id="scheduleCalendarPopup">
                             <div class="schedule-calendar-header">
-                                <button type="button" class="schedule-calendar-nav-btn" id="schCalPrevBtn"><i
-                                        class="fa-solid fa-chevron-left"></i></button>
-                                <span class="schedule-calendar-month-label" id="schCalMonthLabel"
-                                    style="cursor: pointer;">Loading...</span>
-                                <button type="button" class="schedule-calendar-nav-btn" id="schCalNextBtn"><i
-                                        class="fa-solid fa-chevron-right"></i></button>
+                                <button type="button" class="schedule-calendar-nav-btn" id="schCalPrevBtn"><i class="fa-solid fa-chevron-left"></i></button>
+                                <span class="schedule-calendar-month-label" id="schCalMonthLabel" style="cursor: pointer;">Loading...</span>
+                                <button type="button" class="schedule-calendar-nav-btn" id="schCalNextBtn"><i class="fa-solid fa-chevron-right"></i></button>
                             </div>
                             <div id="schCalendarViewDays">
                                 <div class="schedule-calendar-weekdays">
-                                    <div>Su</div>
-                                    <div>Mo</div>
-                                    <div>Tu</div>
-                                    <div>We</div>
-                                    <div>Th</div>
-                                    <div>Fr</div>
-                                    <div>Sa</div>
+                                    <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
                                 </div>
                                 <div class="schedule-calendar-days-grid" id="schCalDaysGrid"></div>
                             </div>
@@ -137,7 +116,7 @@
         <div class="schedule-form-row single-col">
             <div class="schedule-form-field priority-field">
                 <label class="schedule-form-label">Priority</label>
-                <div class="priority-selector">
+                <div class="priority-selector" id="addSchPrioritySelector">
                     <div class="priority-option none active" data-value="None">None</div>
                     <div class="priority-option low" data-value="Low">Low</div>
                     <div class="priority-option medium" data-value="Medium">Medium</div>
@@ -147,6 +126,17 @@
                 <input type="hidden" id="schedulePriority" value="None">
             </div>
         </div>
+
+        <div class="schedule-form-row single-col">
+            <div class="schedule-form-field">
+                <label class="schedule-form-label" for="scheduleDescriptionDetails" style="align-self: flex-start; margin-top: 10px;">Description</label>
+                <div class="schedule-form-input">
+                    <textarea class="schedule-textarea" id="scheduleDescriptionDetails" 
+                        placeholder="Enter detailed description here..."></textarea>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <div class="schedule-actions">

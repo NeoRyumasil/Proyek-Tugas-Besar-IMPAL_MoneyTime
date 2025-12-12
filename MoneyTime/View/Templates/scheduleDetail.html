@@ -15,9 +15,9 @@
     <div class="detail-form-content" style="margin-top: 20px;">
         <div class="detail-form-row">
             <div class="detail-form-group">
-                <label class="detail-label">Description</label>
+                <label class="detail-label">Activity Name</label>
                 <div class="detail-input-box">
-                    <input type="text" class="detail-input-text" id="schDetailDescription" readonly>
+                    <input type="text" class="detail-input-text" id="schDetailTitle" readonly>
                 </div>
             </div>
 
@@ -58,6 +58,16 @@
                     <div class="priority-option critical" data-value="Critical">Critical</div>
                 </div>
                 <input type="hidden" id="schDetailPriority">
+            </div>
+        </div>
+
+        <div class="detail-form-row" style="grid-template-columns: 1fr;">
+            <div class="detail-form-group" style="align-items: flex-start;">
+                <label class="detail-label" style="margin-top: 10px;">Description</label>
+                <div class="detail-input-box" style="height: auto; min-height: 100px; align-items: flex-start;">
+                    <textarea class="detail-input-text" id="schDetailDescription" readonly 
+                    style="resize: none; height: 100px; padding-top: 8px;"></textarea>
+                </div>
             </div>
         </div>
     </div>
