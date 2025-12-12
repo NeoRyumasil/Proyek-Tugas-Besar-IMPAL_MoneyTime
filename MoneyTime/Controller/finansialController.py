@@ -272,7 +272,7 @@ class FinansialController:
             total_expense = sum(t['nominal'] for t in transactions if t['type'] == 'Expense')
             balance = total_income - total_expense
             
-            recent_tx = transactions[:3] 
+            recent_tx = transactions[:7] 
             recent_tx_str = ""
             for tx in recent_tx:
                 recent_tx_str += f"- {tx['deskripsi']} ({tx['type']}): Rp {tx['nominal']:,}\n"
@@ -282,7 +282,7 @@ class FinansialController:
                 f"- Total Pemasukan: Rp {total_income:,}\n"
                 f"- Total Pengeluaran: Rp {total_expense:,}\n"
                 f"- Sisa Saldo: Rp {balance:,}\n"
-                f"- 3 Transaksi Terakhir:\n{recent_tx_str}"
+                f"- 7 Transaksi Terakhir:\n{recent_tx_str}"
                 f"[INSTRUKSI KHUSUS: Gunakan data di atas untuk memberi saran. "
                 f"Jika saldo minus atau tipis, marahi user dengan gaya Arvita!]"
             )

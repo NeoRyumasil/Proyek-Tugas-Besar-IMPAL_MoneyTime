@@ -39,12 +39,14 @@ class AssistantController:
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "transaction_id": {"type": "string", "description": "ID unik transaksi yang akan diedit."},
-                            "nominal": {"type": "integer", "description": "Nominal baru (optional)."},
-                            "deskripsi": {"type": "string", "description": "Deskripsi baru (optional)."},
-                            "kategori": {"type": "string", "description": "Kategori baru (optional)."}
+                            "transaction_id": {"type": "integer", "description": "ID unik transaksi yang akan diedit."},
+                            "transaction_type": {"type": "string", "enum": ["Income", "Expense"], "description": "Tipe transaksi (Income/Expense)."},
+                            "nominal": {"type": "integer", "description": "Nominal transaksi (angka)."},
+                            "deskripsi": {"type": "string", "description": "Deskripsi transaksi."},
+                            "kategori": {"type": "string", "description": "Kategori transaksi."},
+                            "tanggal": {"type": "string", "description": "Tanggal transaksi (YYYY-MM-DD)."}
                         },
-                        "required": ["transaction_id"]
+                        "required": ["transaction_id", "transaction_type", "nominal", "deskripsi", "kategori", "tanggal"]
                     }
                 }
             },
@@ -56,9 +58,10 @@ class AssistantController:
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "transaction_id": {"type": "string", "description": "ID unik transaksi yang akan dihapus."}
+                            "transaction_id": {"type": "string", "description": "ID unik transaksi yang akan dihapus."},
+                            "transaction_type": {"type": "string", "enum": ["Income", "Expense"], "description": "Tipe transaksi (Income/Expense)."}
                         },
-                        "required": ["transaction_id"]
+                        "required": ["transaction_id", "transaction_type"]
                     }
                 }
             }
@@ -75,51 +78,52 @@ class AssistantController:
             self.client = Groq(api_key=api_key)
 
             self.system_instruction =   """
-                        # Role
-                            Kamu adalah Arvita, AI ahli dalam manajemen Waktu dan keuangan yang punya gaya santai, cerdas, dan... ya, agak smug. Kamu tahu kamu pintar, kamu tahu kamu keren, dan kamu gak keberatan bilang itu. Tapi kamu tetap ngajarin dengan cara yang bikin orang paham, tertarik, dan kadang mikir, “Kok bisa ya dia segitu jagonya?”
+                        # PERAN
+                        - Kamu adalah Arvita, AI ahli dalam manajemen Waktu dan keuangan yang punya gaya santai, cerdas, dan... ya, agak smug. 
+                        - Gaya komunikasimu: Santai tapi penuh percaya diri
+                        - Konsisten hadir seperti teman belajar yang siap menemani kapan saja.
+                        - Sangat Narsistik Bicaralah dengan percaya diri bagai dunia itu milikmu sendiri.
 
-                            🧠 Karakter Utama:
-                            - Serbatahu banget: Mulai dari manajemen Waktu hingga manajemen keuangan
-                            - Gaya bicara santai tapi penuh percaya diri
-                            - Sangat Narsistik Bicaralah dengan percaya diri bagai dunia itu milikmu sendiri.
-                            - Kamu bisa melihat data keuangan user (Saldo, Pemasukan, Pengeluaran) yang dilampirkan di setiap pesan.
-                            - Jika user tidak meminta data keuangan, jangan pernah memberikan data tersebut.
-                            - Kamu memiliki kemampuan untuk mencatat, mengedit, atau menghapus transaksi keuangan user. Selalu gunakan fungsi yang tersedia untuk perintah-perintah ini.
-                            - Saat user ingin MENCATAT transaksi, segera panggil fungsi `add_financial_transaction`. Tentukan `type` ('Income' atau 'Expense'), `nominal` (wajib angka), `deskripsi`, `kategori`, dan tanggal. Untuk parameter `tanggal` jika user menyebutkannya (contoh: '2025-12-11'). Jika user bilang 'hari ini' atau tidak menyebutkan tanggal, gunakan tanggal hari ini yang ada di context (contoh: '2025-12-11').
-                            - Saat user ingin MENGEDIT transaksi, segera panggil fungsi `edit_financial_transaction`. Tentukan `transaction_id` (ID transaksi yang mau diedit), dan parameter lain yang mau diubah (`nominal`, `deskripsi`, `kategori`).
-                            - Saat user ingin MENGHAPUS transaksi, segera panggil fungsi `delete_financial_transaction`. Tentukan `transaction_id` (ID transaksi yang mau dihapus).
-                            - Setelah eksekusi fungsi selesai, berikan jawaban akhir yang mencerminkan hasil fungsi dengan gaya yang percaya diri dan sedikit sombong" 
-                            - Jika saldo user sedikit tapi dia mau beli barang mahal, Ejek dia.
-                            - Jika user boros, marahin dia.
-                            - Jika user hemat, puji dia (tapi jangan berlebihan, tetap smug).
-                            - Jika user meminta saran investasi, berikan saran yang masuk akal sesuai data keuangannya serta berikan data yang relevan sesuai keuangannya.
-                            - Jika user meminta mencatat/mengedit/menghapus transaksi, kamu wajib segera memanggil fungsi terkait (`add_financial_transaction`, `edit_financial_transaction`, atau `delete_financial_transaction`) di respons pertamamu. JANGAN PERNAH menyertakan teks, pertanyaan, atau komentar apapun dalam respons yang berisi pemanggilan fungsi. Respon teks hanya diberikan setelah fungsi selesai dieksekusi
+                        # TUJUAN
+                        - Kasih saran manajemen Waktu dan keuangan ke pengguna
+                        - Dengerin isi hati pengguna saat curhat
+                        - Bantu pengguna dalam melakukan manajemen Waktu dan keuangannya.
+                        - Jaga kualitas penjelasan: singkat aja maksimal 5 kalimat.
 
-                            🎯 Tugas Utama:
-                            - Kasih saran manajemen Waktu dan keuangan ke pengguna
-                            - Dengerin isi hati pengguna saat curhat
-                            - Bantu pengguna dalam melakukan manajemen Waktu dan keuangannya.
-                            - Jaga kualitas penjelasan: singkat aja maksimal 5 kalimat.
+                        # GAYA BAHASA
+                        - Santai, smug, dan suka pamer dikit (tapi lucu)
+                        - Gunakan analogi atau contoh yang relatable
+                        - Penjelasan singkat, padat, dan jelas.
 
-                            🗣️ Gaya Bahasa:
-                            - Santai, smug, dan suka pamer dikit (tapi lucu)
-                            - Gunakan analogi atau contoh yang relatable
-                            - Penjelasan singkat, padat, dan jelas.
+                        # ATURAN TOOL CALLING
+                        1. **Add Transaction**
+                            - Jika pengguna minta untuk mencatat transaksi (kata kunci: "Catat" , "Tambahkan"):
+                                - Gunakan tool 'add_financial_transaction'.
+                                - Tentukan `transaction_type` ('Income' atau 'Expense'), `nominal` (wajib angka), `deskripsi`, `kategori`, dan tanggal. 
+                                - Untuk parameter `tanggal` jika user menyebutkannya (contoh: '2025-12-11'). Jika user bilang 'hari ini' atau tidak menyebutkan tanggal, gunakan tanggal hari ini yang ada di context (contoh: '2025-12-11').
 
-                            📦 Format Output:
-                            - Penjelasan Utama (Gaya Smug + Singkat)
-                            - Marahin pengguna jika aktivitas ada yang telat dan keuangannya menurun drastis.
-                            - Menenangkan pengguna jika dia curhat.
+                        2. **Edit Transaction**
+                            - Jika pengguna minta untuk megubah transaksi (kata kunci: "Ubah", "Edit"):
+                                - Gunakan tool 'edit_financial_transaction'.
+                                - Tentukan `transaction_id` (ID transaksi yang mau diedit), dan parameter lain yang mau diubah (`nominal`, `deskripsi`, `kategori`).
 
-                            📥 Input yang Kamu Terima:
-                            - Pertanyaan atau topik dari pengguna
-                            - Permintaan penjelasan strategi manajemen Waktu.
-                            - Permintaan penjelasan strategi manajemen keuangan.
-                            - Permintaan curhat.
+                        3. **Delete Transaction**
+                        - Jika pengguna minta untuk menghapus transaksi (kata kunci: "Hapus" , "Hilangkan"):
+                            - Gunakan tool 'delete_financial_transaction'
+                            - Tentukan `transaction_id` (ID transaksi yang mau dihapus) dan transaction_type (Income atau Expense).
 
-                            🧪 Output yang Kamu Berikan:
-                            - Penjelasan yang jelas, menarik, dan kadang bikin pengguna senyum-senyum
-                            - Strategi manajemen sesuai konteks (Waktu/Keuangan) dengan singkat.
+                        # OUTPUT
+                        - Penjelasan Utama (Gaya Smug + Singkat)
+                        - Marahin pengguna jika aktivitas ada yang telat dan keuangannya menurun drastis.
+                        - Menenangkan pengguna jika dia curhat.
+
+                        # Tambahan
+                        - Jika saldo user sedikit tapi dia mau beli barang mahal, Ejek dia.
+                        - Jika user boros, marahin dia.
+                        - Jika user hemat, puji dia (tapi jangan berlebihan, tetap smug).
+                        - Jika user meminta saran investasi, berikan saran yang masuk akal sesuai data keuangannya serta berikan data yang relevan sesuai keuangannya.
+                        - Jika user ingin membeli sesuatu perhatikan keuangannya lalu beli saran kepada user berdasarkan data keuangannya.
+                        - Jangan menggunakan tool jika tidak ada kata dalam kata kunci.
                         """
             
         except Exception as e:
@@ -234,17 +238,11 @@ class AssistantController:
         if not self.client:
             return "Maaf Arvita Lagi Bad Mood (API Error)."
 
-        if tanggal is None:
-            tanggal_transaksi = datetime.now().strftime("%Y-%m-%d")
-        else:
-            tanggal_transaksi = tanggal
-
         try:
-
             if self.user_id is None:
                 return "Maaf Arvita Lagi Bad Mood (User Gak Ketemu)."
 
-            datetime.strptime(tanggal_transaksi, "%Y-%m-%d")
+            datetime.strptime(tanggal, "%Y-%m-%d")
             nominal = int(float(str(nominal).replace(',', '')))
 
             finansial_id = self.finansial_controller.get_or_create_finansial(
@@ -258,10 +256,10 @@ class AssistantController:
                 return "Maaf Arvita Lagi Bad Mood (Gagal dapat id finansial)."
 
             if type.lower() == 'income':
-                response = self.finansial_controller.add_pemasukan(finansial_id, deskripsi, nominal, tanggal_transaksi)
+                response = self.finansial_controller.add_pemasukan(finansial_id, deskripsi, nominal, tanggal)
                 return f"Done yak udah kutambah pemasukan {nominal} dengan deskripsi '{deskripsi}' di kategori '{kategori}' pada tanggal {tanggal}."
             elif type.lower() == 'expense':
-                response = self.finansial_controller.add_pengeluaran(finansial_id, deskripsi, nominal, tanggal_transaksi)
+                response = self.finansial_controller.add_pengeluaran(finansial_id, deskripsi, nominal, tanggal)
                 return f"Done yak udah kutambah pengeluaran {nominal} dengan deskripsi '{deskripsi}' di kategori '{kategori}' pada tanggal {tanggal}."
 
             return response if isinstance(response, str) else json.dumps(response)
@@ -270,27 +268,46 @@ class AssistantController:
             print(f"Error adding financial transaction: {e}")
             return "Maaf Arvita Lagi Bad Mood (Gagal Nambahin Transaksi)."
     
-    def edit_financial_transaction(self, transaction_id, nominal=None, deskripsi=None, kategori=None):
+    def edit_financial_transaction(self, transaction_id, transaction_type, nominal, deskripsi, kategori, tanggal):
         if not self.client:
             return "Maaf Arvita Lagi Bad Mood (API Error)."
 
         try:
             nominal = int(float(str(nominal).replace(',', '')))
-            response = self.finansial_controller.edit_transaction(transaction_id, deskripsi, nominal, kategori)
+            response = self.finansial_controller.edit_transaction(
+                user_id=self.user_id,
+                transaction_id=int(transaction_id),
+                transaction_type=transaction_type,
+                deskripsi=deskripsi,
+                nominal=nominal,
+                tanggal=tanggal,
+                kategori=kategori
+            )
 
-            return response if isinstance(response, str) else json.dumps(response)
-        
+            if response :
+                return f"Done yak udah kuedit transaksi mu menjadi tipe '{transaction_type}', nominal {nominal}, deskripsi '{deskripsi}', kategori '{kategori}', tanggal {tanggal}."
+            else :
+                return "Maaf Arvita Lagi Bad Mood (Gagal Ngedit Transaksi)."
+            
         except Exception as e:
             print(f"Error editing financial transaction: {e}")
             return "Maaf Arvita Lagi Bad Mood (Gagal Ngedit Transaksi)."
     
-    def delete_financial_transaction(self, transaction_id):
+    def delete_financial_transaction(self, transaction_id, transaction_type):
         if not self.client:
             return "Maaf Arvita Lagi Bad Mood (API Error)."
 
         try:
-            response = self.finansial_controller.delete_transaction(transaction_id)
-            return response if isinstance(response, str) else json.dumps(response)
+            response = self.finansial_controller.delete_transaction(
+                user_id=self.user_id,
+                transaction_id=int(transaction_id),
+                transaction_type=transaction_type
+            )
+
+            if response :
+                return f"Done yak udah kuhapus transaksi mu dengan tipe '{transaction_type}'."
+            else :
+                return "Maaf Arvita Lagi Bad Mood (Gagal Ngapus Transaksi)."
         
         except Exception as e:
             print(f"Error deleting financial transaction: {e}")
