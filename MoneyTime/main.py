@@ -21,7 +21,7 @@ user_controller = UserController()
 finansial_controller = FinansialController()
 notification_controller = NotificationController()
 schedule_controller = ScheduleController()
-assistant_controller = AssistantController(finansial_controller)
+# assistant_controller = AssistantController(finansial_controller)  <-- Karena baris ini berada di tingkat global (dijalankan saat aplikasi baru mulai), belum ada pengguna yang login, sehingga tidak ada user_id yang bisa diberikan.
 
 app = Flask(__name__,
     template_folder='View/Templates',
