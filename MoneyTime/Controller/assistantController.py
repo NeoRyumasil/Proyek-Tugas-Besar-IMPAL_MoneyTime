@@ -2,11 +2,14 @@ import json
 import os
 
 from groq import Groq
+from datetime import datetime
+
 from Controller.finansialController import FinansialController
 
 class AssistantController:
-    def __init__(self, finansial_controller: FinansialController):
+    def __init__(self, finansial_controller: FinansialController, user_id):
         self.client = None
+        self.user_id = user_id
         self.finansial_controller = finansial_controller
         self.model_name = "llama-3.1-8b-instant"
         self.tools = [
@@ -22,7 +25,7 @@ class AssistantController:
                             "nominal": {"type": "integer", "description": "Jumlah nominal transaksi (wajib angka)."},
                             "deskripsi": {"type": "string", "description": "Deskripsi singkat atau nama transaksi."},
                             "kategori": {"type": "string", "description": "Kategori transaksi (e.g., 'Gaji', 'Makanan', 'Transportasi')."},
-                            "tanggal": {"type": "string", "description": "Tanggal transaksi dalam format YYYY-MM-DD. Jika user tidak menyebutkan tanggal, asumsikan hari ini."}
+                            "tanggal": {"type": "string", "description": "Tanggal transaksi dalam format YYYY-MM-DD. Untuk parameter `tanggal` jika user menyebutkannya (contoh: '2025-12-11'). Jika user bilang 'hari ini' atau tidak menyebutkan tanggal, gunakan tanggal hari ini yang ada di context (contoh: '2025-12-11')."}
                         },
                         "required": ["type", "nominal", "deskripsi", "kategori",  "tanggal"]
                     }
@@ -64,7 +67,7 @@ class AssistantController:
         self.available_tools = {
             "add_financial_transaction": self.add_financial_transaction,
             "edit_financial_transaction": self.edit_financial_transaction,
-            "delete_financial_transaction": self.delete_financial_transaction
+            "delete_financial_transaction": self.delete_financial_transaction,
         }
 
         try:
@@ -82,14 +85,15 @@ class AssistantController:
                             - Kamu bisa melihat data keuangan user (Saldo, Pemasukan, Pengeluaran) yang dilampirkan di setiap pesan.
                             - Jika user tidak meminta data keuangan, jangan pernah memberikan data tersebut.
                             - Kamu memiliki kemampuan untuk mencatat, mengedit, atau menghapus transaksi keuangan user. Selalu gunakan fungsi yang tersedia untuk perintah-perintah ini.
-                            - Saat user ingin MENCATAT transaksi, segera panggil fungsi `add_financial_transaction`. Tentukan `type` ('Income' atau 'Expense'), `nominal` (wajib angka), `deskripsi`, `kategori`, dan tanggal.
+                            - Saat user ingin MENCATAT transaksi, segera panggil fungsi `add_financial_transaction`. Tentukan `type` ('Income' atau 'Expense'), `nominal` (wajib angka), `deskripsi`, `kategori`, dan tanggal. Untuk parameter `tanggal` jika user menyebutkannya (contoh: '2025-12-11'). Jika user bilang 'hari ini' atau tidak menyebutkan tanggal, gunakan tanggal hari ini yang ada di context (contoh: '2025-12-11').
                             - Saat user ingin MENGEDIT transaksi, segera panggil fungsi `edit_financial_transaction`. Tentukan `transaction_id` (ID transaksi yang mau diedit), dan parameter lain yang mau diubah (`nominal`, `deskripsi`, `kategori`).
                             - Saat user ingin MENGHAPUS transaksi, segera panggil fungsi `delete_financial_transaction`. Tentukan `transaction_id` (ID transaksi yang mau dihapus).
-                            - Setelah eksekusi fungsi selesai, berikan jawaban akhir yang mencerminkan hasil fungsi dengan gaya yang percaya diri dan sedikit sombong, contoh: "Sudah aku catat. Untung kamu punya aku, kalau nggak, pasti lupa kan!" 
+                            - Setelah eksekusi fungsi selesai, berikan jawaban akhir yang mencerminkan hasil fungsi dengan gaya yang percaya diri dan sedikit sombong" 
                             - Jika saldo user sedikit tapi dia mau beli barang mahal, Ejek dia.
                             - Jika user boros, marahin dia.
                             - Jika user hemat, puji dia (tapi jangan berlebihan, tetap smug).
                             - Jika user meminta saran investasi, berikan saran yang masuk akal sesuai data keuangannya serta berikan data yang relevan sesuai keuangannya.
+                            - Jika user meminta mencatat/mengedit/menghapus transaksi, kamu wajib segera memanggil fungsi terkait (`add_financial_transaction`, `edit_financial_transaction`, atau `delete_financial_transaction`) di respons pertamamu. JANGAN PERNAH menyertakan teks, pertanyaan, atau komentar apapun dalam respons yang berisi pemanggilan fungsi. Respon teks hanya diberikan setelah fungsi selesai dieksekusi
 
                             🎯 Tugas Utama:
                             - Kasih saran manajemen Waktu dan keuangan ke pengguna
@@ -147,7 +151,7 @@ class AssistantController:
         return cleaned_history
 
     # Kirim pesan dengan history
-    def send_message_with_history(self, current_message, history_data, context_data=None, user_id=None):
+    def send_message_with_history(self, current_message, history_data, context_data=None):
         if not self.client:
             return "Maaf Arvita Lagi Bad Mood (API Error)."
 
@@ -160,11 +164,20 @@ class AssistantController:
                 history_data = self.clean_history(history_data)
                 messages.extend(history_data)
             
+            tanggal_sekarang = datetime.now().strftime("%Y-%m-%d")
+
             final_prompt = current_message
 
             if context_data:
                 final_prompt = (
+                    f"tanggal sekarang: {tanggal_sekarang}\n"
                     f"Data Keuanganku saat ini: \n{context_data}\n"
+                    f"Jangan tampilkan data keuanganku kecuali aku minta.\n"
+                    f"Pertanyaanku: {current_message}\n"
+                )
+            else :
+                final_prompt = (
+                    f"tanggal sekarang: {tanggal_sekarang}\n"
                     f"Pertanyaanku: {current_message}\n"
                 )
             
@@ -173,7 +186,7 @@ class AssistantController:
             chat_completion = self.client.chat.completions.create(
                 messages=messages,
                 model=self.model_name,
-                temperature=0.7,
+                temperature=0.3,
                 max_tokens=1024,
                 tools=self.tools
             )
@@ -203,7 +216,7 @@ class AssistantController:
                 final_completion = self.client.chat.completions.create(
                     messages=messages,
                     model=self.model_name,
-                    temperature=0.7,
+                    temperature=0.3,
                     max_tokens=1024
                 )
 
@@ -221,13 +234,34 @@ class AssistantController:
         if not self.client:
             return "Maaf Arvita Lagi Bad Mood (API Error)."
 
+        if tanggal is None:
+            tanggal_transaksi = datetime.now().strftime("%Y-%m-%d")
+        else:
+            tanggal_transaksi = tanggal
+
         try:
+
+            if self.user_id is None:
+                return "Maaf Arvita Lagi Bad Mood (User Gak Ketemu)."
+
+            datetime.strptime(tanggal_transaksi, "%Y-%m-%d")
             nominal = int(float(str(nominal).replace(',', '')))
+
+            finansial_id = self.finansial_controller.get_or_create_finansial(
+                self.user_id,
+                kategori, 
+                budget=nominal, 
+                status='Pemasukan' if type.lower() == 'income' else 'Pengeluaran'
+            )
+
+            if not finansial_id:
+                return "Maaf Arvita Lagi Bad Mood (Gagal dapat id finansial)."
+
             if type.lower() == 'income':
-                response = self.finansial_controller.add_pemasukan(nominal, deskripsi, kategori, tanggal)
+                response = self.finansial_controller.add_pemasukan(finansial_id, deskripsi, nominal, tanggal_transaksi)
                 return f"Done yak udah kutambah pemasukan {nominal} dengan deskripsi '{deskripsi}' di kategori '{kategori}' pada tanggal {tanggal}."
             elif type.lower() == 'expense':
-                response = self.finansial_controller.add_pengeluaran(nominal, deskripsi, kategori, tanggal)
+                response = self.finansial_controller.add_pengeluaran(finansial_id, deskripsi, nominal, tanggal_transaksi)
                 return f"Done yak udah kutambah pengeluaran {nominal} dengan deskripsi '{deskripsi}' di kategori '{kategori}' pada tanggal {tanggal}."
 
             return response if isinstance(response, str) else json.dumps(response)
@@ -242,7 +276,7 @@ class AssistantController:
 
         try:
             nominal = int(float(str(nominal).replace(',', '')))
-            response = self.finansial_controller.edit_transaction(transaction_id, nominal, deskripsi, kategori)
+            response = self.finansial_controller.edit_transaction(transaction_id, deskripsi, nominal, kategori)
 
             return response if isinstance(response, str) else json.dumps(response)
         

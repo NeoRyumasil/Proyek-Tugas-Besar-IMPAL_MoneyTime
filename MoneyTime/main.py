@@ -396,6 +396,8 @@ def assistant():
 
     user_id = session['user'].get('id')
     chat_history = session.get('chat_history', [])
+
+    assistant_controller = AssistantController(finansial_controller, user_id)
     
     financial_summary = finansial_controller.get_financial_summary(user_id)
 

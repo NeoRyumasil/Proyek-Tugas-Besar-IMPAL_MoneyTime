@@ -97,6 +97,11 @@ class UserController:
 
     def get_current_user(self):
         return self.current_user
+    
+    def get_current_user_id(self):
+        if self.current_user:
+            return self.current_user.get_user_id()
+        return None
 
     # ==========================================
     #       LOGIKA FORGOT PASSWORD
