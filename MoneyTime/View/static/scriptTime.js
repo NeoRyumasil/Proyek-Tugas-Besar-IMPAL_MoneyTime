@@ -46,22 +46,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. COLOR LOGIC (Dynamic Category Color)
     // ==========================================
     const distinctColorsSchedule = [
-        "#1F77B4", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD", 
-        "#8C564B", "#E377C2", "#7F7F7F", "#BCBD22", "#17BECF",
-        "#E6194B", "#3CB44B", "#FFE119", "#4363D8", "#F58231"
+        "#FF0000", "#0000FF", "#008000", "#FFD700", "#800080", 
+        "#ffd700", "#FF00FF", "#FF4500", "#00CED1", "#2E8B57", 
+        "#8B4513", "#4682B4", "#D2691E", "#9ACD32", "#4B0082", 
+        "#DC143C", "#000080", "#DAA520", "#808000", "#708090", 
+        "#FF1493", "#7B68EE", "#00FA9A", "#C71585", "#191970", 
+        "#556B2F", "#FF6347", "#40E0D0", "#8B0000", "#9932CC"
     ];
 
+    let scheduleCategoryColorMap = {};
+
+    function assignColorsToCategories(schedules) {
+        scheduleCategoryColorMap = {};
+        const uniqueCategories = [...new Set(schedules.map(s => s.category || "Other"))].sort();
+        
+        uniqueCategories.forEach((cat, index) => {
+            scheduleCategoryColorMap[cat] = distinctColorsSchedule[index % distinctColorsSchedule.length];
+        });
+    }
+
     function getCategoryColor(categoryName) {
-        if (!categoryName) return "#333333";
-        let hash = 0;
-        const str = categoryName.toString().toLowerCase().trim();
-        for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash;
-        }
-        const index = Math.abs(hash) % distinctColorsSchedule.length;
-        return distinctColorsSchedule[index];
+        const cat = categoryName || "Other";
+        return scheduleCategoryColorMap[cat] || "#333333";
     }
 
     // ==========================================
@@ -75,6 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (data.success) {
+                // [BARU] Assign warna sebelum render
+                assignColorsToCategories(data.schedules);
+                
                 renderGroupedSchedules(data.schedules);
                 updateSummaryCards(data.schedules);
             }
