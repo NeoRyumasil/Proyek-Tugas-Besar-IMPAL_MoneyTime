@@ -73,7 +73,9 @@
                             stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                     
+                    {% if notifications %}
                     <div class="notification-dot"></div>
+                    {% endif %}
 
                     <div class="notification-dropdown" id="notificationDropdown">
                         <div class="notif-header-row">
@@ -84,81 +86,33 @@
                         </div>
                         <div class="notif-divider-main"></div>
                         
-                        <div class="notif-card">
-                            <div class="notif-card-header">
-                                <div class="notif-card-title-group">
-                                    <span class="notif-tag">Overdue:</span>
-                                    <span class="notif-subject">Nama jadwal</span>
+                        {% if notifications %}
+                            {% for item in notifications[:5] %}
+                            <div class="notif-card">
+                                <div class="notif-card-header">
+                                    <div class="notif-card-title-group">
+                                        <span class="notif-tag" style="color: {{ '#FF4D4D' if item.type == 'Overdue' else '#4D96FF' }}">
+                                            {{ item.type }}:
+                                        </span>
+                                        <span class="notif-subject">{{ item.title }}</span>
+                                    </div>
+                                    <div class="notif-time">{{ item.date }}</div>
                                 </div>
-                                <div class="notif-time">5h ago</div>
-                            </div>
-                            <div class="notif-card-body">
-                                <div class="notif-desc-row">
-                                    <span class="notif-label">Description: </span>
-                                    <span class="notif-desc-bold">X days past deadline • Was due DATE at HH:MM</span>
+                                <div class="notif-card-body">
+                                    <div class="notif-desc-row">
+                                        <span class="notif-desc-bold" style="font-size: 12px;">{{ item.message }}</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="notif-card-footer">
-                                Category: Kategorinya
-                            </div>
-                        </div>
-
-                        <div class="notif-card">
-                            <div class="notif-card-header">
-                                <div class="notif-card-title-group">
-                                    <span class="notif-tag">Reminder:</span>
-                                    <span class="notif-subject">Nama jadwal</span>
-                                </div>
-                                <div class="notif-time">7h ago</div>
-                            </div>
-                            <div class="notif-card-body">
-                                <div class="notif-desc-row">
-                                    <span class="notif-label">Description: </span>
-                                    <span class="notif-desc-bold">X minutes left • Due today at HH:MM</span>
+                                <div class="notif-card-footer">
+                                    Category: {{ item.category }}
                                 </div>
                             </div>
-                            <div class="notif-card-footer">
-                                Category: Kategorinya
+                            {% endfor %}
+                        {% else %}
+                            <div style="padding: 15px; text-align: center; color: #888;">
+                                <p style="font-size: 12px;">No new notifications</p>
                             </div>
-                        </div>
-
-                         <div class="notif-card">
-                            <div class="notif-card-header">
-                                <div class="notif-card-title-group">
-                                    <span class="notif-tag">Reminder:</span>
-                                    <span class="notif-subject">Nama jadwal</span>
-                                </div>
-                                <div class="notif-time">9h ago</div>
-                            </div>
-                            <div class="notif-card-body">
-                                <div class="notif-desc-row">
-                                    <span class="notif-label">Description: </span>
-                                    <span class="notif-desc-bold">X hours left • Due today at HH:MM</span>
-                                </div>
-                            </div>
-                            <div class="notif-card-footer">
-                                Category: Kategorinya
-                            </div>
-                        </div>
-
-                         <div class="notif-card">
-                            <div class="notif-card-header">
-                                <div class="notif-card-title-group">
-                                    <span class="notif-tag">Reminder:</span>
-                                    <span class="notif-subject">Nama jadwal</span>
-                                </div>
-                                <div class="notif-time">12h ago</div>
-                            </div>
-                            <div class="notif-card-body">
-                                <div class="notif-desc-row">
-                                    <span class="notif-label">Description: </span>
-                                    <span class="notif-desc-bold">X days left • Due DATE at HH:MM</span>
-                                </div>
-                            </div>
-                            <div class="notif-card-footer">
-                                Category: Kategorinya
-                            </div>
-                        </div>
+                        {% endif %}
 
                         <a href="{{ url_for('notification') }}" class="notif-view-all">
                             View All
@@ -220,81 +174,32 @@
         </div>
 
         <div class="notif-list-container">
-            <div class="notif-card-item">
-                <div class="notif-item-top">
-                    <div class="notif-item-header">
-                        <div class="notif-type-wrapper">
-                            <span class="notif-type-bold">Overdue:</span>
-                            <span class="notif-type-normal"> Nama jadwal</span>
+            {% if notifications %}
+                {% for item in notifications %}
+                <div class="notif-card-item">
+                    <div class="notif-item-top">
+                        <div class="notif-item-header">
+                            <div class="notif-type-wrapper">
+                                <span class="notif-type-bold">{{ item.type }}:</span>
+                                <span class="notif-type-normal"> {{ item.title }}</span>
+                            </div>
+                            <div class="notif-timestamp">{{ item.date }}</div>
                         </div>
-                        <div class="notif-timestamp">5h ago</div>
-                    </div>
-                    <div class="notif-item-content">
-                        <span class="notif-content-label">Description: </span>
-                        <span class="notif-content-text">X days past deadline • Was due DATE at HH:MM</span>
-                    </div>
-                    <div class="notif-item-content">
-                        <span class="notif-content-text">Category: Kategorinya</span>
+                        <div class="notif-item-content">
+                            <span class="notif-content-label">Description: </span>
+                            <span class="notif-content-text">{{ item.message }}</span>
+                        </div>
+                        <div class="notif-item-content">
+                            <span class="notif-content-text">Category: {{ item.category }}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="notif-card-item">
-                <div class="notif-item-top">
-                    <div class="notif-item-header">
-                        <div class="notif-type-wrapper">
-                            <span class="notif-type-bold">Reminder:</span>
-                            <span class="notif-type-normal"> Nama jadwal</span>
-                        </div>
-                        <div class="notif-timestamp">7h ago</div>
-                    </div>
-                    <div class="notif-item-content">
-                        <span class="notif-content-label">Description: </span>
-                        <span class="notif-content-text">X minutes left • Due today at HH:MM</span>
-                    </div>
-                    <div class="notif-item-content">
-                        <span class="notif-content-text">Category: Kategorinya</span>
-                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="notif-card-item" style="justify-content: center; align-items: center; height: 100px;">
+                    <p style="color: #666; font-style: italic;">No new notifications for you right now.</p>
                 </div>
-            </div>
-
-            <div class="notif-card-item">
-                <div class="notif-item-top">
-                    <div class="notif-item-header">
-                        <div class="notif-type-wrapper">
-                            <span class="notif-type-bold">Reminder:</span>
-                            <span class="notif-type-normal"> Nama jadwal</span>
-                        </div>
-                        <div class="notif-timestamp">9h ago</div>
-                    </div>
-                    <div class="notif-item-content">
-                        <span class="notif-content-label">Description: </span>
-                        <span class="notif-content-text">X hours left • Due today at HH:MM</span>
-                    </div>
-                    <div class="notif-item-content">
-                        <span class="notif-content-text">Category: Kategorinya</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="notif-card-item">
-                <div class="notif-item-top">
-                    <div class="notif-item-header">
-                        <div class="notif-type-wrapper">
-                            <span class="notif-type-bold">Reminder:</span>
-                            <span class="notif-type-normal"> Nama jadwal</span>
-                        </div>
-                        <div class="notif-timestamp">12h ago</div>
-                    </div>
-                    <div class="notif-item-content">
-                        <span class="notif-content-label">Description: </span>
-                        <span class="notif-content-text">X days left • Due DATE at HH:MM</span>
-                    </div>
-                    <div class="notif-item-content">
-                        <span class="notif-content-text">Category: Kategorinya</span>
-                    </div>
-                </div>
-            </div>
+            {% endif %}
 
         </div>
     </div>

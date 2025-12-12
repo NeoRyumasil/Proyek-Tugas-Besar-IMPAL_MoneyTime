@@ -30,6 +30,29 @@ app = Flask(__name__,
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 
 # ==========================================
+#              CONTEXT PROCESSOR
+# ==========================================
+# Kode ini akan dijalankan setiap kali membuka halaman APAPUN.
+# Tujuannya agar variabel 'notifications' bisa diakses di navbar (dropdown) 
+# pada halaman Dashboard, Money, Time, dll.
+@app.context_processor
+def inject_notifications():
+    if 'user' in session:
+        try:
+            # Pastikan mengambil ID dengan benar sesuai struktur session saat login
+            user_id = session['user'].get('id')
+            if user_id:
+                # Panggil logika "Dynamic Notification" (Overdue vs Reminder)
+                notifs = notification_controller.get_notifications(user_id)
+                return dict(notifications=notifs)
+        except Exception as e:
+            print(f"Error in context processor: {e}")
+            return dict(notifications=[])
+            
+    # Jika user belum login, kirim list kosong
+    return dict(notifications=[])
+
+# ==========================================
 #              PAGE ROUTES
 # ==========================================
 
@@ -63,7 +86,14 @@ def time():
 def notification():
     if 'user' not in session:
         return redirect(url_for('auth'))
-    return render_template('notification.html', user=session['user'])
+    
+    user_id = session['user']['id']
+    
+    # Mengambil data dari controller
+    data_notifikasi = notification_controller.get_notifications(user_id)
+    
+    # Mengirim data 'notifications' ke HTML
+    return render_template('notification.html', user=session['user'], notifications=data_notifikasi)
 
 # ==========================================
 #           AUTHENTICATION ROUTES
