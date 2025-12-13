@@ -33,7 +33,7 @@ seperti, penjadwalan, hingga perhitungan waktu. Pengguna juga dapat memanajemen 
 **Backend:**
 - Microsoft Azure Database
 - Python (Flask)
-- groq
+- Groq
 
 ## 🚀 How to Run the Project
 
