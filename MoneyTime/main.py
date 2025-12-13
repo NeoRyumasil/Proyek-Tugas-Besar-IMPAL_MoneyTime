@@ -39,18 +39,23 @@ app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 def inject_notifications():
     if 'user' in session:
         try:
-            # Pastikan mengambil ID dengan benar sesuai struktur session saat login
             user_id = session['user'].get('id')
-            if user_id:
-                # Panggil logika "Dynamic Notification" (Overdue vs Reminder)
-                notifs = notification_controller.get_notifications(user_id)
-                return dict(notifications=notifs)
-        except Exception as e:
-            print(f"Error in context processor: {e}")
-            return dict(notifications=[])
+            notifications = notification_controller.get_notifications(user_id)
             
-    # Jika user belum login, kirim list kosong
-    return dict(notifications=[])
+            # --- TAMBAHKAN LOGIKA INI ---
+            # Hitung berapa yang is_read-nya 0 (False)
+            unread_count = 0
+            if notifications:
+                unread_count = sum(1 for n in notifications if n['is_read'] == 0)
+            
+            # Kembalikan notifications DAN unread_count
+            return dict(notifications=notifications, unread_count=unread_count)
+            # -----------------------------
+            
+        except Exception as e:
+            print(f"Error injecting notifications: {e}")
+            return dict(notifications=[], unread_count=0)
+    return dict(notifications=[], unread_count=0)
 
 # ==========================================
 #              PAGE ROUTES
@@ -94,6 +99,33 @@ def notification():
     
     # Mengirim data 'notifications' ke HTML
     return render_template('notification.html', user=session['user'], notifications=data_notifikasi)
+
+@app.route('/mark-notif-read', methods=['POST'])
+def mark_notif_read():
+    if 'user' not in session:
+        return jsonify({'success': False}), 401
+    
+    data = request.get_json()
+    activity_id = data.get('id')
+    
+    if notification_controller.mark_as_read(activity_id):
+        return jsonify({'success': True})
+    return jsonify({'success': False}), 500
+
+@app.route('/mark-all-read', methods=['POST'])
+def mark_all_read():
+    # 1. Cek Login
+    if 'user' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+
+    # 2. Ambil ID User dari session
+    user_id = session['user'].get('id')
+
+    # 3. Panggil Controller
+    if notification_controller.mark_all_read(user_id):
+        return jsonify({'success': True, 'message': 'All notifications marked as read'})
+    
+    return jsonify({'success': False, 'message': 'Failed to update database'}), 500
 
 # ==========================================
 #           AUTHENTICATION ROUTES

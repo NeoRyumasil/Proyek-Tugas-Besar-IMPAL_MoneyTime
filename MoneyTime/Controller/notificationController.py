@@ -23,7 +23,7 @@ class NotificationController():
 
             # Query mengambil data
             sql = """
-                SELECT NamaAktivitas, DeskripsiAktivitas, TenggatWaktu, KategoriAktivitas, Waktu
+                SELECT NamaAktivitas, DeskripsiAktivitas, TenggatWaktu, KategoriAktivitas, Waktu, AktivitasID, IsRead
                 FROM [dbo].[Aktivitas] 
                 WHERE UserID = ? AND StatusAktivitas = 'Pending'
                 ORDER BY TenggatWaktu ASC
@@ -43,6 +43,8 @@ class NotificationController():
                 tenggat_waktu_raw = row[2] 
                 kategori = row[3]
                 waktu_str = row[4]
+                id_aktivitas = row[5]
+                is_read = row[6]
 
                 # --- FIX: Konversi datetime.date ke datetime.datetime ---
                 tenggat_waktu = None
@@ -123,11 +125,13 @@ class NotificationController():
                     message = deskripsi
 
                 notifications.append({
+                    'id': id_aktivitas,
                     'title': title,
                     'message': message,
                     'date': time_info, 
                     'category': kategori,
-                    'type': notif_type
+                    'type': notif_type,
+                    'is_read': is_read
                 })
             
             return notifications
@@ -135,6 +139,33 @@ class NotificationController():
         except Exception as e:
             print(f"[ERROR] NotificationController Error: {e}")
             return []
+        finally:
+            if conn:
+                conn.close()
+
+    def mark_all_read(self, user_id):
+        conn = None
+        try:
+            conn = db_connect()
+            cursor = conn.cursor()
+
+            # Query update semua notifikasi user tersebut menjadi IsRead = 1
+            sql = """
+                UPDATE [dbo].[Aktivitas]
+                SET IsRead = 1
+                WHERE UserID = ?
+            """
+            
+            cursor.execute(sql, (user_id,))
+            conn.commit()
+            
+            print(f"Semua notifikasi untuk User {user_id} telah ditandai terbaca.")
+            return True
+
+        except Exception as e:
+            print("Error update mark all read:", e)
+            return False
+            
         finally:
             if conn:
                 conn.close()

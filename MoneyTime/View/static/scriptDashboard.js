@@ -27,31 +27,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // --- DROPDOWN ---
-  const profilePill = document.getElementById('profilePill');
-  const profileContainer = document.querySelector('.profile-container');
-  const notifWrapper = document.getElementById('notificationWrapper');
-  const notifDropdown = document.getElementById('notificationDropdown');
-
-  if (profilePill && profileContainer) {
-    profilePill.addEventListener('click', (e) => {
-      if (notifWrapper) notifWrapper.classList.remove('active');
-      profileContainer.classList.toggle('active');
-      e.stopPropagation();
-    });
-  }
-  if (notifWrapper && notifDropdown) {
-    notifWrapper.addEventListener('click', (e) => {
-      if (profileContainer) profileContainer.classList.remove('active');
-      notifWrapper.classList.toggle('active');
-      e.stopPropagation();
-    });
-    notifDropdown.addEventListener('click', (e) => e.stopPropagation());
-  }
-  document.addEventListener('click', (e) => {
-    if (profileContainer && !profileContainer.contains(e.target)) profileContainer.classList.remove('active');
-    if (notifWrapper && !notifWrapper.contains(e.target)) notifWrapper.classList.remove('active');
-  });
 
   // =========================================
   // 2. TRANSACTION LOGIC (MONEY)

@@ -37,36 +37,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // --- NOTIFICATION DROPDOWN LOGIC (NEW) ---
-  const notifWrapper = document.getElementById('notificationWrapper');
-  const notifDropdown = document.getElementById('notificationDropdown');
-
-  if (notifWrapper && notifDropdown) {
-    notifWrapper.addEventListener('click', (e) => {
-      // Close profile if open
-      if (profileContainer) profileContainer.classList.remove('active');
-
-      // Toggle Active Class
-      notifWrapper.classList.toggle('active');
-      e.stopPropagation();
-    });
-
-    // Prevent closing when clicking inside the dropdown itself
-    notifDropdown.addEventListener('click', (e) => {
-      e.stopPropagation();
-    });
-  }
-
-  // Global Click listener to close dropdowns
-  document.addEventListener('click', (e) => {
-    if (profileContainer && !profileContainer.contains(e.target)) {
-      profileContainer.classList.remove('active');
-    }
-    if (notifWrapper && !notifWrapper.contains(e.target)) {
-      notifWrapper.classList.remove('active');
-    }
-  });
-
   // =========================================
   // 2. CORE VARIABLES & HELPERS
   // =========================================

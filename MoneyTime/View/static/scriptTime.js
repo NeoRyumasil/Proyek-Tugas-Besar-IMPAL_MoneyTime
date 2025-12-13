@@ -15,34 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 2. DROPDOWN LOGIC (Profile & Notif)
-    // ==========================================
-    const profilePill = document.getElementById('profilePill');
-    const profileContainer = document.querySelector('.profile-container');
-    const notifWrapper = document.getElementById('notificationWrapper');
-
-    if (profilePill && profileContainer) {
-        profilePill.addEventListener('click', (e) => {
-            if (notifWrapper) notifWrapper.classList.remove('active');
-            profileContainer.classList.toggle('active');
-            e.stopPropagation();
-        });
-    }
-
-    if (notifWrapper) {
-        notifWrapper.addEventListener('click', (e) => {
-            if (profileContainer) profileContainer.classList.remove('active');
-            notifWrapper.classList.toggle('active');
-            e.stopPropagation();
-        });
-    }
-
-    document.addEventListener('click', (e) => {
-        if (profileContainer && !profileContainer.contains(e.target)) profileContainer.classList.remove('active');
-        if (notifWrapper && !notifWrapper.contains(e.target)) notifWrapper.classList.remove('active');
-    });
-
-    // ==========================================
     // 3. COLOR LOGIC (Dynamic Category Color)
     // ==========================================
     const distinctColorsSchedule = [
