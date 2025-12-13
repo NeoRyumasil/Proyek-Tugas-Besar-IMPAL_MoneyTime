@@ -1,7 +1,0 @@
-{
-    "window.zoomLevel": 1,
-    "editor.fontSize": 12,
-    "workbench.colorTheme": "Noctis Minimus",
-    "workbench.iconTheme": "vscode-icons",
-    "editor.minimap.enabled": false,
-    "go.formatTool": "gofmt", "go.lintOnSave": "workspace", "go.lintTool": "golint",}
