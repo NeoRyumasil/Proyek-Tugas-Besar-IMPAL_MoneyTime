@@ -36,6 +36,11 @@ document.addEventListener('DOMContentLoaded', function () {
   let chartInstance = null;
   let currentStatsType = 'Expense';
 
+  // --- ELEMENTS UTAMA ---
+  const searchInput = document.getElementById('searchInput');
+  const listContainer = document.getElementById('transactionListContainer');
+  const monthLabel = document.getElementById('currentMonthLabel');
+
   const formatRupiah = (num) => new Intl.NumberFormat('id-ID', {
     style: 'currency', currency: 'IDR', minimumFractionDigits: 0
   }).format(num);
@@ -101,6 +106,8 @@ document.addEventListener('DOMContentLoaded', function () {
         currentViewDate.setFullYear(pickerYearView);
         currentViewDate.setMonth(index);
         currentViewDate.setDate(1);
+        // Reset search saat ganti bulan agar user sadar sedang filter bulan
+        if(searchInput) searchInput.value = '';
         updateDashboard();
         pickerContainer.classList.remove('active');
       };
@@ -118,9 +125,18 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   document.getElementById('pickerPrevYear')?.addEventListener('click', (e) => { e.stopPropagation(); pickerYearView--; renderPicker(); });
   document.getElementById('pickerNextYear')?.addEventListener('click', (e) => { e.stopPropagation(); pickerYearView++; renderPicker(); });
-  document.getElementById('prevMonthBtn')?.addEventListener('click', () => { currentViewDate.setMonth(currentViewDate.getMonth() - 1); updateDashboard(); });
-  document.getElementById('nextMonthBtn')?.addEventListener('click', () => { currentViewDate.setMonth(currentViewDate.getMonth() + 1); updateDashboard(); });
+  document.getElementById('prevMonthBtn')?.addEventListener('click', () => { 
+      currentViewDate.setMonth(currentViewDate.getMonth() - 1); 
+      if(searchInput) searchInput.value = ''; // Reset search
+      updateDashboard(); 
+  });
+  document.getElementById('nextMonthBtn')?.addEventListener('click', () => { 
+      currentViewDate.setMonth(currentViewDate.getMonth() + 1); 
+      if(searchInput) searchInput.value = ''; // Reset search
+      updateDashboard(); 
+  });
 
+  // --- FETCH DATA ---
   async function fetchTransactions() {
     try {
       const response = await fetch('/api/transactions');
@@ -133,48 +149,104 @@ document.addEventListener('DOMContentLoaded', function () {
     } catch (error) { console.error('Error:', error); }
   }
 
+  // --- SEARCH HANDLER ---
+  if (searchInput) {
+    let timeout = null;
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        updateDashboard();
+      }, 300);
+    });
+  }
+
+  // --- UPDATE DASHBOARD (Modified for Search) ---
   function updateDashboard() {
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    document.getElementById('currentMonthLabel').textContent = `${monthNames[month]} ${year}`;
     
-    const displayData = allTransactions.filter(t => {
-        if (!t.tanggal) return false;
-        const d = new Date(t.tanggal);
-        return d.getFullYear() === year && d.getMonth() === month;
-    });
+    // Ambil query pencarian
+    const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    let displayData = [];
 
+    // Reset Container
+    if (listContainer) listContainer.innerHTML = '';
+
+    // [LOGIC FILTERING]
+    if (query.length > 0) {
+        // --- MODE PENCARIAN (Global, abaikan bulan) ---
+        if (monthLabel) monthLabel.textContent = `Search: "${searchInput.value}"`;
+        
+        displayData = allTransactions.filter(t => 
+            t.deskripsi.toLowerCase().includes(query) ||
+            t.kategori.toLowerCase().includes(query) ||
+            t.type.toLowerCase().includes(query)
+        );
+
+        if (displayData.length === 0) {
+            listContainer.innerHTML = `
+                <div style="text-align:center; padding:40px; color:#888;">
+                    <i class="fa-solid fa-magnifying-glass" style="font-size: 24px; margin-bottom: 10px;"></i><br>
+                    Data "${searchInput.value}" not found.
+                </div>`;
+        }
+
+    } else {
+        // --- MODE NORMAL (Filter Bulan) ---
+        if (monthLabel) monthLabel.textContent = `${monthNames[month]} ${year}`;
+        
+        displayData = allTransactions.filter(t => {
+            if (!t.tanggal) return false;
+            const d = new Date(t.tanggal);
+            return d.getFullYear() === year && d.getMonth() === month;
+        });
+
+        if (displayData.length === 0) {
+            listContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No transactions found this month.</div>';
+        }
+    }
+
+    // [LOGIC SUMMARY] - Hitung income/expense dari data yang DITAMPILKAN
     let inc = 0, exp = 0;
     displayData.forEach(t => { if(t.type === 'Income') inc += t.nominal; else exp += t.nominal; });
+    
+    // Global Balance selalu total dari SEMUA transaksi (konsisten dengan Money view)
     const globalBal = allTransactions.reduce((acc, t) => t.type === 'Income' ? acc + t.nominal : acc - t.nominal, 0);
 
-    document.getElementById('monthly-income').textContent = formatRupiah(inc);
-    document.getElementById('monthly-expenses').textContent = formatRupiah(exp);
-    document.getElementById('total-balance').textContent = formatRupiah(globalBal);
+    const incomeEl = document.getElementById('monthly-income');
+    const expenseEl = document.getElementById('monthly-expenses');
+    const balanceEl = document.getElementById('total-balance');
 
-    renderList(displayData);
+    if(incomeEl) incomeEl.textContent = formatRupiah(inc);
+    if(expenseEl) expenseEl.textContent = formatRupiah(exp);
+    if(balanceEl) balanceEl.textContent = formatRupiah(globalBal);
+
+    // Render List hanya jika ada data (pesan kosong sudah dihandle di atas)
+    if (displayData.length > 0) {
+        renderList(displayData);
+    }
+    
+    // Render Chart
     renderChart(displayData);
   }
 
   function renderList(transactions) {
-    const container = document.getElementById('transactionListContainer');
-    if(!container) return;
-    container.innerHTML = '';
-    if(transactions.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No transactions found this month.</div>';
-        return;
-    }
+    if(!listContainer) return;
+    
+    // Grouping Logic
     const grouped = {};
     transactions.forEach(t => {
       const k = t.tanggal || 'No Date';
       if(!grouped[k]) grouped[k] = [];
       grouped[k].push(t);
     });
+    
     Object.keys(grouped).sort((a,b) => new Date(b) - new Date(a)).forEach(dateStr => {
         const dateObj = new Date(dateStr);
         let dInc = 0, dExp = 0;
         let itemsHtml = '';
+        
         grouped[dateStr].forEach(t => {
             if(t.type==='Income') dInc+=t.nominal; else dExp+=t.nominal;
             const itemData = encodeURIComponent(JSON.stringify(t));
@@ -185,7 +257,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 <span class="t-val ${t.type==='Income'?'val-green':'val-red'}">${t.type==='Income'?'+':'-'} ${formatRupiah(t.nominal)}</span>
             </div>`;
         });
-        container.innerHTML += `
+        
+        listContainer.innerHTML += `
         <div class="day-card">
             <div class="day-header">
                 <div class="dh-left">
@@ -340,12 +413,10 @@ document.addEventListener('DOMContentLoaded', function () {
       // PRIORITASKAN STATUS COMPLETED DULU
       if(sch.status === 'Completed') {
           checkboxClass += ' checked';
-          // Pastikan dateHTML normal, TIDAK MERAH, TIDAK ADA TEXT OVERDUE
           dateHTML = `<span class="sch-date">${dateStr}</span>`;
       } 
       // Baru cek jika expired dan BELUM Completed
       else if(isExpired) {
-          // Hanya ubah teks jadi merah. Checkbox tetap aktif/bisa diklik.
           dateHTML = `<span class="sch-date text-red">${dateStr}<br><span class="overdue-text">(Overdue)</span></span>`;
       }
 
@@ -411,22 +482,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const checkbox = item.querySelector('.sch-checkbox'); 
         const icon = checkbox.querySelector('i'); 
 
-        // Optimistic UI: Update Checkbox Visual
+        // Optimistic UI
         if (newStatus === 'Completed') {
             checkbox.className = 'sch-checkbox checked';
             if(icon) {
                 icon.className = 'fa-solid fa-check check-mark';
                 icon.style.display = 'block';
             }
-            // [FIX] LANGSUNG HILANGKAN TEKS MERAH/OVERDUE SECARA VISUAL
             const dateContainer = item.querySelector('.sch-right .sch-date');
             if(dateContainer) {
-                dateContainer.classList.remove('text-red'); // Hapus warna merah
+                dateContainer.classList.remove('text-red'); 
                 const overdueSpan = dateContainer.querySelector('.overdue-text');
-                if(overdueSpan) {
-                     overdueSpan.style.display = 'none'; // Sembunyikan tulisan (Overdue)
-                }
-                // Hapus <br> jika ada (optional hacky way)
+                if(overdueSpan) overdueSpan.style.display = 'none'; 
                 dateContainer.innerHTML = dateContainer.innerHTML.split('<br>')[0];
             }
         } else {
@@ -434,7 +501,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if(icon) icon.style.display = 'none';
         }
 
-        // Simpan onclick lama jika gagal
         const originalOnclick = checkbox.getAttribute('onclick');
         checkbox.setAttribute('onclick', `toggleStatus(event, ${id}, '${newStatus}')`);
 
@@ -446,16 +512,12 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             const res = await response.json();
             if (!res.success) throw new Error("Gagal update status");
-
-            // Refresh data dari server untuk memastikan sinkronisasi
             await fetchAndRenderSchedules();
 
         } catch (err) {
             console.error('Failed to update status', err);
-            // Revert changes (ini hanya terjadi jika error koneksi)
             checkbox.setAttribute('onclick', originalOnclick);
             if (typeof showToast === 'function') showToast("Koneksi gagal, status dikembalikan.", "error");
-            // Refresh ulang untuk mengembalikan tampilan semula
             await fetchAndRenderSchedules();
         }
     };
