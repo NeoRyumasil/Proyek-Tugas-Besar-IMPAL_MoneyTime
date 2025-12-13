@@ -663,6 +663,10 @@ body {
 .priority-dot.medium { background: #ffe066; border: 2px solid #7a6b00; }
 .priority-dot.high { background: #ff6b6b; border: 2px solid #7a1a1a; }
 .priority-dot.critical { background-color: #FF6B6B; border: 2px solid #7a1a1a; }
+.priority-dot.none {
+    background: #9ba9b8;
+    border: 2px solid #495057;
+}
 
 /* Checkboxes */
 /* Checkbox Styles */

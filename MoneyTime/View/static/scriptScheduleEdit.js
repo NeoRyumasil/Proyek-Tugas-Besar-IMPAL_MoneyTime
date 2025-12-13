@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- ELEMEN UTAMA ---
+    // ============================================
+    // 1. ELEMEN UTAMA & VARIABEL
+    // ============================================
     const editOverlay = document.getElementById('edit-schedule-modal-overlay');
     const detailOverlay = document.getElementById('schedule-detail-modal-overlay');
 
@@ -7,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelBtn = document.getElementById('editSchCancelBtn');
     const confirmBtn = document.getElementById('editSchConfirmBtn');
 
-    // Inputs
+    // Inputs Form
     const titleInput = document.getElementById('editSchTitle'); 
     const descriptionInput = document.getElementById('editSchDescription');
     const timeDisplay = document.getElementById('editSchTimeDisplay');
@@ -16,38 +18,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const dateHiddenInput = document.getElementById('editSchDate');
     const priorityHidden = document.getElementById('editSchPriority');
 
-    // --- CATEGORY ELEMENTS ---
+    // Category Elements
     const categoryInput = document.getElementById('editSchCategoryInput');
     const catDropdown = document.getElementById('editSchCategoryDropdown');
     const catList = catDropdown ? catDropdown.querySelector('.schedule-dropdown-list') : null;
     const catAddBtn = document.getElementById('editSchAddCategoryBtn');
 
-    // --- COLOR GENERATOR ---
-    const distinctColors = [
-        "#1F77B4", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD",
-        "#8C564B", "#E377C2", "#7F7F7F", "#BCBD22", "#17BECF",
-        "#E6194B", "#3CB44B", "#FFE119", "#4363D8", "#F58231"
-    ];
+    // Time Picker Elements (Edit)
+    const timePopup = document.getElementById('editSchTimePopup');
+    const editSchHourInput = document.getElementById('editSchHourInput');
+    const editSchMinuteInput = document.getElementById('editSchMinuteInput');
+    const editSchHourScroll = document.getElementById('editSchHourScrollView');
+    const editSchMinuteScroll = document.getElementById('editSchMinuteScrollView');
+    
+    // Tombol Navigasi Time
+    const btnHourUp = document.getElementById('editSchHourUp');
+    const btnHourDown = document.getElementById('editSchHourDown');
+    const btnMinUp = document.getElementById('editSchMinuteUp');
+    const btnMinDown = document.getElementById('editSchMinuteDown');
 
-    function getCategoryColor(categoryName) {
-        if (!categoryName) return "#333333";
-        let hash = 0;
-        const str = categoryName.toString().toLowerCase().trim();
-        for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash;
-        }
-        const index = Math.abs(hash) % distinctColors.length;
-        return distinctColors[index];
-    }
+    // Elemen Prev/Next Time
+    const elHourPrev = document.getElementById('editSchHourPrev');
+    const elHourNext = document.getElementById('editSchHourNext');
+    const elMinPrev = document.getElementById('editSchMinutePrev');
+    const elMinNext = document.getElementById('editSchMinuteNext');
 
-    // --- STATE DATA ---
+    // State Data
     let initialEditData = {}; 
     let scheduleCategories = []; 
     let editHour = 12, editMinute = 0;
 
-    // Helper Format
+    // Helper Functions
     function fmt(n) { return n.toString().padStart(2, '0'); }
     function formatFullDate(dateObj) {
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -56,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ============================================
-    // 1. LOGIKA KATEGORI (FETCH + COLOR)
+    // 2. LOGIKA KATEGORI (FETCH + COLOR)
     // ============================================
     async function fetchCategories() {
         try {
@@ -86,10 +87,9 @@ document.addEventListener('DOMContentLoaded', () => {
             item.className = 'schedule-dropdown-item';
             item.textContent = cat;
             
-            // [UPDATE] Warna Warni + Teks Putih
-            const bgVal = getCategoryColor(cat);
-            item.style.backgroundColor = bgVal;
-            item.style.color = '#ffffff';
+            // Tampilan Polos (Putih)
+            item.style.backgroundColor = '#ffffff';
+            item.style.color = '#333333';
             item.style.fontWeight = '500';
             item.style.marginBottom = '4px';
             item.style.borderRadius = '6px';
@@ -137,7 +137,127 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ============================================
-    // 2. BUKA MODAL EDIT
+    // 3. TIME PICKER LOGIC (FULL FEATURE)
+    // ============================================
+    function updateEditTimeUI() {
+        // --- JAM ---
+        if (editHour > 23) editHour = 0;
+        if (editHour < 0) editHour = 23;
+
+        if (editSchHourInput) editSchHourInput.value = fmt(editHour);
+
+        let hPrev = editHour - 1; if (hPrev < 0) hPrev = 23;
+        let hNext = editHour + 1; if (hNext > 23) hNext = 0;
+        
+        if(elHourPrev) elHourPrev.textContent = fmt(hPrev);
+        if(elHourNext) elHourNext.textContent = fmt(hNext);
+
+        // --- MENIT ---
+        if (editMinute > 59) editMinute = 0;
+        if (editMinute < 0) editMinute = 59;
+
+        if (editSchMinuteInput) editSchMinuteInput.value = fmt(editMinute);
+
+        let mPrev = editMinute - 1; if (mPrev < 0) mPrev = 59;
+        let mNext = editMinute + 1; if (mNext > 59) mNext = 0;
+
+        if(elMinPrev) elMinPrev.textContent = fmt(mPrev);
+        if(elMinNext) elMinNext.textContent = fmt(mNext);
+    }
+
+    // A. Tombol Panah
+    if(btnHourUp) btnHourUp.addEventListener('click', (e) => { e.stopPropagation(); editHour--; updateEditTimeUI(); });
+    if(btnHourDown) btnHourDown.addEventListener('click', (e) => { e.stopPropagation(); editHour++; updateEditTimeUI(); });
+    
+    if(btnMinUp) btnMinUp.addEventListener('click', (e) => { e.stopPropagation(); editMinute--; updateEditTimeUI(); });
+    if(btnMinDown) btnMinDown.addEventListener('click', (e) => { e.stopPropagation(); editMinute++; updateEditTimeUI(); });
+
+    // B. Input Manual
+    if(editSchHourInput) {
+        editSchHourInput.addEventListener('change', () => {
+            let val = parseInt(editSchHourInput.value);
+            if(isNaN(val)) val = 0;
+            editHour = val;
+            updateEditTimeUI();
+        });
+    }
+    if(editSchMinuteInput) {
+        editSchMinuteInput.addEventListener('change', () => {
+            let val = parseInt(editSchMinuteInput.value);
+            if(isNaN(val)) val = 0;
+            editMinute = val;
+            updateEditTimeUI();
+        });
+    }
+
+    // C. Scroll & Drag
+    function setupEditDragAndScroll(element, isHour) {
+        if (!element) return;
+        let isDragging = false;
+        let startY = 0;
+        
+        element.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (e.deltaY > 0) isHour ? editHour++ : editMinute++;
+            else isHour ? editHour-- : editMinute--;
+            updateEditTimeUI();
+        });
+
+        element.addEventListener('mousedown', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            isDragging = true;
+            startY = e.clientY;
+            element.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const diffY = e.clientY - startY;
+            const threshold = 15;
+
+            if (diffY > threshold) {
+                isHour ? editHour++ : editMinute++;
+                updateEditTimeUI();
+                startY = e.clientY;
+            } else if (diffY < -threshold) {
+                isHour ? editHour-- : editMinute--;
+                updateEditTimeUI();
+                startY = e.clientY;
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+            if(element) element.style.cursor = 'grab';
+        });
+    }
+
+    setupEditDragAndScroll(editSchHourScroll, true);
+    setupEditDragAndScroll(editSchMinuteScroll, false);
+
+    // D. Open/Close Time Popup
+    if(timeDisplay) {
+        timeDisplay.addEventListener('click', (e) => {
+            e.stopPropagation();
+            updateEditTimeUI();
+            if(timePopup) timePopup.classList.add('active');
+        });
+    }
+    document.getElementById('editSchTimeOkBtn')?.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const finalTime = `${fmt(editHour)}:${fmt(editMinute)}`;
+        if(timeDisplay) timeDisplay.value = finalTime;
+        if(timeHidden) timeHidden.value = finalTime;
+        if(timePopup) timePopup.classList.remove('active');
+    });
+    document.getElementById('editSchTimeCancelBtn')?.addEventListener('click', (e)=>{
+        e.stopPropagation(); 
+        if(timePopup) timePopup.classList.remove('active');
+    });
+
+    // ============================================
+    // 4. BUKA MODAL EDIT (LOAD DATA)
     // ============================================
     const editDetailBtn = document.getElementById('schDetailEditBtn');
 
@@ -157,11 +277,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if(timeDisplay) timeDisplay.value = data.time || "";
             if(timeHidden) timeHidden.value = data.time || "";
             
+            // Parse Jam & Menit untuk Time Picker
             if(data.time && data.time.includes(':')) {
                 const p = data.time.split(':');
-                editHour = parseInt(p[0]); editMinute = parseInt(p[1]);
+                editHour = parseInt(p[0]); 
+                editMinute = parseInt(p[1]);
+            } else {
+                editHour = 12; editMinute = 0;
             }
-            updateEditTimeUI();
+            updateEditTimeUI(); // Update tampilan awal Time Picker
             
             if(dateHiddenInput) dateHiddenInput.value = data.date || "";
             if(data.date) {
@@ -171,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if(categoryInput) categoryInput.value = data.category || "";
             
-            // Priority
+            // Priority Selection
             const prioContainer = document.getElementById('editSchPrioritySelector');
             if(prioContainer) {
                 prioContainer.querySelectorAll('.priority-option').forEach(o => o.classList.remove('active'));
@@ -201,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ============================================
-    // 3. CONFIRM EDIT
+    // 5. CONFIRM EDIT & DISCARD
     // ============================================
     if (confirmBtn) {
         confirmBtn.addEventListener('click', async () => {
@@ -245,7 +369,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- DISCARD LOGIC ---
     function isEditDirty() {
         return (
             (titleInput && titleInput.value !== initialEditData.title) ||
@@ -282,46 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeBtn) closeBtn.addEventListener('click', handleCloseAttempt);
     if (cancelBtn) cancelBtn.addEventListener('click', handleCloseAttempt);
 
-    // --- TIME UI (Simplified) ---
-    const editSchHourInput = document.getElementById('editSchHourInput');
-    const editSchMinuteInput = document.getElementById('editSchMinuteInput');
-    const editSchHourScroll = document.getElementById('editSchHourScrollView');
-    const editSchMinuteScroll = document.getElementById('editSchMinuteScrollView');
-    const timePopup = document.getElementById('editSchTimePopup');
-    
-    function updateEditTimeUI() {
-        if(editSchHourInput) editSchHourInput.value = fmt(editHour);
-        if(editSchMinuteInput) editSchMinuteInput.value = fmt(editMinute);
-    }
-
-    function setupEditDragAndScroll(element, isHour) {
-        if (!element) return;
-        element.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            if (e.deltaY > 0) isHour ? (editHour = editHour+1>23?0:editHour+1) : (editMinute = editMinute+1>59?0:editMinute+1);
-            else isHour ? (editHour = editHour-1<0?23:editHour-1) : (editMinute = editMinute-1<0?59:editMinute-1);
-            updateEditTimeUI();
-        });
-    }
-    setupEditDragAndScroll(editSchHourScroll, true);
-    setupEditDragAndScroll(editSchMinuteScroll, false);
-
-    if(timeDisplay) timeDisplay.addEventListener('click', (e)=>{
-        e.stopPropagation(); updateEditTimeUI();
-        if(timePopup) timePopup.classList.add('active');
-    });
-    
-    document.getElementById('editSchTimeOkBtn')?.addEventListener('click', (e)=>{
-        e.stopPropagation();
-        if(timeDisplay) timeDisplay.value = `${fmt(editHour)}:${fmt(editMinute)}`;
-        if(timeHidden) timeHidden.value = `${fmt(editHour)}:${fmt(editMinute)}`;
-        if(timePopup) timePopup.classList.remove('active');
-    });
-    document.getElementById('editSchTimeCancelBtn')?.addEventListener('click', (e)=>{
-        e.stopPropagation(); if(timePopup) timePopup.classList.remove('active');
-    });
-
-    // Priority Click
+    // Priority Click Listener
     const prioOptions = document.querySelectorAll('#editSchPrioritySelector .priority-option');
     prioOptions.forEach(opt => {
         opt.addEventListener('click', () => {
