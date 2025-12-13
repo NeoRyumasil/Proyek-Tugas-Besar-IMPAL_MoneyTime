@@ -73,7 +73,7 @@
                             stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                     
-                    {% if notifications %}
+                    {% if unread_count > 0 %}
                     <div class="notification-dot"></div>
                     {% endif %}
 
@@ -88,7 +88,7 @@
                         
                         {% if notifications %}
                             {% for item in notifications[:5] %}
-                            <div class="notif-card">
+                            <div class="notif-card {{ 'read' if item.is_read else '' }}" data-id="{{ item.id }}">
                                 <div class="notif-card-header">
                                     <div class="notif-card-title-group">
                                         <span class="notif-tag" style="color: {{ '#FF4D4D' if item.type == 'Overdue' else '#4D96FF' }}">
@@ -176,7 +176,7 @@
         <div class="notif-list-container">
             {% if notifications %}
                 {% for item in notifications %}
-                <div class="notif-card-item">
+                <div class="notif-card-item {{ 'read' if item.is_read else '' }}" data-id="{{ item.id }}">
                     <div class="notif-item-top">
                         <div class="notif-item-header">
                             <div class="notif-type-wrapper">

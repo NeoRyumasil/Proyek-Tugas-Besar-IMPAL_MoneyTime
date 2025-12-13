@@ -79,23 +79,54 @@ document.addEventListener('DOMContentLoaded', function () {
   // 1. Logic Klik Per-Item (Read satu per satu)
   allNotifItems.forEach(item => {
     item.addEventListener('click', function() {
-      // Tambahkan class 'read' saat diklik
+      const activityId = this.getAttribute('data-id');
+      
+      // Jika sudah ada class 'read', tidak perlu kirim ke server lagi
+      if (this.classList.contains('read')) return;
+
+      // 1. Tambahkan efek visual langsung
       this.classList.add('read');
       
-      // Opsional: Jika ingin bisa toggle (klik lagi jadi unread), gunakan .toggle('read')
-      // Tapi biasanya notifikasi sekali baca tetap baca.
+      // 2. Kirim ke Server agar permanen di DB
+      fetch('/mark-notif-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activityId })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (!data.success) console.error("Gagal update status read di database");
+      });
     });
   });
 
   // 2. Logic Klik Mark All (Read semua sekaligus)
   markAllBtns.forEach(btn => {
     btn.addEventListener('click', function(e) {
-      e.stopPropagation(); // Mencegah dropdown tertutup jika tombol ada di dalam dropdown
+      e.stopPropagation(); 
       
-      // Loop semua item dan tambahkan class read
-      allNotifItems.forEach(item => {
-        item.classList.add('read');
-      });
+      // Panggil Server untuk update database
+      fetch('/mark-all-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Jika sukses di database, baru update tampilan visual (Fade Out)
+          allNotifItems.forEach(item => {
+            item.classList.add('read');
+          });
+          
+          // Opsional: Hilangkan titik merah notifikasi jika ada
+          const redDot = document.querySelector('.notification-dot');
+          if (redDot) redDot.style.display = 'none';
+          
+        } else {
+          console.error("Gagal melakukan Mark All Read");
+        }
+      })
+      .catch(err => console.error("Error:", err));
     });
   });
 
