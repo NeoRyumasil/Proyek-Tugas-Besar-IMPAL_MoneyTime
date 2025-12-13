@@ -14,8 +14,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+
     // ==========================================
-    // 3. COLOR LOGIC
+    // 2. CORE VARIABLES & HELPERS 
+    // ==========================================
+    let currentFilter = 'all'; 
+    let allSchedules = [];     
+
+    const searchInput = document.getElementById('searchInput'); 
+    const schedulesContainer = document.getElementById('schedulesContainer'); 
+
+    // ==========================================
+    // 3. COLOR LOGIC (Dynamic Category Color)
     // ==========================================
     const distinctColorsSchedule = [
         "#FF0000", "#0000FF", "#008000", "#FFD700", "#800080", 
@@ -45,23 +55,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // 4. FETCH & RENDER SCHEDULES
     // ==========================================
-    let currentFilter = 'all'; 
 
     async function fetchAndRenderSchedules() {
         try {
-            const response = await fetch('/api/schedules');
+            const response = await fetch('/api/schedules'); 
             const data = await response.json();
 
             if (data.success) {
-                assignColorsToCategories(data.schedules);
-                renderGroupedSchedules(data.schedules);
-                updateSummaryCards(data.schedules);
+                allSchedules = data.schedules; 
+                assignColorsToCategories(allSchedules);
+                
+                searchHandler(); 
+                updateSummaryCards(allSchedules);
             }
         } catch (error) {
             console.error('Error fetching schedules:', error);
         }
     }
 
+    // Expose ke global agar bisa dipanggil setelah Add/Edit/Delete
     window.fetchSchedules = fetchAndRenderSchedules;
 
     function renderGroupedSchedules(schedules) {
@@ -72,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
             completed: document.querySelector('#group-completed .trans-items')
         };
 
+        // Reset konten HTML
         Object.values(containers).forEach(el => { if(el) el.innerHTML = ''; });
 
         const now = new Date();
@@ -92,8 +105,8 @@ document.addEventListener('DOMContentLoaded', () => {
             let targetGroup = null;
             const status = (sch.status || 'Pending');
 
-            // Completed OR Overdue -> Group Bawah
-            if (status === 'Completed' || schDateTime < now) {
+            // --- LOGIKA GROUPING ---
+            if (status === 'WontDo' || schDateTime < now) {
                 targetGroup = 'completed';
             } else {
                 if (schDateOnly.getTime() === todayStart.getTime()) {
@@ -112,11 +125,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // Update Header & View More
         updateGroupHeader('group-today', 'Today', counts.today);
         updateGroupHeader('group-next7', 'Next 7 Days', counts.next7);
         updateGroupHeader('group-later', 'Later', counts.later);
-        updateGroupHeader('group-completed', 'Completed & Overdue', counts.completed);
+        updateGroupHeader('group-completed', 'Completed & Won\'t Do (History)', counts.completed);
 
+        // Terapkan filter tab
         applyTabFilter();
         attachItemListeners();
     }
@@ -154,28 +169,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const dateObj = new Date(sch.date);
         const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
         
-        let onClickAttribute = `onclick="toggleStatus(event, ${sch.id}, '${sch.status}')"`;
+        const inCompletedGroup = (sch.status === 'WontDo' || isExpired);
+        let onClickAttribute = inCompletedGroup ? '' : `onclick="toggleStatus(event, ${sch.id}, '${sch.status}')"`;
         
         let dateHTML = `<span class="sch-date">${dateStr}</span>`;
         let checkboxClass = 'sch-checkbox';
         let iconHTML = '<i class="fa-solid fa-check check-mark"></i>';
         
-        // PRIORITASKAN STATUS COMPLETED
         if (sch.status === 'Completed') {
             checkboxClass += ' checked';
-            // Pastikan teks normal
-            dateHTML = `<span class="sch-date">${dateStr}</span>`;
-        } 
-        // Baru cek expired (Overdue)
-        else if (isExpired) {
-            // Teks merah, checklist tetap aktif
-            dateHTML = `<span class="sch-date text-red">${dateStr}<br><span class="overdue-text">(Overdue)</span></span>`;
+        } else if (sch.status === 'WontDo') {
+            checkboxClass += ' wontdo';
+            iconHTML = '<i class="fa-solid fa-xmark x-mark"></i>';
+        } else if (isExpired && sch.status === 'Pending') {
+            checkboxClass += ' failed';
+            iconHTML = '<i class="fa-solid fa-xmark x-mark"></i>';
+            dateHTML = `<span class="sch-date text-red">${dateStr}<br><span class="overdue-text">(Expired)</span></span>`;
         }
 
         const prioClass = (sch.priority || 'none').toLowerCase();
         const catName = sch.category || "Other";
         const bgColor = getCategoryColor(catName);
+        
+        // [UPDATE] Teks Putih
         const textColor = '#ffffff';
+
         const itemData = JSON.stringify(sch).replace(/"/g, '&quot;');
 
         return `
@@ -204,13 +222,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = new Date();
         const upcoming = schedules.filter(s => {
             const schTime = new Date(`${s.date}T${s.time || "00:00"}:00`);
-            return schTime >= now && s.status !== 'Completed';
+            return schTime >= now && s.status !== 'Completed' && s.status !== 'WontDo';
         }).length;
 
         const completed = schedules.filter(s => s.status === 'Completed').length;
         const overdue = schedules.filter(s => {
             const schTime = new Date(`${s.date}T${s.time || "00:00"}:00`);
-            return schTime < now && s.status !== 'Completed';
+            return schTime < now && s.status !== 'Completed' && s.status !== 'WontDo';
         }).length;
 
         const cards = document.querySelectorAll('.m-card .card-amount');
@@ -221,13 +239,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ==========================================
+    // 5. INTERACTION LOGIC
+    // ==========================================
+
     window.toggleStatus = async function(e, id, currentStatus) {
         e.stopPropagation();
-        let newStatus = (currentStatus === 'Completed') ? 'Pending' : 'Completed';
+        let newStatus = (currentStatus === 'Completed' || currentStatus === 'WontDo') ? 'Pending' : 'Completed';
 
         const item = e.target.closest('.t-item');
         const checkbox = item.querySelector('.sch-checkbox');
         const icon = checkbox.querySelector('i');
+
+        const originalCheckboxClass = checkbox.className;
+        const originalIconDisplay = icon ? icon.style.display : 'none';
+        const originalOnclick = checkbox.getAttribute('onclick'); 
 
         // Optimistic UI
         if (newStatus === 'Completed') {
@@ -236,20 +262,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 icon.className = 'fa-solid fa-check check-mark';
                 icon.style.display = 'block';
             }
-            // [FIX] LANGSUNG HILANGKAN TEKS MERAH/OVERDUE SECARA VISUAL
-            const dateContainer = item.querySelector('.sch-right .sch-date');
-            if(dateContainer) {
-                dateContainer.classList.remove('text-red');
-                const overdueSpan = dateContainer.querySelector('.overdue-text');
-                if(overdueSpan) overdueSpan.style.display = 'none';
-                dateContainer.innerHTML = dateContainer.innerHTML.split('<br>')[0];
-            }
         } else {
             checkbox.className = 'sch-checkbox';
             if(icon) icon.style.display = 'none';
         }
-        
-        const originalOnclick = checkbox.getAttribute('onclick');
         checkbox.setAttribute('onclick', `toggleStatus(event, ${id}, '${newStatus}')`);
 
         try {
@@ -260,15 +276,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const res = await response.json();
             if (!res.success) throw new Error("Gagal update status");
-
-            await fetchAndRenderSchedules();
-
         } catch (err) {
             console.error('Failed to update status', err);
-            // Revert changes (ini hanya terjadi jika error koneksi)
+            checkbox.className = originalCheckboxClass;
+            if(icon) icon.style.display = originalIconDisplay;
             checkbox.setAttribute('onclick', originalOnclick);
             if (typeof showToast === 'function') showToast("Koneksi gagal, status dikembalikan.", "error");
-            await fetchAndRenderSchedules();
         }
     };
 
@@ -281,6 +294,47 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+   function searchHandler() {
+        
+        const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        
+        let filteredData = allSchedules;
+
+        if (query.length > 0) {
+            filteredData = filteredData.filter(sch => 
+                (sch.title || "").toLowerCase().includes(query) ||
+                (sch.category || "").toLowerCase().includes(query) ||
+                (sch.description || "").toLowerCase().includes(query)
+            );
+        }
+
+        if (currentFilter !== 'all') {
+            filteredData = filteredData.filter(sch => 
+                (sch.status || "").toLowerCase() === currentFilter
+            );
+        }
+        
+        renderGroupedSchedules(filteredData);
+
+        if (schedulesContainer) {
+            if (filteredData.length === 0) {
+                schedulesContainer.innerHTML = `
+                    <div style="text-align:center; padding:40px; color:#888;">
+                        <i class="fa-solid fa-magnifying-glass" style="font-size: 24px; margin-bottom: 10px;"></i><br>
+                        ${query.length > 0 ? `Aktivitas "${searchInput.value}" tidak ditemukan.` : 'Belum ada aktivitas yang ditambahkan.'}
+                    </div>`;
+            }
+        }
+    }
+
+    // Event Listener
+    if (searchInput) {
+        searchInput.addEventListener('input', searchHandler);
+    }
+
+    // ==========================================
+    // 6. VIEW MORE & DROPDOWN LOGIC
+    // ==========================================
     const MAX_ITEMS = 5; 
 
     function initViewMore(groupId, count) {
@@ -322,6 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Header Dropdown Click
     const groupHeaders = document.querySelectorAll('.toggle-group-btn');
     groupHeaders.forEach(header => {
         header.addEventListener('click', (e) => {
@@ -356,10 +411,12 @@ document.addEventListener('DOMContentLoaded', () => {
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             currentFilter = tab.dataset.target;
-            applyTabFilter();
+            
+            searchHandler(); 
         });
     });
 
+    // Toast Global
     const toastContainer = document.getElementById('toast-container');
     function showToast(message, type = 'success') {
         if(!toastContainer) return;
@@ -375,5 +432,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     window.showToast = showToast;
 
+    if (searchInput) {
+        let timeout = null;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                searchHandler(); 
+            }, 300); 
+        });
+    }
+    
     fetchAndRenderSchedules();
+
 });
