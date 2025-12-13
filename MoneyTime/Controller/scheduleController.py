@@ -151,3 +151,46 @@ class ScheduleController:
             return [] # Return list kosong jika error/tidak ada data
         finally:
             if 'conn' in locals(): conn.close()
+    
+    
+    def get_schedule_summary(self, user_id):
+        try :
+            schedules = self.get_schedules(user_id)
+
+            if not schedules:
+                return "Gak ada jadwalnya"
+
+            total_schedule = len(schedules)
+            pending_schedule = sum(1 for schedule in schedules if schedule['status'].lower() == 'pending')
+            completed_schedule = sum(1 for schedule in schedules if schedule['status'].lower() == 'completed')
+
+            priority_order = {'High' : 0, 'Medium' : 1, 'Low' : 2, 'None' : 3}
+
+            pending_schedules = sorted(
+                [schedule for schedule in schedules if schedule['status'].lower() == 'pending'],
+                key=lambda priority : (priority_order.get(priority['priority'], 99), priority['date'], priority['time'])
+            )
+
+            top_pending = pending_schedules[:5]
+
+            summary = [
+                f"Ringkasan Aktivitas User: \n",
+                f"- Total Aktivitas: {total_schedule}",
+                f"- Pending : {pending_schedule}",
+                f"- Selesai : {completed_schedule}\n"
+            ]
+
+            if top_pending:
+                summary.append("5 Aktivitas Terdekat:")
+                for schedule in top_pending:
+                    summary.append(f"  - [{schedule['priority']}] {schedule['title']} ({schedule['category']}) - Tenggat: {schedule['date']} {schedule['time']}")
+            else:
+                summary.append("Kamu keren aktivitasnya selesai semua")
+            
+            return "\n".join(summary)
+        
+        except Exception as e:
+            print(f"[Schedule Controller] Summary error : {e}")
+            return []
+
+    

@@ -429,11 +429,17 @@ def assistant():
     assistant_controller = AssistantController(finansial_controller, schedule_controller, user_id)
     
     financial_summary = finansial_controller.get_financial_summary(user_id)
+    schedule_summary = schedule_controller.get_schedule_summary(user_id)
+
+    context_data = (
+        f"Data Keuangan Saya:\n {financial_summary}"
+        f"Data Aktivitas Saya:\n {schedule_summary}"
+    )
 
     ai_reply = assistant_controller.send_message_with_history(
         user_message, 
         chat_history,
-        context_data=financial_summary
+        context_data=context_data
     )
 
     chat_history.append({'role': 'user', 'parts': [user_message]})

@@ -32,11 +32,31 @@ class AssistantController:
                         "required": ["type", "nominal", "deskripsi", "kategori",  "tanggal"]
                     }
                 }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "add_schedule",
+                    "description": "Menambahkan aktivitas/jadwal baru ke dalam catatan waktu user.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "title": {"type": "string", "description": "Nama singkat atau judul aktivitas."},
+                            "description": {"type": "string", "description": "Deskripsi detail aktivitas."},
+                            "date": {"type": "string", "description": "Tanggal aktivitas dalam format YYYY-MM-DD. Untuk parameter `date` jika user menyebutkannya (contoh: '2025-12-11'). Jika user bilang 'hari ini' atau tidak menyebutkan tanggal, gunakan tanggal hari ini yang ada di context (contoh: '2025-12-11')."},
+                            "time": {"type": "string", "description": "Waktu aktivitas dalam format HH:MM (24 jam, wajib 4 digit)."},
+                            "category": {"type": "string", "description": "Kategori aktivitas (e.g., 'Kerja', 'Kuliah', 'Olahraga')."},
+                            "priority": {"type": "string", "description": "Tingkat prioritas aktivitas ('High', 'Medium', 'Low')."}
+                        },
+                        "required": ["title", "description", "date", "time", "category", "priority"]
+                    }
+                }
             }
         ]   
 
         self.available_tools = {
             "add_financial_transaction": self.add_financial_transaction,
+            "add_schedule": self.add_schedule
         }
 
         try:
@@ -46,7 +66,7 @@ class AssistantController:
             self.system_instruction =   """
                         # PERAN
                         - Kamu adalah Arvita, AI ahli dalam manajemen Waktu dan keuangan yang punya gaya santai, cerdas, dan... ya, agak smug. 
-                        - Gaya komunikasimu: Santai tapi penuh percaya diri
+                        - Gaya komunikasimu: Santai, tidak formal, tapi penuh percaya diri
                         - Konsisten hadir seperti teman belajar yang siap menemani kapan saja.
                         - Sangat Narsistik Bicaralah dengan percaya diri bagai dunia itu milikmu sendiri.
 
@@ -63,10 +83,17 @@ class AssistantController:
 
                         # ATURAN TOOL CALLING
                         1. **Add Transaction**
-                            - Jika pengguna minta untuk mencatat transaksi (kata kunci: "Catat" , "Tambahkan"):
+                            - Jika pengguna minta untuk mencatat transaksi (kata kunci: "Catat Keuangan" , "Tambahkan Keuangan"):
                                 - Gunakan tool 'add_financial_transaction'.
                                 - Tentukan `transaction_type` ('Income' atau 'Expense'), `nominal` (wajib angka), `deskripsi`, `kategori`, dan tanggal. 
                                 - Untuk parameter `tanggal` jika user menyebutkannya (contoh: '2025-12-11'). Jika user bilang 'hari ini' atau tidak menyebutkan tanggal, gunakan tanggal hari ini yang ada di context (contoh: '2025-12-11').
+                        
+                        2. **Add Schedule**
+                            - Jika pengguna minta untuk mencatat aktivitas/jadwal (kata kunci: "Jadwalkan" , "Catat Aktivitas", "Tambahkan Aktivitas"):
+                                - Gunakan tool 'add_schedule'.
+                                - Tentukan `title`, `description`, `date`, `time`, `category`, dan `priority`. 
+                                - Untuk parameter `date` jika user menyebutkannya (contoh: '2025-12-11'). Jika user bilang 'hari ini' atau tidak menyebutkan tanggal, gunakan tanggal hari ini yang ada di context (contoh: '2025-12-11').
+                                - Pastikan format `time` adalah HH:MM (misal: '09:30' atau '22:00'). Prioritas: 'High', 'Medium', atau 'Low'.
                             
                         # OUTPUT
                         - Penjelasan Utama (Gaya Smug + Singkat)
@@ -224,5 +251,38 @@ class AssistantController:
         except Exception as e:
             print(f"Error adding financial transaction: {e}")
             return "Maaf Arvita Lagi Bad Mood (Gagal Nambahin Transaksi)."
-    
+        
+    # Menambahkan Aktivitas
+    def add_schedule(self, title, description, date, time, category, priority):
+        if not self.client:
+            return "Maaf Arvita Lagi Bad Mood (API Error)."
+
+        try:
+            if self.user_id is None:
+                return "Maaf Arvita Lagi Bad Mood (User Gak Ketemu)."
+            
+            datetime.strptime(date, "%Y-%m-%d")
+            datetime.strptime(time, "%H:%M") 
+
+            response = self.schedule_controller.add_schedule(
+                user_id=self.user_id,
+                title=title,
+                description=description,
+                date=date,
+                time=time,
+                category=category,
+                priority=priority
+            )
+
+            if response:
+                return f"Done yak udah kutambah jadwal '{title}' pada tanggal {date} pukul {time} dengan prioritas {priority}."
+            else:
+                return "Maaf Arvita Lagi Bad Mood (Gagal Nambahin Jadwal)."
+        
+        except ValueError:
+            return "Format tanggal atau waktu tidak valid. Pastikan tanggal YYYY-MM-DD dan waktu HH:MM."
+        
+        except Exception as e:
+            print(f"Error adding schedule: {e}")
+            return "Maaf Arvita Lagi Bad Mood (Gagal Nambahin Jadwal)."
 
