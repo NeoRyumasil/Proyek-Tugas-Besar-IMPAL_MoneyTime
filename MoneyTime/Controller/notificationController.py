@@ -225,3 +225,31 @@ class NotificationController():
         finansialController.get_or_create_finansial(user_id)
         
         pass
+
+    def toggle_status(self, aktivitas_id):
+        conn = None
+        try:
+            conn = db_connect()
+            cursor = conn.cursor()
+
+            # Query SQL pintar: Menggunakan CASE untuk membalik nilai IsRead
+            sql = """
+                UPDATE [dbo].[Aktivitas]
+                SET IsRead = CASE WHEN IsRead = 1 THEN 0 ELSE 1 END
+                OUTPUT INSERTED.IsRead
+                WHERE AktivitasID = ?
+            """
+            
+            cursor.execute(sql, (aktivitas_id,))
+            result = cursor.fetchone() # Mengambil status terbaru (0 atau 1)
+            conn.commit()
+
+            if result:
+                return True, result[0] # Return sukses dan status terbaru
+            return False, None
+
+        except Exception as e:
+            print("Error update toggle status:", e)
+            return False, None
+        finally:
+            if conn: conn.close()

@@ -76,27 +76,36 @@ document.addEventListener('DOMContentLoaded', function () {
   // .notif-mark-btn = Tombol di halaman full
   const markAllBtns = document.querySelectorAll('.notif-mark-read, .notif-mark-btn');
 
-  // 1. Logic Klik Per-Item (Read satu per satu)
+  // 1. Logic Klik Per-Item (MODIFIED: Toggle Read/Unread)
   allNotifItems.forEach(item => {
-    item.addEventListener('click', function() {
+    item.addEventListener('click', function(e) {
+      // Ambil ID
       const activityId = this.getAttribute('data-id');
-      
-      // Jika sudah ada class 'read', tidak perlu kirim ke server lagi
-      if (this.classList.contains('read')) return;
+      if (!activityId) return;
 
-      // 1. Tambahkan efek visual langsung
-      this.classList.add('read');
-      
-      // 2. Kirim ke Server agar permanen di DB
-      fetch('/mark-notif-read', {
+      // Kirim request Toggle ke server
+      // Pastikan route '/toggle-notif-status' sudah dibuat di main.py sesuai langkah sebelumnya
+      fetch('/toggle-notif-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: activityId })
       })
       .then(response => response.json())
       .then(data => {
-        if (!data.success) console.error("Gagal update status read di database");
-      });
+        if (data.success) {
+          // Cek status terbaru dari database:
+          // Jika is_read = true (1), tambahkan class .read (tampilan abu-abu)
+          // Jika is_read = false (0), hapus class .read (tampilan biru/highlight)
+          if (data.is_read) {
+            this.classList.add('read');
+          } else {
+            this.classList.remove('read');
+          }
+        } else {
+          console.error("Gagal toggle status di database");
+        }
+      })
+      .catch(err => console.error("Error:", err));
     });
   });
 

@@ -127,6 +127,25 @@ def mark_all_read():
     
     return jsonify({'success': False, 'message': 'Failed to update database'}), 500
 
+@app.route('/toggle-notif-status', methods=['POST'])
+def toggle_notif_status():
+    if 'user' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+
+    data = request.get_json()
+    notif_id = data.get('id')
+
+    success, new_status = notification_controller.toggle_status(notif_id)
+
+    if success:
+        # new_status = 1 (Read/True) atau 0 (Unread/False)
+        return jsonify({
+            'success': True, 
+            'is_read': bool(new_status) 
+        })
+    
+    return jsonify({'success': False, 'message': 'Failed to toggle status'}), 500
+
 # ==========================================
 #           AUTHENTICATION ROUTES
 # ==========================================
