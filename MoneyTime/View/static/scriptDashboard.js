@@ -55,8 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   function getColorMoney(cat) { return categoryColorMapMoney[cat] || '#999999'; }
 
-  // --- COLOR GENERATOR FOR SCHEDULE (UPDATED) ---
-  // Menggunakan palet 30 warna yang sama dengan scriptMoney.js
+  // --- COLOR GENERATOR FOR SCHEDULE ---
   const distinctColorsSchedule = [
       "#FF0000", "#0000FF", "#008000", "#FFD700", "#800080", 
       "#ffd700", "#FF00FF", "#FF4500", "#00CED1", "#2E8B57", 
@@ -68,21 +67,17 @@ document.addEventListener('DOMContentLoaded', function () {
   
   let scheduleCategoryColorMap = {};
 
-  // Fungsi untuk memetakan warna ke kategori berdasarkan urutan abjad
   function assignColorsToScheduleCategories(schedules) {
       scheduleCategoryColorMap = {};
-      // Ambil kategori unik dan urutkan agar konsisten
       const uniqueCategories = [...new Set(schedules.map(s => s.category || "Other"))].sort();
-      
       uniqueCategories.forEach((cat, index) => {
-          // Gunakan modulus agar jika kategori > 30, warna akan berulang dari awal
           scheduleCategoryColorMap[cat] = distinctColorsSchedule[index % distinctColorsSchedule.length];
       });
   }
   
   function getCategoryColorSchedule(categoryName) {
       const cat = categoryName || "Other";
-      return scheduleCategoryColorMap[cat] || "#333333"; // Default jika tidak ditemukan
+      return scheduleCategoryColorMap[cat] || "#333333"; 
   }
 
   // --- DATE PICKER (MONEY) ---
@@ -258,18 +253,23 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // =========================================
-  // 5. SCHEDULE LOGIC (UPDATED FOR DASHBOARD)
+  // 5. SCHEDULE LOGIC (FIXED)
   // =========================================
   async function fetchAndRenderSchedules() {
       try {
           const response = await fetch('/api/schedules');
           const data = await response.json();
           if (data.success) {
-              // [BARU] Tetapkan warna sebelum render
               assignColorsToScheduleCategories(data.schedules);
-              
               renderGroupedSchedules(data.schedules);
-              const pendingCount = data.schedules.filter(s => s.status === 'Pending').length;
+              
+              const now = new Date();
+              const pendingCount = data.schedules.filter(s => {
+                  if(s.status === 'Completed') return false;
+                  const schTime = new Date(`${s.date}T${s.time || "00:00"}:00`);
+                  return schTime >= now;
+              }).length;
+              
               const schCard = document.getElementById('upcoming-schedule-count');
               if(schCard) schCard.textContent = pendingCount;
           }
@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function () {
           let grp = null;
           const status = (sch.status || 'Pending');
 
-          if (status === 'WontDo' || schDateTime < now) {
+          if (status === 'Completed' || schDateTime < now) {
               grp = 'completed';
           } else {
               if (schDateOnly.getTime() === todayStart.getTime()) grp = 'today';
@@ -318,7 +318,7 @@ document.addEventListener('DOMContentLoaded', function () {
       updateGroupHeader('group-today', 'Today', counts.today);
       updateGroupHeader('group-next7', 'Next 7 Days', counts.next7);
       updateGroupHeader('group-later', 'Later', counts.later);
-      updateGroupHeader('group-completed', 'Completed & Won\'t Do', counts.completed);
+      updateGroupHeader('group-completed', 'Completed & Overdue', counts.completed);
       
       attachScheduleListeners();
   }
@@ -331,29 +331,26 @@ document.addEventListener('DOMContentLoaded', function () {
       const dateObj = new Date(sch.date);
       const dateStr = dateObj.toLocaleDateString('en-US', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
       
-      const inCompletedGroup = (sch.status === 'WontDo' || isExpired);
-      let onClickAttribute = inCompletedGroup ? '' : `onclick="toggleStatus(event, ${sch.id}, '${sch.status}')"`;
+      let onClickAttribute = `onclick="toggleStatus(event, ${sch.id}, '${sch.status}')"`;
 
       let dateHTML = `<span class="sch-date">${dateStr}</span>`;
       let checkboxClass = 'sch-checkbox';
       let iconHTML = '<i class="fa-solid fa-check check-mark"></i>';
       
+      // PRIORITASKAN STATUS COMPLETED DULU
       if(sch.status === 'Completed') {
           checkboxClass += ' checked';
-      } else if(sch.status === 'WontDo') { 
-          checkboxClass += ' wontdo'; 
-          iconHTML = '<i class="fa-solid fa-xmark x-mark"></i>'; 
-      } else if(isExpired && sch.status === 'Pending') {
-          checkboxClass += ' failed';
-          iconHTML = '<i class="fa-solid fa-xmark x-mark"></i>'; 
-          dateHTML = `<span class="sch-date text-red">${dateStr}<br><span class="overdue-text">(Expired)</span></span>`;
+          // Pastikan dateHTML normal, TIDAK MERAH, TIDAK ADA TEXT OVERDUE
+          dateHTML = `<span class="sch-date">${dateStr}</span>`;
+      } 
+      // Baru cek jika expired dan BELUM Completed
+      else if(isExpired) {
+          // Hanya ubah teks jadi merah. Checkbox tetap aktif/bisa diklik.
+          dateHTML = `<span class="sch-date text-red">${dateStr}<br><span class="overdue-text">(Overdue)</span></span>`;
       }
 
       const bgColor = getCategoryColorSchedule(sch.category||"Other");
-      
-      // [UPDATE] Teks Putih
       const textColor = '#ffffff';
-
       const itemJson = JSON.stringify(sch).replace(/"/g, '&quot;');
 
       return `
@@ -408,27 +405,37 @@ document.addEventListener('DOMContentLoaded', function () {
 
   window.toggleStatus = async function(e, id, currentStatus) {
         e.stopPropagation();
-        let newStatus = (currentStatus === 'Completed' || currentStatus === 'WontDo') ? 'Pending' : 'Completed';
+        let newStatus = (currentStatus === 'Completed') ? 'Pending' : 'Completed';
 
         const item = e.target.closest('.t-item');
         const checkbox = item.querySelector('.sch-checkbox'); 
         const icon = checkbox.querySelector('i'); 
 
-        const originalCheckboxClass = checkbox.className;
-        const originalIconDisplay = icon ? icon.style.display : 'none';
-        const originalOnclick = checkbox.getAttribute('onclick'); 
-
+        // Optimistic UI: Update Checkbox Visual
         if (newStatus === 'Completed') {
             checkbox.className = 'sch-checkbox checked';
             if(icon) {
                 icon.className = 'fa-solid fa-check check-mark';
                 icon.style.display = 'block';
             }
+            // [FIX] LANGSUNG HILANGKAN TEKS MERAH/OVERDUE SECARA VISUAL
+            const dateContainer = item.querySelector('.sch-right .sch-date');
+            if(dateContainer) {
+                dateContainer.classList.remove('text-red'); // Hapus warna merah
+                const overdueSpan = dateContainer.querySelector('.overdue-text');
+                if(overdueSpan) {
+                     overdueSpan.style.display = 'none'; // Sembunyikan tulisan (Overdue)
+                }
+                // Hapus <br> jika ada (optional hacky way)
+                dateContainer.innerHTML = dateContainer.innerHTML.split('<br>')[0];
+            }
         } else {
             checkbox.className = 'sch-checkbox';
             if(icon) icon.style.display = 'none';
         }
 
+        // Simpan onclick lama jika gagal
+        const originalOnclick = checkbox.getAttribute('onclick');
         checkbox.setAttribute('onclick', `toggleStatus(event, ${id}, '${newStatus}')`);
 
         try {
@@ -439,12 +446,17 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             const res = await response.json();
             if (!res.success) throw new Error("Gagal update status");
+
+            // Refresh data dari server untuk memastikan sinkronisasi
+            await fetchAndRenderSchedules();
+
         } catch (err) {
             console.error('Failed to update status', err);
-            checkbox.className = originalCheckboxClass;
-            if(icon) icon.style.display = originalIconDisplay;
+            // Revert changes (ini hanya terjadi jika error koneksi)
             checkbox.setAttribute('onclick', originalOnclick);
             if (typeof showToast === 'function') showToast("Koneksi gagal, status dikembalikan.", "error");
+            // Refresh ulang untuk mengembalikan tampilan semula
+            await fetchAndRenderSchedules();
         }
     };
 

@@ -3,16 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const detailOverlay = document.getElementById('schedule-detail-modal-overlay');
     const closeBtn = document.getElementById('closeSchDetailModalIcon');
     const deleteBtn = document.getElementById('schDetailDeleteBtn');
-    const wontDoBtn = document.getElementById('schDetailWontDoBtn');
-    const editBtn = document.getElementById('schDetailEditBtn'); // Tombol Edit
+    const editBtn = document.getElementById('schDetailEditBtn'); 
 
     // Modals
     const globalDeleteOverlay = document.getElementById('delete-modal-overlay');
     const globalDeleteModal = document.getElementById('delete-item-modal');
-    const wontDoModal = document.getElementById('wont-do-modal');
-    const wontDoOverlay = document.getElementById('wont-do-modal-overlay');
-    const wontDoConfirmBtn = document.getElementById('wontDoConfirmBtn');
-    const wontDoCancelBtn = document.getElementById('wontDoCancelBtn');
 
     // --- CLOSE DETAIL ---
     function closeDetail() {
@@ -22,46 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (detailOverlay) {
         detailOverlay.addEventListener('click', (e) => {
             if (e.target === detailOverlay) closeDetail();
-        });
-    }
-
-    // --- WON'T DO LOGIC ---
-    if (wontDoBtn) {
-        wontDoBtn.addEventListener('click', () => {
-            if (wontDoOverlay) {
-                wontDoOverlay.style.display = 'flex';
-                setTimeout(() => { if (wontDoModal) wontDoModal.classList.add('show'); }, 10);
-            }
-        });
-    }
-
-    if (wontDoConfirmBtn) {
-        wontDoConfirmBtn.addEventListener('click', async () => {
-            if (!window.currentScheduleDetail) return;
-            try {
-                const response = await fetch('/update-schedule-status', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ id: window.currentScheduleDetail.id, status: 'WontDo' })
-                });
-                if((await response.json()).success) {
-                    if (typeof showToast === 'function') showToast("Marked as Won't Do", "success");
-                    if(wontDoModal) wontDoModal.classList.remove('show');
-                    setTimeout(() => {
-                        if(wontDoOverlay) wontDoOverlay.style.display = 'none';
-                        closeDetail();
-                        // REFRESH HALAMAN
-                        if (typeof window.fetchSchedules === 'function') window.fetchSchedules();
-                    }, 300);
-                }
-            } catch(e) { console.error(e); }
-        });
-    }
-
-    if (wontDoCancelBtn) {
-        wontDoCancelBtn.addEventListener('click', () => {
-            if (wontDoModal) wontDoModal.classList.remove('show');
-            setTimeout(() => { if (wontDoOverlay) wontDoOverlay.style.display = 'none'; }, 300);
         });
     }
 
@@ -151,26 +106,24 @@ function openScheduleDetail(data) {
     const matchingOption = prioContainer.querySelector(`.priority-option.${targetPrio}`);
     if (matchingOption) matchingOption.classList.add('active');
     
-    // --- [LOGIKA PENTING: SEMBUNYIKAN EDIT JIKA RESTRICTED] ---
+    // --- HIDE EDIT BUTTON IF OVERDUE (OPTIONAL LOGIC) ---
     const editBtn = document.getElementById('schDetailEditBtn');
-    const wontDoBtn = document.getElementById('schDetailWontDoBtn');
     
-    // Hitung Waktu
     const now = new Date();
     const timeString = data.time ? data.time : "00:00";
     const itemDateTime = new Date(`${data.date}T${timeString}:00`);
     
-    // Cek Kondisi: Apakah Expired ATAU Statusnya Won't Do?
+    // Cek Kondisi: Apakah Expired (Overdue)
     const isExpired = itemDateTime < now;
-    const isRestricted = (data.status === 'WontDo' || isExpired);
 
     if (editBtn) {
-        if (isRestricted) {
-            editBtn.style.display = 'none';   // Hilangkan Edit
-            if(wontDoBtn) wontDoBtn.style.display = 'none'; // Hilangkan tombol WontDo juga jika sudah di grup bawah
+        // Jika sudah expired/overdue dan belum completed, mungkin kita restrict edit
+        // Atau jika Completed juga bisa di-restrict. Sesuaikan kebijakan.
+        // Di sini saya buat jika Expired -> Hide Edit agar konsisten
+        if (isExpired) {
+            editBtn.style.display = 'none'; 
         } else {
-            editBtn.style.display = 'flex';   // Tampilkan Edit
-            if(wontDoBtn) wontDoBtn.style.display = 'flex';
+            editBtn.style.display = 'flex'; 
         }
     }
 
