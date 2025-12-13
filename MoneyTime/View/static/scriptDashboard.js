@@ -27,17 +27,78 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // =========================================
+  // 1. GLOBAL VARIABLES & SEARCH LOGIC
+  // =========================================
+  const searchInput = document.getElementById('searchInput');
+  
+  // Data Store
+  let allTransactions = [];
+  let allSchedules = []; // [NEW] Variable global untuk menyimpan jadwal
+
+  // --- MAIN SEARCH HANDLER (MONEY & TIME) ---
+  function handleGlobalSearch() {
+      // 1. Update bagian Money (Transaksi)
+      // Fungsi updateDashboard() sudah memiliki logika membaca value searchInput
+      updateDashboard();
+
+      // 2. Update bagian Time (Jadwal)
+      const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+      let filteredSchedules = allSchedules;
+
+      if (query.length > 0) {
+          filteredSchedules = allSchedules.filter(sch => 
+              (sch.title || "").toLowerCase().includes(query) ||
+              (sch.category || "").toLowerCase().includes(query) ||
+              (sch.description || "").toLowerCase().includes(query)
+          );
+      }
+
+      // Render ulang jadwal berdasarkan hasil filter
+      renderGroupedSchedules(filteredSchedules);
+
+      // Tampilkan pesan jika tidak ada hasil di kolom Schedule
+      const scheduleListSection = document.querySelector('.schedule-list-section');
+      // Hapus pesan "Not Found" lama jika ada
+      const oldMsg = document.getElementById('schedule-not-found-msg');
+      if(oldMsg) oldMsg.remove();
+
+      if (filteredSchedules.length === 0 && query.length > 0) {
+          // Sembunyikan semua grup
+          ['group-today', 'group-next7', 'group-later', 'group-completed'].forEach(id => {
+              const el = document.getElementById(id);
+              if(el) el.style.display = 'none';
+          });
+          
+          // Tampilkan pesan
+          const msgDiv = document.createElement('div');
+          msgDiv.id = 'schedule-not-found-msg';
+          msgDiv.style.textAlign = 'center';
+          msgDiv.style.padding = '20px';
+          msgDiv.style.color = '#888';
+          msgDiv.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i><br>Jadwal "${searchInput.value}" tidak ditemukan.`;
+          scheduleListSection.appendChild(msgDiv);
+      }
+  }
+
+  // Event Listener Search
+  if (searchInput) {
+      let timeout = null;
+      searchInput.addEventListener('input', () => {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => {
+              handleGlobalSearch();
+          }, 300);
+      });
+  }
 
   // =========================================
   // 2. TRANSACTION LOGIC (MONEY)
   // =========================================
-  let allTransactions = [];
   let currentViewDate = new Date();
   let chartInstance = null;
   let currentStatsType = 'Expense';
 
-  // --- ELEMENTS UTAMA ---
-  const searchInput = document.getElementById('searchInput');
   const listContainer = document.getElementById('transactionListContainer');
   const monthLabel = document.getElementById('currentMonthLabel');
 
@@ -106,9 +167,14 @@ document.addEventListener('DOMContentLoaded', function () {
         currentViewDate.setFullYear(pickerYearView);
         currentViewDate.setMonth(index);
         currentViewDate.setDate(1);
-        // Reset search saat ganti bulan agar user sadar sedang filter bulan
-        if(searchInput) searchInput.value = '';
-        updateDashboard();
+        
+        // Reset search saat ganti bulan agar fokus ke filter bulan
+        if(searchInput) {
+            searchInput.value = '';
+            handleGlobalSearch(); // Update both
+        } else {
+            updateDashboard();
+        }
         pickerContainer.classList.remove('active');
       };
       grid.appendChild(monthDiv);
@@ -127,16 +193,16 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('pickerNextYear')?.addEventListener('click', (e) => { e.stopPropagation(); pickerYearView++; renderPicker(); });
   document.getElementById('prevMonthBtn')?.addEventListener('click', () => { 
       currentViewDate.setMonth(currentViewDate.getMonth() - 1); 
-      if(searchInput) searchInput.value = ''; // Reset search
-      updateDashboard(); 
+      if(searchInput) { searchInput.value = ''; handleGlobalSearch(); }
+      else updateDashboard(); 
   });
   document.getElementById('nextMonthBtn')?.addEventListener('click', () => { 
       currentViewDate.setMonth(currentViewDate.getMonth() + 1); 
-      if(searchInput) searchInput.value = ''; // Reset search
-      updateDashboard(); 
+      if(searchInput) { searchInput.value = ''; handleGlobalSearch(); }
+      else updateDashboard(); 
   });
 
-  // --- FETCH DATA ---
+  // --- FETCH DATA TRANSACTIONS ---
   async function fetchTransactions() {
     try {
       const response = await fetch('/api/transactions');
@@ -149,18 +215,7 @@ document.addEventListener('DOMContentLoaded', function () {
     } catch (error) { console.error('Error:', error); }
   }
 
-  // --- SEARCH HANDLER ---
-  if (searchInput) {
-    let timeout = null;
-    searchInput.addEventListener('input', (e) => {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        updateDashboard();
-      }, 300);
-    });
-  }
-
-  // --- UPDATE DASHBOARD (Modified for Search) ---
+  // --- UPDATE DASHBOARD (MONEY) ---
   function updateDashboard() {
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
@@ -227,7 +282,7 @@ document.addEventListener('DOMContentLoaded', function () {
         renderList(displayData);
     }
     
-    // Render Chart
+    // Render Chart (Optional, dashboard.html Anda tidak menampilkan pie chart, tapi logic tetap ada jika diperlukan)
     renderChart(displayData);
   }
 
@@ -296,48 +351,29 @@ document.addEventListener('DOMContentLoaded', function () {
         const context = ctx.getContext('2d');
         context.clearRect(0,0, ctx.width, ctx.height);
     }
-    const legend = document.getElementById('statsLegend');
-    if(legend) {
-        legend.innerHTML = '';
-        if(labels.length === 0) legend.innerHTML = '<div style="text-align:center; color:#888;">No data</div>';
-        else {
-            const total = values.reduce((a,b)=>a+b,0);
-            labels.forEach((l, i) => {
-                legend.innerHTML += `
-                <div class="l-item">
-                    <div class="l-left">
-                        <span class="l-pct" style="background-color:${colors[i]}">${((values[i]/total)*100).toFixed(1)}%</span>
-                        <span class="l-name">${l}</span>
-                    </div>
-                    <span class="l-val ${currentStatsType==='Income'?'val-green-stats':''}">${formatRupiah(values[i])}</span>
-                </div>`;
-            });
-        }
-    }
   }
-  const statsIncomeBtn = document.getElementById('statsIncomeBtn');
-  const statsExpenseBtn = document.getElementById('statsExpenseBtn');
-  if(statsIncomeBtn && statsExpenseBtn) {
-      statsIncomeBtn.onclick = () => { currentStatsType = 'Income'; statsIncomeBtn.classList.add('active'); statsExpenseBtn.classList.remove('active'); updateDashboard(); };
-      statsExpenseBtn.onclick = () => { currentStatsType = 'Expense'; statsExpenseBtn.classList.add('active'); statsIncomeBtn.classList.remove('active'); updateDashboard(); };
-  }
+  
   document.getElementById('openTransactionModalBtn')?.addEventListener('click', () => {
       document.getElementById('add-transaction-modal-overlay').style.display = 'flex';
   });
 
   // =========================================
-  // 5. SCHEDULE LOGIC (FIXED)
+  // 5. SCHEDULE LOGIC (FIXED & SEARCH ENABLED)
   // =========================================
   async function fetchAndRenderSchedules() {
       try {
           const response = await fetch('/api/schedules');
           const data = await response.json();
           if (data.success) {
-              assignColorsToScheduleCategories(data.schedules);
-              renderGroupedSchedules(data.schedules);
+              allSchedules = data.schedules; // [NEW] Store global untuk search
+              assignColorsToScheduleCategories(allSchedules);
               
+              // Panggil handleGlobalSearch untuk render pertama kali (agar jika ada text di search bar, langsung terfilter)
+              handleGlobalSearch();
+              
+              // Hitung badge upcoming (tetap berdasarkan total data, bukan hasil filter)
               const now = new Date();
-              const pendingCount = data.schedules.filter(s => {
+              const pendingCount = allSchedules.filter(s => {
                   if(s.status === 'Completed') return false;
                   const schTime = new Date(`${s.date}T${s.time || "00:00"}:00`);
                   return schTime >= now;
@@ -357,7 +393,13 @@ document.addEventListener('DOMContentLoaded', function () {
           later: document.querySelector('#group-later .trans-items'),
           completed: document.querySelector('#group-completed .trans-items')
       };
+      
+      // Clear containers
       Object.values(containers).forEach(el => { if(el) el.innerHTML = ''; });
+      
+      // Remove Not Found Message if exists inside render loop
+      const oldMsg = document.getElementById('schedule-not-found-msg');
+      if(oldMsg) oldMsg.remove();
 
       const now = new Date();
       const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
@@ -410,12 +452,10 @@ document.addEventListener('DOMContentLoaded', function () {
       let checkboxClass = 'sch-checkbox';
       let iconHTML = '<i class="fa-solid fa-check check-mark"></i>';
       
-      // PRIORITASKAN STATUS COMPLETED DULU
       if(sch.status === 'Completed') {
           checkboxClass += ' checked';
           dateHTML = `<span class="sch-date">${dateStr}</span>`;
       } 
-      // Baru cek jika expired dan BELUM Completed
       else if(isExpired) {
           dateHTML = `<span class="sch-date text-red">${dateStr}<br><span class="overdue-text">(Overdue)</span></span>`;
       }
@@ -447,6 +487,8 @@ document.addEventListener('DOMContentLoaded', function () {
       const el = document.getElementById(id);
       if(el) {
           el.querySelector('.day-name').textContent = `${title} (${count})`;
+          
+          // Show container only if count > 0
           el.style.display = count > 0 ? 'block' : 'none';
           
           const items = el.querySelectorAll('.schedule-row');
@@ -541,7 +583,7 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   }
 
-  // --- DROPDOWN DASHBOARD ---
+  // --- DROPDOWN DASHBOARD (Collapse Group) ---
   const groupHeaders = document.querySelectorAll('.toggle-group-btn');
   groupHeaders.forEach(header => {
       header.addEventListener('click', (e) => {
