@@ -61,7 +61,7 @@ pip install pyodbc
   FLASK_ENV=development
   FLASK_RUN_PORT=8080
 
-  GROQ__API__KEY = INSERT YOUR KEY HERE
+  GROQ_API__KEY = INSERT YOUR KEY HERE
   ```
   
 ### Step 4 Access Azure Database
