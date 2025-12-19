@@ -89,6 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dateDisplayInput) dateDisplayInput.value = '';
         if (dateHiddenInput) dateHiddenInput.value = '';
         if (categoryInput) categoryInput.value = '';
+        
+        // Reset Date Picker State
+        selectedDate = null;
+        schCalDate = new Date();
 
         const prioContainer = document.getElementById('addSchPrioritySelector');
         if (prioContainer) {
@@ -103,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ============================================================
-    // 3. DISCARD CHANGES LOGIC (ORIGINAL + ANIMATION)
+    // 3. DISCARD CHANGES LOGIC
     // ============================================================
     function handleCloseAttempt() {
         if (isFormDirty()) showDiscardModal();
@@ -115,26 +119,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (discardModal) {
             discardModal.style.display = 'flex';
             
-            // Animasi masuk (jika ada class .modal di dalam overlay)
             const modalContent = discardModal.querySelector('.modal');
             if (modalContent) setTimeout(() => modalContent.classList.add('show'), 10);
 
             const noBtn = document.getElementById('discardNoBtn');
             const yesBtn = document.getElementById('discardYesBtn');
 
-            // Clone tombol untuk menghapus event listener lama
             const newNo = noBtn.cloneNode(true);
             const newYes = yesBtn.cloneNode(true);
             noBtn.parentNode.replaceChild(newNo, noBtn);
             yesBtn.parentNode.replaceChild(newYes, yesBtn);
 
-            // Tombol NO: Tutup modal discard saja
             newNo.onclick = () => {
                 if (modalContent) modalContent.classList.remove('show');
                 setTimeout(() => discardModal.style.display = 'none', 300);
             };
 
-            // Tombol YES: Tutup modal discard DAN modal utama (hapus perubahan)
             newYes.onclick = () => {
                 if (modalContent) modalContent.classList.remove('show');
                 setTimeout(() => {
@@ -233,7 +233,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function fmt(n) { return n.toString().padStart(2, '0'); }
 
-    // Fungsi Utama Update UI Time Picker
     function updateTimeUI() {
         // --- JAM ---
         if (currentHour > 23) currentHour = 0;
@@ -260,14 +259,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if(elMinNext) elMinNext.textContent = fmt(mNext);
     }
 
-    // A. Logic Tombol Panah
     if(btnHourUp) btnHourUp.addEventListener('click', (e) => { e.stopPropagation(); currentHour--; updateTimeUI(); });
     if(btnHourDown) btnHourDown.addEventListener('click', (e) => { e.stopPropagation(); currentHour++; updateTimeUI(); });
     
     if(btnMinUp) btnMinUp.addEventListener('click', (e) => { e.stopPropagation(); currentMinute--; updateTimeUI(); });
     if(btnMinDown) btnMinDown.addEventListener('click', (e) => { e.stopPropagation(); currentMinute++; updateTimeUI(); });
 
-    // B. Logic Input Manual
     if(hourInput) {
         hourInput.addEventListener('change', () => {
             let val = parseInt(hourInput.value);
@@ -285,7 +282,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // C. Logic Scroll & Drag
     function setupInteraction(element, isHour) {
         if (!element) return;
         let isDragging = false;
@@ -331,12 +327,12 @@ document.addEventListener('DOMContentLoaded', () => {
     setupInteraction(hourScroll, true);
     setupInteraction(minScroll, false);
 
-    // D. Open/Close Popup Time
     if(timeDisplay) {
         timeDisplay.addEventListener('click', (e) => {
             e.stopPropagation();
             updateTimeUI();
             if(timePopup) timePopup.classList.add('active');
+            if(calPopup) calPopup.classList.remove('active'); // Close calendar if open
         });
     }
     if(timeOk) {
@@ -355,43 +351,217 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ============================================================
-    // 7. DATE PICKER LOGIC
+    // 7. DATE PICKER LOGIC (MATCHING TRANSACTION FE)
     // ============================================================
     const calPopup = document.getElementById('scheduleCalendarPopup');
+    const schDatePickerWrapper = document.getElementById('scheduleDatePickerWrapper');
+
+    // Header & Views
+    const calMonthLabel = document.getElementById('schCalMonthLabel');
+    const calPrevBtn = document.getElementById('schCalPrevBtn');
+    const calNextBtn = document.getElementById('schCalNextBtn');
+    const viewDays = document.getElementById('schCalendarViewDays');
+    const viewMonths = document.getElementById('schCalendarViewMonths');
+    const calDaysGrid = document.getElementById('schCalDaysGrid');
+    const calMonthsGrid = document.getElementById('schCalMonthsGrid');
+
+    let schCalDate = new Date();
+    let selectedDate = null;
+    let currentView = 'days';
+
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    function updateCalHeader() {
+        if (!calMonthLabel) return;
+        const year = schCalDate.getFullYear();
+        const month = schCalDate.getMonth();
+
+        if (currentView === 'days') {
+            calMonthLabel.textContent = `${monthNames[month]} ${year}`;
+            if(viewDays) viewDays.style.display = 'block';
+            if(viewMonths) viewMonths.style.display = 'none';
+        } else {
+            calMonthLabel.textContent = `${year}`;
+            if(viewDays) viewDays.style.display = 'none';
+            if(viewMonths) viewMonths.style.display = 'block';
+        }
+    }
+
+    function renderCalDays() {
+        if (!calDaysGrid) return;
+        calDaysGrid.innerHTML = '';
+
+        const year = schCalDate.getFullYear();
+        const month = schCalDate.getMonth();
+        const firstDay = new Date(year, month, 1).getDay(); // 0 = Sunday
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const today = new Date();
+
+        // Empty slots for previous month
+        for (let i = 0; i < firstDay; i++) {
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'sch-cal-day empty'; // style via css if needed
+            emptyDiv.style.visibility = 'hidden';
+            calDaysGrid.appendChild(emptyDiv);
+        }
+
+        // Days
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'schedule-calendar-day'; // Use existing class or new
+            dayDiv.textContent = d;
+
+            // Highlight Today
+            if (d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                dayDiv.classList.add('today'); 
+                dayDiv.style.fontWeight = 'bold';
+                dayDiv.style.color = '#1a3e7f';
+            }
+
+            // Highlight Selected
+            if (selectedDate &&
+                d === selectedDate.getDate() &&
+                month === selectedDate.getMonth() &&
+                year === selectedDate.getFullYear()) {
+                dayDiv.classList.add('active'); // Or 'selected'
+                dayDiv.style.backgroundColor = '#1a3e7f';
+                dayDiv.style.color = '#fff';
+            } else {
+                // Default cursor style
+                dayDiv.style.cursor = 'pointer';
+                dayDiv.style.textAlign = 'center';
+                dayDiv.style.padding = '5px';
+                dayDiv.style.borderRadius = '5px';
+            }
+
+            dayDiv.onclick = (e) => {
+                e.stopPropagation();
+                selectedDate = new Date(year, month, d);
+
+                // Format Display: "Monday, 18 September 2025"
+                const dayName = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
+                if(dateDisplayInput) dateDisplayInput.value = `${dayName}, ${d} ${monthNames[month]} ${year}`;
+
+                // Format Backend: YYYY-MM-DD
+                const fmtMonth = String(month + 1).padStart(2, '0');
+                const fmtDay = String(d).padStart(2, '0');
+                if(dateHiddenInput) dateHiddenInput.value = `${year}-${fmtMonth}-${fmtDay}`;
+
+                closeCalendar();
+            };
+
+            calDaysGrid.appendChild(dayDiv);
+        }
+    }
+
+    function renderCalMonths() {
+        if (!calMonthsGrid) return;
+        calMonthsGrid.innerHTML = '';
+        const currentMonth = schCalDate.getMonth();
+
+        shortMonths.forEach((mName, idx) => {
+            const mDiv = document.createElement('div');
+            mDiv.className = 'schedule-calendar-month-item'; // CSS class needs to exist or style inline
+            mDiv.textContent = mName;
+            
+            // Inline style for layout (grid item)
+            mDiv.style.cursor = 'pointer';
+            mDiv.style.padding = '10px';
+            mDiv.style.textAlign = 'center';
+            mDiv.style.borderRadius = '6px';
+
+            if (idx === currentMonth) {
+                mDiv.style.backgroundColor = '#e0e7ff';
+                mDiv.style.color = '#1a3e7f';
+                mDiv.style.fontWeight = 'bold';
+            }
+
+            mDiv.onclick = (e) => {
+                e.stopPropagation();
+                schCalDate.setMonth(idx);
+                currentView = 'days';
+                renderCalendar();
+            };
+            calMonthsGrid.appendChild(mDiv);
+        });
+    }
+
+    function renderCalendar() {
+        updateCalHeader();
+        if (currentView === 'days') renderCalDays();
+        else renderCalMonths();
+    }
+
+    function openCalendar() {
+        schCalDate = selectedDate ? new Date(selectedDate) : new Date();
+        currentView = 'days';
+        renderCalendar();
+        if (calPopup) calPopup.classList.add('active');
+        if (calPopup) calPopup.style.display = 'block'; // Ensure display block if css uses that
+    }
+
+    function closeCalendar() {
+        if (calPopup) {
+            calPopup.classList.remove('active');
+            calPopup.style.display = 'none';
+        }
+    }
+
+    // Listeners for Date Picker
     if(dateDisplayInput) {
         dateDisplayInput.addEventListener('click', (e) => {
             e.stopPropagation();
-            if(timePopup) timePopup.classList.remove('active');
-            if(calPopup) {
-                const d = new Date();
-                const grid = document.getElementById('schCalDaysGrid');
-                if(grid) {
-                    grid.innerHTML = '';
-                    const mLabel = document.getElementById('schCalMonthLabel');
-                    if(mLabel) mLabel.textContent = d.toLocaleString('default', {month:'long', year:'numeric'});
-                    
-                    for(let i=1; i<=31; i++){
-                        const dv = document.createElement('div'); dv.className='sch-cal-day'; dv.textContent=i;
-                        dv.onclick = (ev) => {
-                            ev.stopPropagation();
-                            dateDisplayInput.value = `${d.toLocaleString('default', {weekday:'long'})}, ${i} ${d.toLocaleString('default', {month:'long'})} ${d.getFullYear()}`;
-                            dateHiddenInput.value = `${d.getFullYear()}-${fmt(d.getMonth()+1)}-${fmt(i)}`;
-                            calPopup.classList.remove('active');
-                        };
-                        grid.appendChild(dv);
-                    }
-                }
-                calPopup.classList.toggle('active');
+            if(timePopup) timePopup.classList.remove('active'); // Close time if open
+            
+            if(calPopup && (calPopup.style.display === 'block' || calPopup.classList.contains('active'))) {
+                closeCalendar();
+            } else {
+                openCalendar();
             }
         });
     }
 
-    // Klik luar popup untuk menutup
+    if(calMonthLabel) {
+        calMonthLabel.addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentView = (currentView === 'days') ? 'months' : 'days';
+            renderCalendar();
+        });
+    }
+
+    if(calPrevBtn) {
+        calPrevBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentView === 'days') {
+                schCalDate.setMonth(schCalDate.getMonth() - 1);
+            } else {
+                schCalDate.setFullYear(schCalDate.getFullYear() - 1);
+            }
+            renderCalendar();
+        });
+    }
+
+    if(calNextBtn) {
+        calNextBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentView === 'days') {
+                schCalDate.setMonth(schCalDate.getMonth() + 1);
+            } else {
+                schCalDate.setFullYear(schCalDate.getFullYear() + 1);
+            }
+            renderCalendar();
+        });
+    }
+
+    // Close when clicking outside
     document.addEventListener('click', (e)=>{
-        const wrapperDate = document.getElementById('scheduleDatePickerWrapper');
-        if(calPopup && calPopup.classList.contains('active') && wrapperDate && !wrapperDate.contains(e.target)) { 
-            calPopup.classList.remove('active'); 
+        if(calPopup && (calPopup.style.display === 'block' || calPopup.classList.contains('active'))) { 
+            if(schDatePickerWrapper && !schDatePickerWrapper.contains(e.target)) {
+                closeCalendar();
+            }
         }
+        
         const wrapperTime = document.getElementById('scheduleTimePickerWrapper');
         if(timePopup && timePopup.classList.contains('active') && wrapperTime && !wrapperTime.contains(e.target)) { 
             timePopup.classList.remove('active'); 

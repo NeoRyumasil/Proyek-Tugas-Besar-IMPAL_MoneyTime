@@ -7,7 +7,7 @@
 }
 
 /* --- 1. MODAL OVERLAY --- */
-.modal-overlay {
+.schedule-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -17,14 +17,13 @@
     margin: 0;
     padding: 0;
     font-family: "Inter", sans-serif;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.35);
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
     overflow-y: auto;
-    padding-top: 20px;
-    padding-bottom: 20px;
+    padding: 20px;
 }
 
 /* --- 2. MODAL CARD --- */
@@ -36,7 +35,7 @@
     display: flex;
     gap: 24px;
     flex-direction: column;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     max-height: 90vh;
     position: relative;
     overflow: visible;
@@ -171,51 +170,16 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.priority-option.none {
-    background-color: #9BA9B8;
-    color: #333;
-}
-
-.priority-option.none.active {
-    border-color: #495057;
-    color: #212529;
-}
-
-.priority-option.low {
-    background-color: #8CE99A;
-    color: #1B5E20;
-}
-
-.priority-option.low.active {
-    border-color: #1B5E20;
-}
-
-.priority-option.medium {
-    background-color: #FFE066;
-    color: #7a6b00;
-}
-
-.priority-option.medium.active {
-    border-color: #7a6b00;
-}
-
-.priority-option.high {
-    background-color: #FFA94D;
-    color: #7a3e00;
-}
-
-.priority-option.high.active {
-    border-color: #7a3e00;
-}
-
-.priority-option.critical {
-    background-color: #FF6B6B;
-    color: #4a0f0f;
-}
-
-.priority-option.critical.active {
-    border-color: #7a1a1a;
-}
+.priority-option.none { background-color: #9BA9B8; color: #333; }
+.priority-option.none.active { border-color: #495057; color: #212529; }
+.priority-option.low { background-color: #8CE99A; color: #1B5E20; }
+.priority-option.low.active { border-color: #1B5E20; }
+.priority-option.medium { background-color: #FFE066; color: #7a6b00; }
+.priority-option.medium.active { border-color: #7a6b00; }
+.priority-option.high { background-color: #FFA94D; color: #7a3e00; }
+.priority-option.high.active { border-color: #7a3e00; }
+.priority-option.critical { background-color: #FF6B6B; color: #4a0f0f; }
+.priority-option.critical.active { border-color: #7a1a1a; }
 
 /* --- 6. CATEGORY DROPDOWN --- */
 .schedule-custom-dropdown {
@@ -274,7 +238,7 @@
     background-color: #e5e5e5;
 }
 
-/* --- 7. DATE PICKER POPUP --- */
+/* --- 7. DATE PICKER POPUP (FIXED: BULAT SEMPURNA) --- */
 .schedule-date-picker-wrapper {
     position: relative;
     width: 100%;
@@ -283,10 +247,10 @@
 .schedule-calendar-popup {
     position: absolute;
     top: 100%;
-    margin-top: 8px;
+    margin-top: 12px;
     left: 50%;
     transform: translateX(-50%);
-    width: 300px;
+    width: 320px;
     background: #fff;
     border-radius: 16px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
@@ -324,7 +288,33 @@
     background: transparent;
     border: none;
     cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: #555;
+    transition: background 0.2s;
+}
+
+.schedule-calendar-nav-btn:hover {
+    background-color: #f0f5ff;
+    color: #1a3e7f;
+}
+
+.schedule-calendar-month-label {
+    font-weight: 700;
+    color: #1a3e7f;
+    font-size: 16px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.schedule-calendar-month-label:hover {
+    background-color: #f0f5ff;
 }
 
 .schedule-calendar-weekdays {
@@ -338,42 +328,65 @@
 }
 
 .schedule-calendar-days-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    display: grid;  /* Wajib Grid, jangan Flex */
+    grid-template-columns: repeat(7, 1fr); /* Membagi jadi 7 kolom (Senin-Minggu) */
     gap: 4px;
+    width: 100%;
 }
 
+/* HARI/TANGGAL - LINGKARAN SEMPURNA */
+.schedule-calendar-day, 
 .sch-cal-day {
-    height: 34px;
+    /* 1. Ukuran & Bentuk */
+    width: 36px;  
+    height: 36px; 
+    border-radius: 50% !important; /* Wajib !important agar bulat */
+
+    /* 2. Posisi Angka di Tengah Lingkaran */
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
+    margin: 0 auto; /* Supaya lingkaran pas di tengah kolom grid */
+
+    /* 3. Styling Text */
     font-size: 14px;
     cursor: pointer;
+    transition: all 0.2s;
     color: #333;
+    user-select: none;
 }
 
+.schedule-calendar-day:hover,
 .sch-cal-day:hover {
     background-color: #f0f5ff;
     color: #1a3e7f;
     font-weight: 600;
 }
 
+.schedule-calendar-day.empty,
 .sch-cal-day.empty {
     cursor: default;
+    background: transparent !important;
+    pointer-events: none;
 }
 
+.schedule-calendar-day.today,
 .sch-cal-day.today {
     border: 1px solid #1a3e7f;
     color: #1a3e7f;
 }
 
-.sch-cal-day.selected {
+.schedule-calendar-day.active,
+.schedule-calendar-day.selected,
+.sch-cal-day.selected,
+.sch-cal-day.active {
     background-color: #1a3e7f;
     color: #fff;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(26, 62, 127, 0.3);
 }
 
+/* Bulan Grid */
 .schedule-calendar-months-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -381,6 +394,7 @@
     padding: 10px 0;
 }
 
+.schedule-calendar-month-item,
 .sch-cal-month {
     text-align: center;
     padding: 10px;
@@ -392,19 +406,21 @@
     transition: all 0.2s;
 }
 
+.schedule-calendar-month-item:hover,
 .sch-cal-month:hover {
     background-color: #f0f5ff;
     color: #1a3e7f;
     font-weight: 600;
 }
 
+.schedule-calendar-month-item.active,
 .sch-cal-month.selected {
     background-color: #1a3e7f;
     color: #fff;
     font-weight: 600;
 }
 
-/* --- 8. CUSTOM TIME PICKER (VERSI KECIL / COMPACT) --- */
+/* --- 8. CUSTOM TIME PICKER --- */
 .schedule-time-picker-wrapper {
     position: relative;
     width: 100%;
@@ -416,16 +432,11 @@
     margin-top: 12px;
     left: 50%;
     transform: translateX(-50%);
-
-    /* UKURAN DIPERKECIL */
     width: 220px;
     background: #f0f5ff;
     border-radius: 16px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-
-    /* Padding dikurangi */
     padding: 16px;
-
     z-index: 2002;
     display: none;
     border: 1px solid #e0e0e0;
@@ -437,15 +448,8 @@
 }
 
 @keyframes slideDownFade {
-    from {
-        opacity: 0;
-        transform: translate(-50%, -10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translate(-50%, 0);
-    }
+    from { opacity: 0; transform: translate(-50%, -10px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
 }
 
 .custom-time-popup::before {
@@ -465,14 +469,11 @@
     text-align: center;
     font-weight: 700;
     font-size: 16px;
-    /* Font lebih kecil */
     color: #1a3e7f;
     background: #fff;
     padding: 8px;
-    /* Padding dikurangi */
     border-radius: 8px;
     margin-bottom: 16px;
-    /* Margin dikurangi */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
@@ -481,7 +482,6 @@
     justify-content: center;
     align-items: center;
     gap: 10px;
-    /* Gap dikurangi */
     margin-bottom: 16px;
 }
 
@@ -494,7 +494,6 @@
 
 .time-nav-btn {
     width: 28px;
-    /* Tombol lebih kecil */
     height: 28px;
     border: 1px solid #dadada;
     background: #fff;
@@ -512,7 +511,6 @@
     background-color: #e6eefc;
 }
 
-/* SCROLL VIEW AREA */
 .time-scroll-view {
     display: flex;
     flex-direction: column;
@@ -523,29 +521,21 @@
     user-select: none;
 }
 
-.time-scroll-view:active {
-    cursor: grabbing;
-}
-
 .time-value {
     font-family: 'Inter', sans-serif;
     text-align: center;
 }
 
-.time-value.prev,
-.time-value.next {
+.time-value.prev, .time-value.next {
     font-size: 14px;
     color: #aaa;
     pointer-events: none;
 }
 
-/* KOTAK INPUT ANGKA (DIPERKECIL) */
 .time-input {
     width: 55px;
-    /* Lebih ramping */
     height: 40px;
     font-size: 28px;
-    /* Font angka lebih kecil */
     font-weight: 600;
     color: #000;
     border: 2px solid transparent;
@@ -578,7 +568,6 @@
 .time-btn-confirm {
     width: 100%;
     padding: 8px;
-    /* Padding dikurangi */
     background-color: #1a3e7f;
     color: white;
     border: none;
@@ -607,7 +596,6 @@
 .time-btn-cancel:hover {
     background-color: #f9f9f9;
 }
-
 
 /* --- 9. ACTIONS --- */
 .schedule-actions {
@@ -651,26 +639,22 @@
         grid-template-columns: 1fr;
         row-gap: 20px;
     }
-
     .schedule-form-label {
         width: 100%;
         margin-bottom: 6px;
     }
-
     .schedule-form-field {
         flex-direction: column;
         align-items: flex-start;
     }
-
     .schedule-form-input {
         width: 100%;
     }
 }
 
-/* --- Tambahan untuk Text Area Description --- */
 .schedule-textarea {
     width: 100%;
-    height: 100px; /* Lebih tinggi dari input biasa */
+    height: 100px;
     border-radius: 8px;
     border: 2px solid #dadada;
     padding: 10px 16px;
@@ -678,7 +662,7 @@
     font-size: 15px;
     color: #000;
     background: #fff;
-    resize: vertical; /* User bisa mengubah tinggi */
+    resize: vertical;
     outline: none;
     transition: border-color 0.2s;
     display: block;
