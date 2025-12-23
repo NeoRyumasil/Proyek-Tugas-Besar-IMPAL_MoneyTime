@@ -1,11 +1,29 @@
-import pyodbc as odbc 
 from Controller.credentials import username, password, server, database
 
-# Membuat koneksi ke database SQL Server menggunakan pypyodbc
+import pymssql
+import os
+
 def db_connect():
-    connection_string = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={server};DATABASE={database};UID={username};PWD={password};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;'
-    connection = odbc.connect(connection_string)
-    return connection
+    # Mengambil data kredensial dari Environment Variables Vercel
+    server = server
+    database = database
+    username = username
+    password = password
+
+    try:
+        # Koneksi menggunakan pymssql (tidak butuh driver ODBC di Vercel)
+        connection = pymssql.connect(
+            server=server,
+            user=username,
+            password=password,
+            database=database,
+            port=1433,
+            timeout=30
+        )
+        return connection
+    except Exception as e:
+        print(f"Gagal koneksi ke Azure SQL: {e}")
+        return None
 
 # Contoh query untuk mengambil data dari tabel 'user'
 #sql = ''' SELECT * FROM [dbo].[user] '''
