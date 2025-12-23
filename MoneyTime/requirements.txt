@@ -2,5 +2,5 @@ flask
 requests
 python-dotenv
 groq
-pyodbc
+pymssql
 markupsafe
