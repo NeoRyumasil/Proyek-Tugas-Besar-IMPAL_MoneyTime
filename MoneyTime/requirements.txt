@@ -4,4 +4,3 @@ python-dotenv
 groq
 pyodbc
 markupsafe
-json
