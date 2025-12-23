@@ -3,12 +3,12 @@ from markupsafe import escape
 from dotenv import load_dotenv
 
 # Import Controllers
-from Controller.databaseController import db_connect
-from Controller.userController import UserController
-from Controller.finansialController import FinansialController
-from Controller.notificationController import NotificationController
-from Controller.assistantController import AssistantController
-from Controller.scheduleController import ScheduleController 
+from MoneyTime.Controller.databaseController import db_connect
+from MoneyTime.Controller.userController import UserController
+from MoneyTime.Controller.finansialController import FinansialController
+from MoneyTime.Controller.notificationController import NotificationController
+from MoneyTime.Controller.assistantController import AssistantController
+from MoneyTime.Controller.scheduleController import ScheduleController
 
 import os
 import secrets
