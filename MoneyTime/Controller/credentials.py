@@ -1,5 +1,5 @@
 # Konfigurasi Database (Yang sudah ada)
-username = 'Alvin@zapani.database.windows.net'
+username = 'Alvin@zapani'
 password = 'NeptuneIsKawaii@2'
 server = 'zapani.database.windows.net,1433'
 database = 'MoneyTime'
