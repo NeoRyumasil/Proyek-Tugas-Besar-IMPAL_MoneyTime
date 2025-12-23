@@ -25,7 +25,7 @@ class NotificationController():
             sql = """
                 SELECT NamaAktivitas, DeskripsiAktivitas, TenggatWaktu, KategoriAktivitas, Waktu, AktivitasID, IsRead
                 FROM [dbo].[Aktivitas] 
-                WHERE UserID = ? AND StatusAktivitas = 'Pending'
+                WHERE UserID = %s AND StatusAktivitas = 'Pending'
                 ORDER BY TenggatWaktu ASC
             """
             
@@ -153,7 +153,7 @@ class NotificationController():
             sql = """
                 UPDATE [dbo].[Aktivitas]
                 SET IsRead = 1
-                WHERE UserID = ?
+                WHERE UserID = %s
             """
             
             cursor.execute(sql, (user_id,))
@@ -180,7 +180,7 @@ class NotificationController():
             sql = """
                 SELECT email
                 FROM [dbo].[User]
-                WHERE id = ?
+                WHERE id = %s
             """
 
             cursor.execute(sql, (user_id,))
@@ -237,7 +237,7 @@ class NotificationController():
                 UPDATE [dbo].[Aktivitas]
                 SET IsRead = CASE WHEN IsRead = 1 THEN 0 ELSE 1 END
                 OUTPUT INSERTED.IsRead
-                WHERE AktivitasID = ?
+                WHERE AktivitasID = %s
             """
             
             cursor.execute(sql, (aktivitas_id,))

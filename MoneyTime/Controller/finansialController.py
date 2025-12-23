@@ -15,18 +15,18 @@ class FinansialController:
             cursor = conn.cursor()
             
             # Cek apakah sudah ada
-            cursor.execute("SELECT FinansialID FROM [dbo].[Finansial] WHERE UserID = ? AND kategori = ?", (user_id, kategori))
+            cursor.execute("SELECT FinansialID FROM [dbo].[Finansial] WHERE UserID = %s AND kategori = %s", (user_id, kategori))
             row = cursor.fetchone()
             if row:
                 return int(row[0])
 
             # Jika belum ada, Insert baru (termasuk kolom Status)
-            cursor.execute("INSERT INTO [dbo].[Finansial] (UserID, budget, kategori, status) VALUES (?, ?, ?, ?)", 
+            cursor.execute("INSERT INTO [dbo].[Finansial] (UserID, budget, kategori, status) VALUES (%s, %s, %s, %s)", 
                            (user_id, budget, kategori, status))
             conn.commit()
             
             # Ambil ID yang baru dibuat
-            cursor.execute("SELECT TOP 1 FinansialID FROM [dbo].[Finansial] WHERE UserID = ? AND kategori = ? ORDER BY FinansialID DESC", (user_id, kategori))
+            cursor.execute("SELECT TOP 1 FinansialID FROM [dbo].[Finansial] WHERE UserID = %s AND kategori = %s ORDER BY FinansialID DESC", (user_id, kategori))
             new_row = cursor.fetchone()
             return int(new_row[0]) if new_row else None
         except Exception as e:
@@ -38,7 +38,7 @@ class FinansialController:
         try:
             conn = db_connect()
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO [dbo].[Pemasukkan] (deskripsi, nominal, FinansialID, Tanggal) VALUES (?, ?, ?, ?)", 
+            cursor.execute("INSERT INTO [dbo].[Pemasukkan] (deskripsi, nominal, FinansialID, Tanggal) VALUES (%s, %s, %s, %s)", 
                            (deskripsi, nominal, finansial_id, tanggal))
             conn.commit()
             return True
@@ -51,7 +51,7 @@ class FinansialController:
         try:
             conn = db_connect()
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO [dbo].[Pengeluaran] (FinansialID, deskripsi, nominal, Tanggal) VALUES (?, ?, ?, ?)", 
+            cursor.execute("INSERT INTO [dbo].[Pengeluaran] (FinansialID, deskripsi, nominal, Tanggal) VALUES (%s, %s, %s, %s)", 
                            (finansial_id, deskripsi, nominal, tanggal))
             conn.commit()
             return True
@@ -76,7 +76,7 @@ class FinansialController:
                     SELECT p.PemasukkanID, p.deskripsi, p.nominal, p.Tanggal, f.kategori, 'Income' as tipe
                     FROM [dbo].[Pemasukkan] p
                     JOIN [dbo].[Finansial] f ON p.FinansialID = f.FinansialID
-                    WHERE f.UserID = ? AND (p.deskripsi LIKE ? OR f.kategori LIKE ?)
+                    WHERE f.UserID = %s AND (p.deskripsi LIKE %s OR f.kategori LIKE %s)
                 """
                 params_income = (user_id, search_pattern, search_pattern)
 
@@ -85,16 +85,16 @@ class FinansialController:
                     SELECT q.PengeluaranID, q.deskripsi, q.nominal, q.Tanggal, f.kategori, 'Expense' as tipe
                     FROM [dbo].[Pengeluaran] q
                     JOIN [dbo].[Finansial] f ON q.FinansialID = f.FinansialID
-                    WHERE f.UserID = ? AND (q.deskripsi LIKE ? OR f.kategori LIKE ?)
+                    WHERE f.UserID = %s AND (q.deskripsi LIKE %s OR f.kategori LIKE %s)
                 """
                 params_expense = (user_id, search_pattern, search_pattern)
 
             else:
                 # Query Normal (Tanpa Search)
-                sql_income = "SELECT p.PemasukkanID, p.deskripsi, p.nominal, p.Tanggal, f.kategori, 'Income' as tipe FROM [dbo].[Pemasukkan] p JOIN [dbo].[Finansial] f ON p.FinansialID = f.FinansialID WHERE f.UserID = ?"
+                sql_income = "SELECT p.PemasukkanID, p.deskripsi, p.nominal, p.Tanggal, f.kategori, 'Income' as tipe FROM [dbo].[Pemasukkan] p JOIN [dbo].[Finansial] f ON p.FinansialID = f.FinansialID WHERE f.UserID = %s"
                 params_income = (user_id,)
 
-                sql_expense = "SELECT q.PengeluaranID, q.deskripsi, q.nominal, q.Tanggal, f.kategori, 'Expense' as tipe FROM [dbo].[Pengeluaran] q JOIN [dbo].[Finansial] f ON q.FinansialID = f.FinansialID WHERE f.UserID = ?"
+                sql_expense = "SELECT q.PengeluaranID, q.deskripsi, q.nominal, q.Tanggal, f.kategori, 'Expense' as tipe FROM [dbo].[Pengeluaran] q JOIN [dbo].[Finansial] f ON q.FinansialID = f.FinansialID WHERE f.UserID = %s"
                 params_expense = (user_id,)
 
             # Eksekusi Query
@@ -155,14 +155,14 @@ class FinansialController:
                 cursor.execute("""
                     DELETE p FROM [dbo].[Pemasukkan] p
                     JOIN [dbo].[Finansial] f ON p.FinansialID = f.FinansialID
-                    WHERE p.PemasukkanID = ? AND f.UserID = ?
+                    WHERE p.PemasukkanID = %s AND f.UserID = %s
                 """, (transaction_id, user_id))
             elif transaction_type.lower() == 'expense':
                 # Cek kepemilikan dan hapus dari Pengeluaran
                 cursor.execute("""
                     DELETE q FROM [dbo].[Pengeluaran] q
                     JOIN [dbo].[Finansial] f ON q.FinansialID = f.FinansialID
-                    WHERE q.PengeluaranID = ? AND f.UserID = ?
+                    WHERE q.PengeluaranID = %s AND f.UserID = %s
                 """, (transaction_id, user_id))
             else:
                 return False
@@ -191,18 +191,18 @@ class FinansialController:
             if transaction_type.lower() == 'income':
                 # Update Pemasukkan
                 cursor.execute("""
-                    UPDATE p SET p.deskripsi = ?, p.nominal = ?, p.Tanggal = ?, p.FinansialID = ?
+                    UPDATE p SET p.deskripsi = %s, p.nominal = %s, p.Tanggal = %s, p.FinansialID = %s
                     FROM [dbo].[Pemasukkan] p
                     JOIN [dbo].[Finansial] f ON p.FinansialID = f.FinansialID
-                    WHERE p.PemasukkanID = ? AND f.UserID = ?
+                    WHERE p.PemasukkanID = %s AND f.UserID = %s
                 """, (deskripsi, nominal, tanggal, finansial_id, transaction_id, user_id))
             elif transaction_type.lower() == 'expense':
                 # Update Pengeluaran
                 cursor.execute("""
-                    UPDATE q SET q.deskripsi = ?, q.nominal = ?, q.Tanggal = ?, q.FinansialID = ?
+                    UPDATE q SET q.deskripsi = %s, q.nominal = %s, q.Tanggal = %s, q.FinansialID = %s
                     FROM [dbo].[Pengeluaran] q
                     JOIN [dbo].[Finansial] f ON q.FinansialID = f.FinansialID
-                    WHERE q.PengeluaranID = ? AND f.UserID = ?
+                    WHERE q.PengeluaranID = %s AND f.UserID = %s
                 """, (deskripsi, nominal, tanggal, finansial_id, transaction_id, user_id))
             else:
                 return False
@@ -228,7 +228,7 @@ class FinansialController:
                 SELECT DISTINCT f.kategori
                 FROM [dbo].[Pemasukkan] p
                 JOIN [dbo].[Finansial] f ON p.FinansialID = f.FinansialID
-                WHERE f.UserID = ?
+                WHERE f.UserID = %s
             """
             cursor.execute(sql_income, (user_id,))
             income_rows = cursor.fetchall()
@@ -239,7 +239,7 @@ class FinansialController:
                 SELECT DISTINCT f.kategori
                 FROM [dbo].[Pengeluaran] q
                 JOIN [dbo].[Finansial] f ON q.FinansialID = f.FinansialID
-                WHERE f.UserID = ?
+                WHERE f.UserID = %s
             """
             cursor.execute(sql_expense, (user_id,))
             expense_rows = cursor.fetchall()

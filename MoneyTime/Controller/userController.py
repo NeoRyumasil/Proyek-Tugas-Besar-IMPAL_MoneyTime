@@ -23,7 +23,7 @@ class UserController:
             sql = """
                 SELECT id, username, email, password
                 FROM [dbo].[User]
-                WHERE email = ? OR username = ?
+                WHERE email = %s OR username = %s
             """
 
             cursor.execute(sql, (email, username))
@@ -61,7 +61,7 @@ class UserController:
             cursor = conn.cursor()
 
             # Cek duplikat lagi untuk keamanan
-            check_sql = "SELECT COUNT(*) FROM [dbo].[User] WHERE username = ? OR email = ?"
+            check_sql = "SELECT COUNT(*) FROM [dbo].[User] WHERE username = %s OR email = %s"
             cursor.execute(check_sql, (username, email))
             count = cursor.fetchone()[0]
             
@@ -73,7 +73,7 @@ class UserController:
 
             sql = """
                 INSERT INTO [dbo].[User] (username, password, email, role)
-                VALUES (?, ?, ?, 'user')
+                VALUES (%s, %s, %s, 'user')
             """
             
             cursor.execute(sql, (username, hashed_password, email))
@@ -111,7 +111,7 @@ class UserController:
         try:
             conn = db_connect()
             cursor = conn.cursor()
-            sql = "SELECT COUNT(*) FROM [dbo].[User] WHERE email = ?"
+            sql = "SELECT COUNT(*) FROM [dbo].[User] WHERE email = %s"
             cursor.execute(sql, (email,))
             result = cursor.fetchone()[0]
             return result > 0
@@ -125,7 +125,7 @@ class UserController:
         try:
             conn = db_connect()
             cursor = conn.cursor()
-            sql = "SELECT COUNT(*) FROM [dbo].[User] WHERE username = ?"
+            sql = "SELECT COUNT(*) FROM [dbo].[User] WHERE username = %s"
             cursor.execute(sql, (username,))
             result = cursor.fetchone()[0]
             return result > 0
@@ -194,7 +194,7 @@ class UserController:
             conn = db_connect()
             cursor = conn.cursor()
             hashed_password = generate_password_hash(new_password)
-            sql = "UPDATE [dbo].[User] SET password = ? WHERE email = ?"
+            sql = "UPDATE [dbo].[User] SET password = %s WHERE email = %s"
             cursor.execute(sql, (hashed_password, email))
             conn.commit()
             return True

@@ -15,7 +15,7 @@ class ScheduleController:
             sql = """
                 INSERT INTO [dbo].[Aktivitas] 
                 (UserID, NamaAktivitas, DeskripsiAktivitas, TenggatWaktu, Waktu, KategoriAktivitas, PrioritasAktivitas, StatusAktivitas)
-                VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')
+                VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pending')
             """
             cursor.execute(sql, (user_id, title, description, tenggat_waktu, time, category, priority))
             conn.commit()
@@ -34,7 +34,7 @@ class ScheduleController:
             sql = """
                 SELECT AktivitasID, NamaAktivitas, DeskripsiAktivitas, TenggatWaktu, Waktu, KategoriAktivitas, PrioritasAktivitas, StatusAktivitas
                 FROM [dbo].[Aktivitas]
-                WHERE UserID = ?
+                WHERE UserID = %s
             """
             cursor.execute(sql, (user_id,))
             rows = cursor.fetchall()
@@ -76,7 +76,7 @@ class ScheduleController:
         try:
             conn = db_connect()
             cursor = conn.cursor()
-            sql = "UPDATE [dbo].[Aktivitas] SET StatusAktivitas = ? WHERE AktivitasID = ?"
+            sql = "UPDATE [dbo].[Aktivitas] SET StatusAktivitas = %s WHERE AktivitasID = %s"
             cursor.execute(sql, (status, schedule_id))
             conn.commit()
             return True
@@ -98,13 +98,13 @@ class ScheduleController:
 
             sql = """
                 UPDATE [dbo].[Aktivitas]
-                SET NamaAktivitas = ?, 
-                    DeskripsiAktivitas = ?, 
-                    TenggatWaktu = ?, 
-                    Waktu = ?, 
-                    KategoriAktivitas = ?, 
-                    PrioritasAktivitas = ?
-                WHERE AktivitasID = ?
+                SET NamaAktivitas = %s, 
+                    DeskripsiAktivitas = %s, 
+                    TenggatWaktu = %s, 
+                    Waktu = %s, 
+                    KategoriAktivitas = %s, 
+                    PrioritasAktivitas = %s
+                WHERE AktivitasID = %s
             """
             cursor.execute(sql, (title, description, tenggat_waktu, time, category, priority, schedule_id))
             conn.commit()
@@ -119,7 +119,7 @@ class ScheduleController:
         try:
             conn = db_connect()
             cursor = conn.cursor()
-            sql = "DELETE FROM [dbo].[Aktivitas] WHERE AktivitasID = ?"
+            sql = "DELETE FROM [dbo].[Aktivitas] WHERE AktivitasID = %s"
             cursor.execute(sql, (schedule_id,))
             conn.commit()
             return True
@@ -134,7 +134,7 @@ class ScheduleController:
             cursor = conn.cursor()
             
             # Ambil kategori unik yang SUDAH ADA di database user
-            sql = "SELECT DISTINCT KategoriAktivitas FROM [dbo].[Aktivitas] WHERE UserID = ?"
+            sql = "SELECT DISTINCT KategoriAktivitas FROM [dbo].[Aktivitas] WHERE UserID = %s"
             cursor.execute(sql, (user_id,))
             rows = cursor.fetchall()
             
