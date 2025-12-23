@@ -4,12 +4,6 @@ import pymssql
 import os
 
 def db_connect():
-    # Mengambil data kredensial dari Environment Variables Vercel
-    server = server
-    database = database
-    username = username
-    password = password
-
     try:
         # Koneksi menggunakan pymssql (tidak butuh driver ODBC di Vercel)
         connection = pymssql.connect(
