@@ -1,7 +1,7 @@
 # Konfigurasi Database (Yang sudah ada)
-username = 'Alvin'
+username = 'Alvin@zapani.database.windows.net'
 password = 'NeptuneIsKawaii@2'
-server = 'tcp:zapani.database.windows.net,1433'
+server = 'zapani.database.windows.net,1433'
 database = 'MoneyTime'
 
 # Konfigurasi Email (Baru)
