@@ -22,9 +22,11 @@ finansial_controller = FinansialController()
 notification_controller = NotificationController()
 schedule_controller = ScheduleController()
 
+base_dir = os.path.dirname(os.path.abspath(__file__))
+
 app = Flask(__name__,
-    template_folder='View/Templates',
-    static_folder='View/static')
+    template_folder=os.path.join(base_dir, 'View/Templates'),
+    static_folder=os.path.join(base_dir, 'View/static'))
 
 # Secret key untuk session management
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
