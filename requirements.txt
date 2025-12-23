@@ -1,5 +1,5 @@
-pip install flask
-pip install requests
-pip install python-dotenv
-pip install groq
-pip install pyodbc
+flask
+requests
+python-dotenv
+groq
+pyodbc
