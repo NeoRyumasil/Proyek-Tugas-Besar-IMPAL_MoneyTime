@@ -1,7 +1,6 @@
 import datetime
 from Controller.databaseController import db_connect
 from Controller.finansialController import FinansialController
-from Controller.credentials import email_sender, email_password
 
 import smtplib
 import os
@@ -176,6 +175,9 @@ class NotificationController():
             # Ambil email user dari database
             conn = db_connect()
             cursor = conn.cursor()
+
+            email_sender = os.getenv('EMAIL_SENDER')
+            email_password = os.getenv('EMAIL_PASSWORD')
 
             sql = """
                 SELECT email

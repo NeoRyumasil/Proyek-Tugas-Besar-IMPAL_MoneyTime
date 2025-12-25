@@ -1,6 +1,5 @@
 from Model.user import User          
 from Controller.databaseController import db_connect
-from Controller.credentials import email_sender, email_password
 
 import smtplib
 from email.mime.text import MIMEText
@@ -137,6 +136,9 @@ class UserController:
 
     def send_otp(self, target_email):
         """Mengirim OTP Reset Password"""
+        email_sender = os.getenv('EMAIL_SENDER')
+        email_password = os.getenv('EMAIL_PASSWORD')
+
         otp_code = str(random.randint(1000, 9999))
 
         msg = MIMEMultipart('related')
@@ -210,6 +212,9 @@ class UserController:
 
     def send_validation_otp(self, target_email):
         """Mengirim OTP untuk validasi akun"""
+        email_sender = os.getenv('EMAIL_SENDER')
+        email_password = os.getenv('EMAIL_PASSWORD')
+
         otp_code = str(random.randint(1000, 9999))
 
         msg = MIMEMultipart('related')

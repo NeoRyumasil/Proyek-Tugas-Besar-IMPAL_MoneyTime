@@ -1,5 +1,3 @@
-from Controller.credentials import username, password, server, database
-
 import pymssql
 import os
 
@@ -7,10 +5,10 @@ def db_connect():
     try:
         # Koneksi menggunakan pymssql (tidak butuh driver ODBC di Vercel)
         connection = pymssql.connect(
-            server=server,
-            user=username,
-            password=password,
-            database=database,
+            server=os.getenv('DB_SERVER'),
+            user=os.getenv('DB_USERNAME'),
+            password=os.getenv('DB_PASSWORD'),
+            database=os.getenv('DB_DATABASE'),
             port=1433,
             timeout=30
         )
