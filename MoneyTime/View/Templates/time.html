@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styleModal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styleScheduleDetail.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styleScheduleEdit.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styleDashboard.css') }}"> 
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleDashboard.css') }}">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='styleNotification.css') }}">
 
@@ -89,33 +89,34 @@
                             </div>
                         </div>
                         <div class="notif-divider-main"></div>
-                        
+
                         {% if notifications %}
-                            {% for item in notifications[:5] %}
-                            <div class="notif-card {{ 'read' if item.is_read else '' }}" data-id="{{ item.id }}">
-                                <div class="notif-card-header">
-                                    <div class="notif-card-title-group">
-                                        <span class="notif-tag" style="color: {{ '#FF4D4D' if item.type == 'Overdue' else '#4D96FF' }}">
-                                            {{ item.type }}:
-                                        </span>
-                                        <span class="notif-subject">{{ item.title }}</span>
-                                    </div>
-                                    <div class="notif-time">{{ item.date }}</div>
+                        {% for item in notifications[:5] %}
+                        <div class="notif-card {{ 'read' if item.is_read else '' }}" data-id="{{ item.id }}">
+                            <div class="notif-card-header">
+                                <div class="notif-card-title-group">
+                                    <span class="notif-tag"
+                                        style="color: {{ '#FF4D4D' if item.type == 'Overdue' else '#4D96FF' }}">
+                                        {{ item.type }}:
+                                    </span>
+                                    <span class="notif-subject">{{ item.title }}</span>
                                 </div>
-                                <div class="notif-card-body">
-                                    <div class="notif-desc-row">
-                                        <span class="notif-desc-bold" style="font-size: 12px;">{{ item.message }}</span>
-                                    </div>
-                                </div>
-                                <div class="notif-card-footer">
-                                    Category: {{ item.category }}
+                                <div class="notif-time">{{ item.date }}</div>
+                            </div>
+                            <div class="notif-card-body">
+                                <div class="notif-desc-row">
+                                    <span class="notif-desc-bold" style="font-size: 12px;">{{ item.message }}</span>
                                 </div>
                             </div>
-                            {% endfor %}
+                            <div class="notif-card-footer">
+                                Category: {{ item.category }}
+                            </div>
+                        </div>
+                        {% endfor %}
                         {% else %}
-                            <div style="padding: 15px; text-align: center; color: #888;">
-                                <p style="font-size: 12px;">No new notifications</p>
-                            </div>
+                        <div style="padding: 15px; text-align: center; color: #888;">
+                            <p style="font-size: 12px;">No new notifications</p>
+                        </div>
                         {% endif %}
                         <a href="{{ url_for('notification') }}" class="notif-view-all">
                             View All
@@ -221,7 +222,8 @@
             <div class="day-card" id="group-today" style="display: none;">
                 <div class="day-header clickable toggle-group-btn">
                     <div class="dh-left">
-                        <i class="fa-solid fa-chevron-down toggle-icon" style="color: #1a3e7f; transition: transform 0.3s;"></i>
+                        <i class="fa-solid fa-chevron-down toggle-icon"
+                            style="color: #1a3e7f; transition: transform 0.3s;"></i>
                         <span class="day-name">Today (0)</span>
                     </div>
                 </div>
@@ -232,7 +234,8 @@
             <div class="day-card" id="group-next7" style="display: none;">
                 <div class="day-header clickable toggle-group-btn">
                     <div class="dh-left">
-                        <i class="fa-solid fa-chevron-down toggle-icon" style="color: #1a3e7f; transition: transform 0.3s;"></i>
+                        <i class="fa-solid fa-chevron-down toggle-icon"
+                            style="color: #1a3e7f; transition: transform 0.3s;"></i>
                         <span class="day-name">Next 7 Days (0)</span>
                     </div>
                 </div>
@@ -243,7 +246,8 @@
             <div class="day-card" id="group-later" style="display: none;">
                 <div class="day-header clickable toggle-group-btn">
                     <div class="dh-left">
-                        <i class="fa-solid fa-chevron-down toggle-icon" style="color: #1a3e7f; transition: transform 0.3s;"></i>
+                        <i class="fa-solid fa-chevron-down toggle-icon"
+                            style="color: #1a3e7f; transition: transform 0.3s;"></i>
                         <span class="day-name">Later (0)</span>
                     </div>
                 </div>
@@ -254,7 +258,8 @@
             <div class="day-card" id="group-completed" style="display: none;">
                 <div class="day-header clickable toggle-group-btn">
                     <div class="dh-left">
-                        <i class="fa-solid fa-chevron-down toggle-icon" style="color: #1a3e7f; transition: transform 0.3s;"></i>
+                        <i class="fa-solid fa-chevron-down toggle-icon"
+                            style="color: #1a3e7f; transition: transform 0.3s;"></i>
                         <span class="day-name">Completed & Won't Do (0)</span>
                     </div>
                 </div>
@@ -265,20 +270,23 @@
         </div>
     </div>
 
-    <div id="add-schedule-modal-overlay" class="modal-overlay" style="display: none; z-index: 1050;">
+    <div id="add-schedule-modal-overlay" class="schedule-modal-overlay" style="display: none; z-index: 1050;">
         {% include 'scheduleAdd.html' %}
     </div>
+
+    <div id="schedule-detail-modal-overlay" class="schedule-modal-overlay" style="display: none; z-index: 1060;">
+        {% include 'scheduleDetail.html' %}
+    </div>
+
+    <div id="edit-schedule-modal-overlay" class="schedule-modal-overlay" style="display: none; z-index: 1070;">
+        {% include 'scheduleEdit.html' %}
+    </div>
+
     <div id="discard-modal-overlay" class="modal-overlay" style="display: none; z-index: 1100;">
         {% include 'discardChangesModal.html' %}
     </div>
     <div id="wont-do-modal-overlay" class="modal-overlay" style="display: none; z-index: 1250;">
         {% include 'wontDoModal.html' %}
-    </div>
-    <div id="schedule-detail-modal-overlay" class="modal-overlay" style="display: none; z-index: 1060;">
-        {% include 'scheduleDetail.html' %}
-    </div>
-    <div id="edit-schedule-modal-overlay" class="modal-overlay" style="display: none; z-index: 1070;">
-        {% include 'scheduleEdit.html' %}
     </div>
     <div id="delete-modal-overlay" class="modal-overlay" style="display: none; z-index: 1200;">
         {% include 'deleteItemModal.html' %}
@@ -339,4 +347,5 @@
     <script src="{{ url_for('static', filename='scriptAssistant.js') }}"></script>
 
 </body>
+
 </html>
