@@ -21,11 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let allSchedules = [];     
 
     const searchInput = document.getElementById('searchInput'); 
-    // Di time.html class pembungkusnya adalah .schedule-list-section, bukan ID schedulesContainer
     const scheduleListSection = document.querySelector('.schedule-list-section');
 
     // ==========================================
-    // 3. COLOR LOGIC (Sama seperti Dashboard)
+    // 3. COLOR LOGIC (Tetap 30 Warna Asli)
     // ==========================================
     const distinctColorsSchedule = [
         "#FF0000", "#0000FF", "#008000", "#FFD700", "#800080", 
@@ -65,7 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 allSchedules = data.schedules; 
                 assignColorsToCategories(allSchedules);
                 
-                // Jalankan searchHandler untuk render awal (meng-cover filter & search)
                 searchHandler(); 
                 updateSummaryCards(allSchedules);
             }
@@ -74,7 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Expose ke global agar bisa dipanggil setelah Add/Edit/Delete
     window.fetchSchedules = fetchAndRenderSchedules;
 
     function renderGroupedSchedules(schedules) {
@@ -85,19 +82,17 @@ document.addEventListener('DOMContentLoaded', () => {
             completed: document.querySelector('#group-completed .trans-items')
         };
 
-        // Reset konten HTML
         Object.values(containers).forEach(el => { if(el) el.innerHTML = ''; });
         
-        // Hapus pesan "Not Found" lama jika ada
         const oldMsg = document.getElementById('schedule-not-found-msg');
         if(oldMsg) oldMsg.remove();
 
-        // Logika Waktu (Sama Persis dengan Dashboard)
         const now = new Date();
         const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
         const next7DaysEnd = new Date(todayStart); next7DaysEnd.setDate(todayStart.getDate() + 7);
 
-        const counts = { today: 0, next7: 0, later: 0, completed: 0 };
+        // MODIFIKASI: Kumpulkan data ke array dulu agar bisa di-sort
+        const groups = { today: [], next7: [], later: [], completed: [] };
         let hasDataDisplayed = false;
 
         schedules.forEach(sch => {
@@ -109,49 +104,58 @@ document.addEventListener('DOMContentLoaded', () => {
             const schDateOnly = new Date(sch.date); 
             schDateOnly.setHours(0,0,0,0);
 
-            let targetGroup = null;
             const status = (sch.status || 'Pending');
 
-            // --- LOGIKA GROUPING ---
-            // Completed, WontDo, atau Expired masuk ke history bawah
             if (status === 'Completed' || status === 'WontDo' || schDateTime < now) {
-                targetGroup = 'completed';
+                groups.completed.push(sch);
             } else {
                 if (schDateOnly.getTime() === todayStart.getTime()) {
-                    targetGroup = 'today';
+                    groups.today.push(sch);
                 } else if (schDateOnly > todayStart && schDateOnly <= next7DaysEnd) {
-                    targetGroup = 'next7';
+                    groups.next7.push(sch);
                 } else if (schDateOnly > next7DaysEnd) {
-                    targetGroup = 'later';
+                    groups.later.push(sch);
                 }
-            }
-
-            if (targetGroup && containers[targetGroup]) {
-                counts[targetGroup]++;
-                const itemHTML = createScheduleItemHTML(sch, now);
-                containers[targetGroup].insertAdjacentHTML('beforeend', itemHTML);
-                hasDataDisplayed = true;
             }
         });
 
-        // Update Header & View More logic
-        updateGroupHeader('group-today', 'Today', counts.today);
-        updateGroupHeader('group-next7', 'Next 7 Days', counts.next7);
-        updateGroupHeader('group-later', 'Later', counts.later);
-        updateGroupHeader('group-completed', 'Completed & Overdue', counts.completed);
+        // --- SORTING KHUSUS: OVERDUE DI ATAS COMPLETED ---
+        groups.completed.sort((a, b) => {
+            const timeA = new Date(`${a.date}T${a.time || "00:00"}:00`);
+            const timeB = new Date(`${b.date}T${b.time || "00:00"}:00`);
+            const isOverdueA = (a.status !== 'Completed' && a.status !== 'WontDo' && timeA < now);
+            const isOverdueB = (b.status !== 'Completed' && b.status !== 'WontDo' && timeB < now);
 
-        // Terapkan filter tab (Fitur unik halaman Time)
+            if (isOverdueA && !isOverdueB) return -1;
+            if (!isOverdueA && isOverdueB) return 1;
+            return timeB - timeA; 
+        });
+
+        // Masukkan item yang sudah di-sort ke container
+        for (const [key, items] of Object.entries(groups)) {
+            if (containers[key]) {
+                items.forEach(sch => {
+                    const itemHTML = createScheduleItemHTML(sch, now);
+                    containers[key].insertAdjacentHTML('beforeend', itemHTML);
+                    hasDataDisplayed = true;
+                });
+                
+                let baseTitle = key.charAt(0).toUpperCase() + key.slice(1);
+                if(key === 'next7') baseTitle = "Next 7 Days";
+                if(key === 'completed') baseTitle = "Completed & Overdue";
+                
+                updateGroupHeader(`group-${key}`, baseTitle, items.length);
+            }
+        }
+
         applyTabFilter();
         
-        // Handle Empty State (Jika hasil pencarian/filter kosong)
         if (!hasDataDisplayed && scheduleListSection) {
-            // Sembunyikan semua grup
             ['group-today', 'group-next7', 'group-later', 'group-completed'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.style.display = 'none';
             });
             
-            // Tampilkan pesan not found
             const msgDiv = document.createElement('div');
             msgDiv.id = 'schedule-not-found-msg';
             msgDiv.style.textAlign = 'center';
@@ -175,9 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (group) {
             const titleEl = group.querySelector('.day-name');
             if (titleEl) titleEl.textContent = `${baseTitle} (${count})`;
-            group.setAttribute('data-count', count); // Simpan count untuk logika tab
-            
-            // Init View More logic (Limit 5 items)
+            group.setAttribute('data-count', count); 
             initViewMore(groupId, count);
         }
     }
@@ -189,23 +191,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!el) return;
             const count = parseInt(el.getAttribute('data-count') || '0');
             
-            // Logika Tab:
-            // 1. Jika tab "all" aktif: tampilkan grup yang punya item > 0
-            // 2. Jika tab spesifik aktif (misal "today"): hanya tampilkan grup itu jika item > 0
-            
             if (currentFilter === 'all') {
                 el.style.display = count > 0 ? 'block' : 'none';
             } else {
-                if (gid === currentFilter && count > 0) {
-                    el.style.display = 'block';
-                } else {
-                    el.style.display = 'none';
-                }
+                el.style.display = (gid === currentFilter && count > 0) ? 'block' : 'none';
             }
         });
     }
 
-    // Fungsi HTML Generator (Disamakan strukturnya dengan Dashboard agar CSS cocok)
     function createScheduleItemHTML(sch, now) {
         const timeString = sch.time ? sch.time : "00:00";
         const schDateTime = new Date(`${sch.date}T${timeString}:00`);
@@ -218,26 +211,23 @@ document.addEventListener('DOMContentLoaded', () => {
         
         let dateHTML = `<span class="sch-date">${dateStr}</span>`;
         let checkboxClass = 'sch-checkbox';
-        let iconHTML = '<i class="fa-solid fa-check check-mark"></i>';
+        let iconHTML = '<i class="fa-solid fa-check check-mark" style="display:none"></i>';
         
-        // Logika Status Visual
         if (sch.status === 'Completed') {
             checkboxClass += ' checked';
+            iconHTML = '<i class="fa-solid fa-check check-mark" style="display:block"></i>';
         } else if (sch.status === 'WontDo') {
             checkboxClass += ' wontdo';
-            iconHTML = '<i class="fa-solid fa-xmark x-mark"></i>';
-            // WontDo biasanya tidak bisa di-toggle balik lewat klik biasa di list (opsional)
-        } else if (isExpired && sch.status === 'Pending') {
-            // Expired items logic
+            iconHTML = '<i class="fa-solid fa-xmark x-mark" style="display:block"></i>';
+        }
+
+        if (isExpired && sch.status === 'Pending') {
             dateHTML = `<span class="sch-date text-red">${dateStr}<br><span class="overdue-text">(Overdue)</span></span>`;
         }
 
         const prioClass = (sch.priority || 'none').toLowerCase();
         const catName = sch.category || "Other";
         const bgColor = getCategoryColor(catName);
-        const textColor = '#ffffff';
-
-        // Escape JSON untuk data attribute
         const itemData = JSON.stringify(sch).replace(/"/g, '&quot;');
 
         return `
@@ -253,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
                 <div class="sch-center">
-                    <span class="t-badge" style="background-color: ${bgColor}; color: ${textColor};">${catName}</span>
+                    <span class="t-badge" style="background-color: ${bgColor}; color: #ffffff;">${catName}</span>
                 </div>
                 <div class="sch-right">
                     ${dateHTML}
@@ -262,20 +252,16 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    // Fitur Khusus Halaman Time: Summary Cards
     function updateSummaryCards(schedules) {
         const now = new Date();
-        
         const upcoming = schedules.filter(s => {
             const schTime = new Date(`${s.date}T${s.time || "00:00"}:00`);
-            return schTime >= now && s.status !== 'Completed' && s.status !== 'WontDo';
+            return schTime >= now && s.status === 'Pending';
         }).length;
-
         const completed = schedules.filter(s => s.status === 'Completed').length;
-        
         const overdue = schedules.filter(s => {
             const schTime = new Date(`${s.date}T${s.time || "00:00"}:00`);
-            return schTime < now && s.status !== 'Completed' && s.status !== 'WontDo';
+            return schTime < now && s.status === 'Pending';
         }).length;
 
         const cards = document.querySelectorAll('.m-card .card-amount');
@@ -286,77 +272,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ==========================================
-    // 5. INTERACTION LOGIC (Toggle & Modal)
-    // ==========================================
-
+    // --- MODIFIKASI: TOGGLE STATUS REAL-TIME (INSTAN TANPA RELOAD) ---
     window.toggleStatus = async function(e, id, currentStatus) {
         e.stopPropagation();
-        
-        // Logika toggle sederhana: Completed <-> Pending
-        // (WontDo ditangani terpisah biasanya lewat modal, tapi jika diklik di list akan jadi Pending)
         let newStatus = (currentStatus === 'Completed' || currentStatus === 'WontDo') ? 'Pending' : 'Completed';
 
-        const item = e.target.closest('.t-item');
-        const checkbox = item.querySelector('.sch-checkbox');
-        const icon = checkbox.querySelector('i');
-        const dateContainer = item.querySelector('.sch-right .sch-date');
+        const scheduleIndex = allSchedules.findIndex(s => s.id === id);
+        if (scheduleIndex !== -1) {
+            const oldStatus = allSchedules[scheduleIndex].status;
+            allSchedules[scheduleIndex].status = newStatus;
 
-        const originalCheckboxClass = checkbox.className;
-        const originalIconDisplay = icon ? icon.style.display : 'none';
-        const originalOnclick = checkbox.getAttribute('onclick'); 
-        const originalDateHTML = dateContainer ? dateContainer.innerHTML : '';
+            // Update UI lokal seketika
+            searchHandler(); 
+            updateSummaryCards(allSchedules);
 
-        // --- Optimistic UI Update (Seperti Dashboard) ---
-        if (newStatus === 'Completed') {
-            checkbox.className = 'sch-checkbox checked';
-            if(icon) {
-                icon.className = 'fa-solid fa-check check-mark';
-                icon.style.display = 'block';
-                // Reset icon class jika sebelumnya WontDo (x-mark)
-                if(icon.classList.contains('fa-xmark')) {
-                   icon.classList.replace('fa-xmark', 'fa-check');
-                   icon.classList.remove('x-mark');
-                   icon.classList.add('check-mark');
-                }
+            try {
+                const response = await fetch('/update-schedule-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id, status: newStatus })
+                });
+                const res = await response.json();
+                if (!res.success) throw new Error();
+            } catch (err) {
+                // Revert jika gagal
+                allSchedules[scheduleIndex].status = oldStatus;
+                searchHandler();
+                updateSummaryCards(allSchedules);
+                if (typeof showToast === 'function') showToast("Gagal memperbarui status.", "error");
             }
-            // Hilangkan status overdue merah jika ada
-            if(dateContainer) {
-                dateContainer.classList.remove('text-red');
-                const overdueSpan = dateContainer.querySelector('.overdue-text');
-                if(overdueSpan) overdueSpan.style.display = 'none';
-            }
-        } else {
-            // Balik ke Pending
-            checkbox.className = 'sch-checkbox';
-            if(icon) icon.style.display = 'none';
-            // Note: Jika item sebenarnya overdue, render ulang (fetch) akan memperbaikinya nanti
-        }
-        
-        // Update atribut onclick agar sinkron
-        checkbox.setAttribute('onclick', `toggleStatus(event, ${id}, '${newStatus}')`);
-
-        try {
-            const response = await fetch('/update-schedule-status', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id, status: newStatus })
-            });
-            const res = await response.json();
-            if (!res.success) throw new Error("Gagal update status");
-            
-            // Fetch ulang untuk memastikan sorting dan grouping benar
-            await fetchAndRenderSchedules();
-
-        } catch (err) {
-            console.error('Failed to update status', err);
-            // Revert UI jika gagal
-            checkbox.className = originalCheckboxClass;
-            if(icon) icon.style.display = originalIconDisplay;
-            checkbox.setAttribute('onclick', originalOnclick);
-            if(dateContainer) dateContainer.innerHTML = originalDateHTML;
-            
-            if (typeof showToast === 'function') showToast("Koneksi gagal, status dikembalikan.", "error");
         }
     };
 
@@ -369,16 +313,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ==========================================
-    // 6. SEARCH & FILTER HANDLER
-    // ==========================================
-
-   function searchHandler() {
+    function searchHandler() {
         const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-        
         let filteredData = allSchedules;
 
-        // 1. Filter Text (Sama dengan Dashboard: Title, Category, Desc)
         if (query.length > 0) {
             filteredData = filteredData.filter(sch => 
                 (sch.title || "").toLowerCase().includes(query) ||
@@ -386,41 +324,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 (sch.description || "").toLowerCase().includes(query)
             );
         }
-
-        // 2. Filter Tab (Unique to Time Page)
-        // Logika tab handled visualnya di renderGroupedSchedules -> applyTabFilter
-        // Tapi kita tetap melempar data yang sudah terfilter text ke render
-        
         renderGroupedSchedules(filteredData);
     }
 
-    // Event Listener Search
     if (searchInput) {
         let timeout = null;
         searchInput.addEventListener('input', () => {
             clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                searchHandler(); 
-            }, 300); 
+            timeout = setTimeout(() => { searchHandler(); }, 300); 
         });
     }
 
-    // Event Listener Tabs
     const tabs = document.querySelectorAll('.time-tab');
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
-            currentFilter = tab.dataset.target; // 'all', 'group-today', dst
-            
-            // Panggil render ulang untuk menerapkan display block/none
+            currentFilter = tab.dataset.target;
             searchHandler(); 
         });
     });
 
-    // ==========================================
-    // 7. VIEW MORE & DROPDOWN LOGIC (Sama dengan Dashboard)
-    // ==========================================
     const MAX_ITEMS = 5; 
 
     function initViewMore(groupId, count) {
@@ -428,12 +352,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = group.querySelector('.view-more');
         const items = group.querySelectorAll('.schedule-row');
         
-        // Reset state awal
         items.forEach(i => i.classList.remove('hidden-task'));
         if (btn) btn.style.display = 'none';
 
         if (count > MAX_ITEMS) {
-            // Sembunyikan item > 5
             items.forEach((item, index) => {
                 if (index >= MAX_ITEMS) item.classList.add('hidden-task');
             });
@@ -442,7 +364,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.style.display = 'block';
                 btn.textContent = 'View more';
                 
-                // Re-create button to clear old listeners
                 const newBtn = btn.cloneNode(true);
                 btn.parentNode.replaceChild(newBtn, btn);
                 
@@ -465,7 +386,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Header Dropdown Click (Collapse Group)
     const groupHeaders = document.querySelectorAll('.toggle-group-btn');
     groupHeaders.forEach(header => {
         header.addEventListener('click', (e) => {
@@ -475,17 +395,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const icon = header.querySelector('.toggle-icon');
             const viewMoreBtn = card.querySelector('.view-more');
 
-            // Cek display dari style inline atau computed
             const isHidden = content.style.display === 'none';
 
             if (isHidden) {
                 content.style.display = 'block';
                 if (icon) icon.style.transform = 'rotate(0deg)';
-                
-                // Cek apakah viewMore perlu muncul
-                const hasHiddenItems = content.querySelector('.hidden-task');
-                const isExpandedMode = viewMoreBtn && viewMoreBtn.textContent === 'View less';
-                if (viewMoreBtn && (hasHiddenItems || isExpandedMode)) {
+                if (viewMoreBtn && card.getAttribute('data-count') > MAX_ITEMS) {
                     viewMoreBtn.style.display = 'block';
                 }
             } else {
@@ -496,7 +411,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Toast Helper
     const toastContainer = document.getElementById('toast-container');
     function showToast(message, type = 'success') {
         if(!toastContainer) return;
@@ -512,6 +426,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     window.showToast = showToast;
 
-    // --- INIT ---
     fetchAndRenderSchedules();
 });

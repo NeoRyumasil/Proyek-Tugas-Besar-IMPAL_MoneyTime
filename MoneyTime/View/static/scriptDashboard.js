@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // =========================================
   const toastContainer = document.getElementById('toast-container');
   function showToast(message, type = 'success') {
+      if(!toastContainer) return;
       const toast = document.createElement('div');
       toast.className = `toast ${type}`;
       toast.textContent = message;
@@ -34,12 +35,11 @@ document.addEventListener('DOMContentLoaded', function () {
   
   // Data Store
   let allTransactions = [];
-  let allSchedules = []; // [NEW] Variable global untuk menyimpan jadwal
+  let allSchedules = []; 
 
   // --- MAIN SEARCH HANDLER (MONEY & TIME) ---
   function handleGlobalSearch() {
       // 1. Update bagian Money (Transaksi)
-      // Fungsi updateDashboard() sudah memiliki logika membaca value searchInput
       updateDashboard();
 
       // 2. Update bagian Time (Jadwal)
@@ -59,18 +59,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
       // Tampilkan pesan jika tidak ada hasil di kolom Schedule
       const scheduleListSection = document.querySelector('.schedule-list-section');
-      // Hapus pesan "Not Found" lama jika ada
       const oldMsg = document.getElementById('schedule-not-found-msg');
       if(oldMsg) oldMsg.remove();
 
       if (filteredSchedules.length === 0 && query.length > 0) {
-          // Sembunyikan semua grup
           ['group-today', 'group-next7', 'group-later', 'group-completed'].forEach(id => {
               const el = document.getElementById(id);
               if(el) el.style.display = 'none';
           });
           
-          // Tampilkan pesan
           const msgDiv = document.createElement('div');
           msgDiv.id = 'schedule-not-found-msg';
           msgDiv.style.textAlign = 'center';
@@ -81,7 +78,6 @@ document.addEventListener('DOMContentLoaded', function () {
       }
   }
 
-  // Event Listener Search
   if (searchInput) {
       let timeout = null;
       searchInput.addEventListener('input', () => {
@@ -167,11 +163,9 @@ document.addEventListener('DOMContentLoaded', function () {
         currentViewDate.setFullYear(pickerYearView);
         currentViewDate.setMonth(index);
         currentViewDate.setDate(1);
-        
-        // Reset search saat ganti bulan agar fokus ke filter bulan
         if(searchInput) {
             searchInput.value = '';
-            handleGlobalSearch(); // Update both
+            handleGlobalSearch();
         } else {
             updateDashboard();
         }
@@ -202,7 +196,6 @@ document.addEventListener('DOMContentLoaded', function () {
       else updateDashboard(); 
   });
 
-  // --- FETCH DATA TRANSACTIONS ---
   async function fetchTransactions() {
     try {
       const response = await fetch('/api/transactions');
@@ -215,30 +208,23 @@ document.addEventListener('DOMContentLoaded', function () {
     } catch (error) { console.error('Error:', error); }
   }
 
-  // --- UPDATE DASHBOARD (MONEY) ---
   function updateDashboard() {
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     
-    // Ambil query pencarian
     const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
     let displayData = [];
 
-    // Reset Container
     if (listContainer) listContainer.innerHTML = '';
 
-    // [LOGIC FILTERING]
     if (query.length > 0) {
-        // --- MODE PENCARIAN (Global, abaikan bulan) ---
         if (monthLabel) monthLabel.textContent = `Search: "${searchInput.value}"`;
-        
         displayData = allTransactions.filter(t => 
             t.deskripsi.toLowerCase().includes(query) ||
             t.kategori.toLowerCase().includes(query) ||
             t.type.toLowerCase().includes(query)
         );
-
         if (displayData.length === 0) {
             listContainer.innerHTML = `
                 <div style="text-align:center; padding:40px; color:#888;">
@@ -246,27 +232,21 @@ document.addEventListener('DOMContentLoaded', function () {
                     Data "${searchInput.value}" not found.
                 </div>`;
         }
-
     } else {
-        // --- MODE NORMAL (Filter Bulan) ---
         if (monthLabel) monthLabel.textContent = `${monthNames[month]} ${year}`;
-        
         displayData = allTransactions.filter(t => {
             if (!t.tanggal) return false;
             const d = new Date(t.tanggal);
             return d.getFullYear() === year && d.getMonth() === month;
         });
-
         if (displayData.length === 0) {
             listContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No transactions found this month.</div>';
         }
     }
 
-    // [LOGIC SUMMARY] - Hitung income/expense dari data yang DITAMPILKAN
     let inc = 0, exp = 0;
     displayData.forEach(t => { if(t.type === 'Income') inc += t.nominal; else exp += t.nominal; });
     
-    // Global Balance selalu total dari SEMUA transaksi (konsisten dengan Money view)
     const globalBal = allTransactions.reduce((acc, t) => t.type === 'Income' ? acc + t.nominal : acc - t.nominal, 0);
 
     const incomeEl = document.getElementById('monthly-income');
@@ -277,19 +257,12 @@ document.addEventListener('DOMContentLoaded', function () {
     if(expenseEl) expenseEl.textContent = formatRupiah(exp);
     if(balanceEl) balanceEl.textContent = formatRupiah(globalBal);
 
-    // Render List hanya jika ada data (pesan kosong sudah dihandle di atas)
-    if (displayData.length > 0) {
-        renderList(displayData);
-    }
-    
-    // Render Chart (Optional, dashboard.html Anda tidak menampilkan pie chart, tapi logic tetap ada jika diperlukan)
+    if (displayData.length > 0) renderList(displayData);
     renderChart(displayData);
   }
 
   function renderList(transactions) {
     if(!listContainer) return;
-    
-    // Grouping Logic
     const grouped = {};
     transactions.forEach(t => {
       const k = t.tanggal || 'No Date';
@@ -358,33 +331,32 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // =========================================
-  // 5. SCHEDULE LOGIC (FIXED & SEARCH ENABLED)
+  // 5. SCHEDULE LOGIC (REAL-TIME & SORTING)
   // =========================================
   async function fetchAndRenderSchedules() {
       try {
           const response = await fetch('/api/schedules');
           const data = await response.json();
           if (data.success) {
-              allSchedules = data.schedules; // [NEW] Store global untuk search
+              allSchedules = data.schedules;
               assignColorsToScheduleCategories(allSchedules);
-              
-              // Panggil handleGlobalSearch untuk render pertama kali (agar jika ada text di search bar, langsung terfilter)
               handleGlobalSearch();
-              
-              // Hitung badge upcoming (tetap berdasarkan total data, bukan hasil filter)
-              const now = new Date();
-              const pendingCount = allSchedules.filter(s => {
-                  if(s.status === 'Completed') return false;
-                  const schTime = new Date(`${s.date}T${s.time || "00:00"}:00`);
-                  return schTime >= now;
-              }).length;
-              
-              const schCard = document.getElementById('upcoming-schedule-count');
-              if(schCard) schCard.textContent = pendingCount;
+              updateUpcomingCount();
           }
       } catch (error) { console.error('Error fetching schedules:', error); }
   }
   window.fetchSchedules = fetchAndRenderSchedules;
+
+  function updateUpcomingCount() {
+      const now = new Date();
+      const pendingCount = allSchedules.filter(s => {
+          if(s.status === 'Completed') return false;
+          const schTime = new Date(`${s.date}T${s.time || "00:00"}:00`);
+          return schTime >= now;
+      }).length;
+      const schCard = document.getElementById('upcoming-schedule-count');
+      if(schCard) schCard.textContent = pendingCount;
+  }
 
   function renderGroupedSchedules(schedules) {
       const containers = {
@@ -394,10 +366,7 @@ document.addEventListener('DOMContentLoaded', function () {
           completed: document.querySelector('#group-completed .trans-items')
       };
       
-      // Clear containers
       Object.values(containers).forEach(el => { if(el) el.innerHTML = ''; });
-      
-      // Remove Not Found Message if exists inside render loop
       const oldMsg = document.getElementById('schedule-not-found-msg');
       if(oldMsg) oldMsg.remove();
 
@@ -405,70 +374,72 @@ document.addEventListener('DOMContentLoaded', function () {
       const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
       const next7DaysEnd = new Date(todayStart); next7DaysEnd.setDate(todayStart.getDate() + 7);
 
-      const counts = { today: 0, next7: 0, later: 0, completed: 0 };
+      const groups = { today: [], next7: [], later: [], completed: [] };
 
       schedules.forEach(sch => {
           if(!sch.date) return;
-          const timeString = sch.time ? sch.time : "00:00";
+          const timeString = sch.time || "00:00";
           const schDateTime = new Date(`${sch.date}T${timeString}:00`); 
           const schDateOnly = new Date(sch.date); schDateOnly.setHours(0,0,0,0);
-
-          let grp = null;
           const status = (sch.status || 'Pending');
 
           if (status === 'Completed' || schDateTime < now) {
-              grp = 'completed';
+              groups.completed.push(sch);
           } else {
-              if (schDateOnly.getTime() === todayStart.getTime()) grp = 'today';
-              else if (schDateOnly > todayStart && schDateOnly <= next7DaysEnd) grp = 'next7';
-              else if (schDateOnly > next7DaysEnd) grp = 'later';
-          }
-
-          if(grp && containers[grp]) {
-              counts[grp]++;
-              containers[grp].insertAdjacentHTML('beforeend', createScheduleItemHTML(sch, now));
+              if (schDateOnly.getTime() === todayStart.getTime()) groups.today.push(sch);
+              else if (schDateOnly > todayStart && schDateOnly <= next7DaysEnd) groups.next7.push(sch);
+              else if (schDateOnly > next7DaysEnd) groups.later.push(sch);
           }
       });
 
-      updateGroupHeader('group-today', 'Today', counts.today);
-      updateGroupHeader('group-next7', 'Next 7 Days', counts.next7);
-      updateGroupHeader('group-later', 'Later', counts.later);
-      updateGroupHeader('group-completed', 'Completed & Overdue', counts.completed);
-      
+      // --- SORTING: OVERDUE DI ATAS COMPLETED ---
+      groups.completed.sort((a, b) => {
+          const timeA = new Date(`${a.date}T${a.time || "00:00"}:00`);
+          const timeB = new Date(`${b.date}T${b.time || "00:00"}:00`);
+          const isOverdueA = (a.status !== 'Completed' && timeA < now);
+          const isOverdueB = (b.status !== 'Completed' && timeB < now);
+          if (isOverdueA && !isOverdueB) return -1;
+          if (!isOverdueA && isOverdueB) return 1;
+          return timeB - timeA;
+      });
+
+      for (const [key, items] of Object.entries(groups)) {
+          if (containers[key]) {
+              items.forEach(sch => {
+                  containers[key].insertAdjacentHTML('beforeend', createScheduleItemHTML(sch, now));
+              });
+              let title = key.charAt(0).toUpperCase() + key.slice(1);
+              if(key==='next7') title="Next 7 Days";
+              if(key==='completed') title="Completed & Overdue";
+              updateGroupHeader(`group-${key}`, title, items.length);
+          }
+      }
       attachScheduleListeners();
   }
 
   function createScheduleItemHTML(sch, now) {
-      const timeString = sch.time ? sch.time : "00:00";
+      const timeString = sch.time || "00:00";
       const schDateTime = new Date(`${sch.date}T${timeString}:00`);
       const isExpired = schDateTime < now;
-
       const dateObj = new Date(sch.date);
       const dateStr = dateObj.toLocaleDateString('en-US', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
       
-      let onClickAttribute = `onclick="toggleStatus(event, ${sch.id}, '${sch.status}')"`;
-
-      let dateHTML = `<span class="sch-date">${dateStr}</span>`;
-      let checkboxClass = 'sch-checkbox';
-      let iconHTML = '<i class="fa-solid fa-check check-mark"></i>';
+      let checkboxClass = 'sch-checkbox' + (sch.status === 'Completed' ? ' checked' : '');
+      let iconHTML = '<i class="fa-solid fa-check check-mark" style="display:' + (sch.status === 'Completed' ? 'block' : 'none') + '"></i>';
       
-      if(sch.status === 'Completed') {
-          checkboxClass += ' checked';
-          dateHTML = `<span class="sch-date">${dateStr}</span>`;
-      } 
-      else if(isExpired) {
+      let dateHTML = `<span class="sch-date">${dateStr}</span>`;
+      if(sch.status !== 'Completed' && isExpired) {
           dateHTML = `<span class="sch-date text-red">${dateStr}<br><span class="overdue-text">(Overdue)</span></span>`;
       }
 
       const bgColor = getCategoryColorSchedule(sch.category||"Other");
-      const textColor = '#ffffff';
       const itemJson = JSON.stringify(sch).replace(/"/g, '&quot;');
 
       return `
       <div class="t-item schedule-row" data-json="${itemJson}">
           <div class="sch-left">
               <div class="priority-dot ${(sch.priority||'none').toLowerCase()}"></div>
-              <div class="${checkboxClass}" ${onClickAttribute}>
+              <div class="${checkboxClass}" onclick="toggleStatus(event, ${sch.id}, '${sch.status}')">
                   ${iconHTML}
               </div>
               <div class="sch-info">
@@ -477,7 +448,7 @@ document.addEventListener('DOMContentLoaded', function () {
               </div>
           </div>
           <div class="sch-center">
-            <span class="t-badge" style="background-color: ${bgColor}; color: ${textColor};">${sch.category}</span>
+            <span class="t-badge" style="background-color: ${bgColor}; color: #fff;">${sch.category}</span>
           </div>
           <div class="sch-right">${dateHTML}</div>
       </div>`;
@@ -487,9 +458,8 @@ document.addEventListener('DOMContentLoaded', function () {
       const el = document.getElementById(id);
       if(el) {
           el.querySelector('.day-name').textContent = `${title} (${count})`;
-          
-          // Show container only if count > 0
           el.style.display = count > 0 ? 'block' : 'none';
+          el.setAttribute('data-count', count);
           
           const items = el.querySelectorAll('.schedule-row');
           const btn = el.querySelector('.view-more');
@@ -501,7 +471,6 @@ document.addEventListener('DOMContentLoaded', function () {
                   btn.style.display = 'block';
                   const newBtn = btn.cloneNode(true);
                   btn.parentNode.replaceChild(newBtn, btn);
-
                   newBtn.onclick = (e) => {
                       e.stopPropagation();
                       const expand = newBtn.textContent === 'View more';
@@ -516,74 +485,46 @@ document.addEventListener('DOMContentLoaded', function () {
       }
   }
 
+  // --- MODIFIKASI: TOGGLE STATUS INSTAN (REAL-TIME) ---
   window.toggleStatus = async function(e, id, currentStatus) {
         e.stopPropagation();
         let newStatus = (currentStatus === 'Completed') ? 'Pending' : 'Completed';
 
-        const item = e.target.closest('.t-item');
-        const checkbox = item.querySelector('.sch-checkbox'); 
-        const icon = checkbox.querySelector('i'); 
+        const idx = allSchedules.findIndex(s => s.id === id);
+        if (idx !== -1) {
+            const oldStatus = allSchedules[idx].status;
+            allSchedules[idx].status = newStatus;
 
-        // Optimistic UI
-        if (newStatus === 'Completed') {
-            checkbox.className = 'sch-checkbox checked';
-            if(icon) {
-                icon.className = 'fa-solid fa-check check-mark';
-                icon.style.display = 'block';
+            // Update UI lokal instan
+            handleGlobalSearch();
+            updateUpcomingCount();
+
+            try {
+                const response = await fetch('/update-schedule-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id, status: newStatus })
+                });
+                const res = await response.json();
+                if (!res.success) throw new Error();
+            } catch (err) {
+                allSchedules[idx].status = oldStatus;
+                handleGlobalSearch();
+                updateUpcomingCount();
+                if (typeof showToast === 'function') showToast("Koneksi gagal, status dikembalikan.", "error");
             }
-            const dateContainer = item.querySelector('.sch-right .sch-date');
-            if(dateContainer) {
-                dateContainer.classList.remove('text-red'); 
-                const overdueSpan = dateContainer.querySelector('.overdue-text');
-                if(overdueSpan) overdueSpan.style.display = 'none'; 
-                dateContainer.innerHTML = dateContainer.innerHTML.split('<br>')[0];
-            }
-        } else {
-            checkbox.className = 'sch-checkbox';
-            if(icon) icon.style.display = 'none';
-        }
-
-        const originalOnclick = checkbox.getAttribute('onclick');
-        checkbox.setAttribute('onclick', `toggleStatus(event, ${id}, '${newStatus}')`);
-
-        try {
-            const response = await fetch('/update-schedule-status', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id, status: newStatus })
-            });
-            const res = await response.json();
-            if (!res.success) throw new Error("Gagal update status");
-            await fetchAndRenderSchedules();
-
-        } catch (err) {
-            console.error('Failed to update status', err);
-            checkbox.setAttribute('onclick', originalOnclick);
-            if (typeof showToast === 'function') showToast("Koneksi gagal, status dikembalikan.", "error");
-            await fetchAndRenderSchedules();
         }
     };
 
   function attachScheduleListeners() {
       document.querySelectorAll('.schedule-row').forEach(row => {
-          row.addEventListener('click', () => {
+          row.onclick = () => {
               const data = JSON.parse(row.getAttribute('data-json'));
-              const modalData = {
-                  id: data.id,
-                  title: data.title, 
-                  description: data.description, 
-                  time: data.time,
-                  date: data.date,
-                  category: data.category,
-                  priority: data.priority,
-                  status: data.status
-              };
-              if(typeof openScheduleDetail === 'function') openScheduleDetail(modalData);
-          });
+              if(typeof openScheduleDetail === 'function') openScheduleDetail(data);
+          };
       });
   }
 
-  // --- DROPDOWN DASHBOARD (Collapse Group) ---
   const groupHeaders = document.querySelectorAll('.toggle-group-btn');
   groupHeaders.forEach(header => {
       header.addEventListener('click', (e) => {
@@ -592,26 +533,15 @@ document.addEventListener('DOMContentLoaded', function () {
           const content = card.querySelector('.trans-items');
           const icon = header.querySelector('.toggle-icon');
           const viewMoreBtn = card.querySelector('.view-more');
-
           const isHidden = content.style.display === 'none';
 
-          if (isHidden) {
-              content.style.display = 'block';
-              if (icon) icon.style.transform = 'rotate(0deg)';
-              const hasHiddenItems = content.querySelector('.hidden-task');
-              const isExpandedMode = viewMoreBtn && viewMoreBtn.textContent === 'View less';
-              if (viewMoreBtn && (hasHiddenItems || isExpandedMode)) {
-                  viewMoreBtn.style.display = 'block';
-              }
-          } else {
-              content.style.display = 'none';
-              if (icon) icon.style.transform = 'rotate(-90deg)';
-              if (viewMoreBtn) viewMoreBtn.style.display = 'none';
-          }
+          content.style.display = isHidden ? 'block' : 'none';
+          if (icon) icon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
+          if (viewMoreBtn && !isHidden) viewMoreBtn.style.display = 'none';
+          else if (viewMoreBtn && isHidden && (card.getAttribute('data-count') > 5)) viewMoreBtn.style.display = 'block';
       });
   });
 
-  // --- INIT ---
   fetchTransactions();
   fetchAndRenderSchedules();
 });

@@ -106,25 +106,12 @@ function openScheduleDetail(data) {
     const matchingOption = prioContainer.querySelector(`.priority-option.${targetPrio}`);
     if (matchingOption) matchingOption.classList.add('active');
     
-    // --- HIDE EDIT BUTTON IF OVERDUE (OPTIONAL LOGIC) ---
+    // --- SHOW EDIT BUTTON FOR ALL (INCLUDING OVERDUE & COMPLETED) ---
     const editBtn = document.getElementById('schDetailEditBtn');
-    
-    const now = new Date();
-    const timeString = data.time ? data.time : "00:00";
-    const itemDateTime = new Date(`${data.date}T${timeString}:00`);
-    
-    // Cek Kondisi: Apakah Expired (Overdue)
-    const isExpired = itemDateTime < now;
 
     if (editBtn) {
-        // Jika sudah expired/overdue dan belum completed, mungkin kita restrict edit
-        // Atau jika Completed juga bisa di-restrict. Sesuaikan kebijakan.
-        // Di sini saya buat jika Expired -> Hide Edit agar konsisten
-        if (isExpired) {
-            editBtn.style.display = 'none'; 
-        } else {
-            editBtn.style.display = 'flex'; 
-        }
+    // Selalu tampilkan tombol edit agar status Completed & Overdue bisa diedit
+        editBtn.style.display = 'flex'; 
     }
 
     detailOverlay.style.display = 'flex';
