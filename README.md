@@ -49,7 +49,7 @@ pip install flask
 pip install requests
 pip install python-dotenv
 pip install groq
-pip install pyodbc
+pip install pymssql
 ```
 
 ### Step 3 Setup Environtment
@@ -61,11 +61,23 @@ pip install pyodbc
   FLASK_ENV=development
   FLASK_RUN_PORT=8080
 
-  GROQ_API_KEY = INSERT YOUR KEY HERE
+  DB_SERVER=your-server.database.windows.net
+  DB_DATABASE=your_db_name
+  DB_USERNAME=your_username
+  DB_PASSWORD=your_password
+  
+  EMAIL_SENDER=your_email@gmail.com
+  EMAIL_PASSWORD=your_app_password
+
+  SECRET_KEY = YOUR_SECRET_KEY
+  
+  GROQ_API_KEY = INSERT_YOUR_KEY_HERE
   ```
   
 ### Step 4 Access Azure Database
-- Donwload Azure ODBC driver
+- Make the SQL Server in Azure
+- Make the database
+- Access it with pymssql
 
 ### Step 5 Run the Project
 ```bash
