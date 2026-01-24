@@ -152,6 +152,7 @@ def toggle_notif_status():
 #           AUTHENTICATION ROUTES
 # ==========================================
 
+# Register Route
 @app.route('/register', methods=['POST'])
 def register():
     username = request.form.get('register_username')
@@ -159,31 +160,28 @@ def register():
     password = request.form.get('register_password')
     confirm = request.form.get('register_confirm')
 
-    if password == confirm:
-        # Cek ketersediaan username/email
-        if user_controller.check_username_exists(username):
-            return jsonify({'success': False, 'message': 'Username already exists.'})
-        if user_controller.check_email_exists(email):
-            return jsonify({'success': False, 'message': 'Email already exists.'})
+    # Validasi
+    validation = user_controller.validate_registration(username, email, password, confirm)
 
-        # Simpan sementara di session (Password Plain Text, nanti di-hash di controller saat verifikasi)
-        session['pending_registration'] = {
-            'username': username,
-            'email': email,
-            'password': password
-        }
-        
-        # Simpan email untuk validasi
-        session['pending_validation_email'] = email
-
-        return jsonify({
-            'success': True, 
-            'message': 'Please verify your email.', 
-            'redirect': '/account-validation'
-        })
+    if not validation['success']:
+        return jsonify(validation)
     
-    return jsonify({'success': False, 'message': 'Passwords do not match.'})
+    # Simpan Session untuk sementara
+    session['pending_registration'] = {
+        'username' : username,
+        'email' : email,
+        'password' : password
+    }
 
+    session['pending_validation_email'] = email
+
+    return jsonify({
+        'success' : True,
+        'message' : 'Please Verify Your Email',
+        'redirect' : '/account-validation'
+    })
+
+# Login Route
 @app.route('/login', methods=['POST'])
 def login():
     # Mengambil input (username bisa berupa email atau username biasa)
@@ -191,24 +189,25 @@ def login():
     password_input = request.form.get('login_password')
     remember_me = request.form.get('remember_me')
 
-    # Controller login akan mengecek apakah input cocok dengan email ATAU username di DB
-    if user_controller.login(username_input, username_input, password_input):
-        user = user_controller.get_current_user()
-        
-        # Simpan data penting ke session
+    # Autentikasi
+    user = user_controller.authenticate(username_input, password_input)
+
+    # Handle autentikasi
+    if user:
         session['user'] = {
-            'id': user.get_user_id(),
+            'id': user.user_id,
             'username': user.username,
             'email': user.email_address
         }
-        
+    
         if remember_me == 'on':
             session.permanent = True
-            
-        return jsonify({'success': True, 'message': 'Login successful'})
-    else:
-        return jsonify({'success': False, 'message': 'Invalid email or password'})
+    
+        return jsonify({'success': True, 'message' : 'Login Success'})
 
+    return jsonify({'success' : False, 'message' : 'Email atau Password Salah'})
+            
+# Logout Route
 @app.route('/logout')
 def logout():
     session.pop('user', None)
@@ -218,95 +217,98 @@ def logout():
 #           ACCOUNT VALIDATION
 # ==========================================
 
+# Account Validation Route
 @app.route('/account-validation')
 def account_validation():
     if 'pending_registration' not in session:
         return redirect(url_for('auth'))
     return render_template('account_validation.html')
 
+# Send Validation OTP Route
 @app.route('/send-validation-otp', methods=['POST'])
 def send_validation_otp():
-    email = request.form.get('email')
+    email = request.form.get('email') or session.get('pending_validation_email')
+
     if not email:
-        email = session.get('pending_validation_email')
-    if not email:
-        return jsonify({'success': False, 'message': 'Email not found. Please register again.'})
-        
+        return jsonify({'success' : False, 'message' : 'Email tidak ditemukan'})
+    
     otp = user_controller.send_validation_otp(email)
+
     if otp:
         session['validation_otp'] = otp
         session['validation_email'] = email
-        return jsonify({'success': True, 'message': 'OTP sent.'})
-    else:
-        return jsonify({'success': False, 'message': 'Failed to send OTP.'})
+        return jsonify({'success' : True, 'message' : 'OTP sent.'})
+    
+    return jsonify({'success' : False, 'message' : 'Failed send OTP.'})
 
+# OTP Validation Verification Route
 @app.route('/verify-validation-otp', methods=['POST'])
 def verify_validation_otp():
     user_otp = request.form.get('otp')
     server_otp = session.get('validation_otp')
-    
     pending_reg = session.get('pending_registration')
 
-    if server_otp and user_otp == str(server_otp) and pending_reg:
-        # === SIMPAN KE DATABASE (Final Step) ===
-        reg_username = pending_reg['username']
-        reg_password = pending_reg['password']
-        reg_email = pending_reg['email']
+    if server_otp and str(user_otp) == str(server_otp) and pending_reg:
+        success = user_controller.finalize_registration(
+            pending_reg['username'],
+            pending_reg['email'],
+            pending_reg['password']
+        )
 
-        # Controller akan melakukan Hashing Password sebelum Insert
-        result = user_controller.registrasi(reg_username, reg_password, reg_email)
-        
-        if result == True:
-            # Bersihkan session
+        if success:
+            # Clear Session
             session.pop('validation_otp', None)
             session.pop('validation_email', None)
             session.pop('pending_validation_email', None)
             session.pop('pending_registration', None)
-            
-            return jsonify({'success': True, 'message': 'Account verified successfully.'})
-        else:
-            return jsonify({'success': False, 'message': 'Database error or User exists.'})
-            
-    elif not pending_reg:
-        return jsonify({'success': False, 'message': 'Session expired. Please register again.'})
-    else:
-        return jsonify({'success': False, 'message': 'Invalid verification code.'})
+            return jsonify({'success' : True, 'message' : 'Akun Terverifikasi'})
+        
+        return jsonify({'success' : False, 'message' : 'Error Database'})
+    
+    return jsonify({'success' : False, 'message' : 'Session Expired atau Kode Verifikasi Invalid'})
 
 # ==========================================
 #           FORGOT PASSWORD
 # ==========================================
 
+# Forgot Password Route
 @app.route('/forgot-password')
 def forgot_password():
     return render_template('forgot_password.html')
 
+# Send OTP Route
 @app.route('/send-otp', methods=['POST'])
 def send_otp():
     email = request.form.get('email')
     if not user_controller.check_email_exists(email):
         return jsonify({'success': False, 'message': 'Email not found.'})
     
-    otp = user_controller.send_otp(email)
+    otp = user_controller.send_reset_otp(email)
+
     if otp:
         session['reset_otp'] = otp
         session['reset_email'] = email
         return jsonify({'success': True, 'message': 'OTP sent.'})
-    else:
-        return jsonify({'success': False, 'message': 'Failed to send email.'})
+    
+    return jsonify({'success': False, 'message': 'Failed to send email.'})
 
+# Verify OTP Route
 @app.route('/verify-otp', methods=['POST'])
 def verify_otp():
     user_otp = request.form.get('otp')
     server_otp = session.get('reset_otp')
+
     if server_otp and user_otp == str(server_otp):
         return jsonify({'success': True, 'message': 'OTP Valid.'})
-    else:
-        return jsonify({'success': False, 'message': 'Invalid OTP.'})
+    
+    return jsonify({'success': False, 'message': 'Invalid OTP.'})
 
+# Update Password Route
 @app.route('/update-password', methods=['POST'])
 def update_password():
     new_password = request.form.get('new_password')
     email = session.get('reset_email')
+
     if not email:
         return jsonify({'success': False, 'message': 'Session expired.'})
     
@@ -314,8 +316,8 @@ def update_password():
         session.pop('reset_otp', None)
         session.pop('reset_email', None)
         return jsonify({'success': True, 'message': 'Password updated successfully.'})
-    else:
-        return jsonify({'success': False, 'message': 'Failed to update password.'})
+    
+    return jsonify({'success': False, 'message': 'Failed to update password.'})
 
 # ==========================================
 #           TRANSACTION ROUTES
