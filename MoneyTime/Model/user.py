@@ -1,37 +1,95 @@
 from Controller.databaseController import db_connect
 
 class User ():
-    def __init__(self, user_id: str, username: str, password: str, email_address: str):
-        self.__user_id = user_id
+    def __init__(self, user_id = None, username = None, email_address = None, password = None, role = 'user'):
+        self.user_id = user_id
         self.username = username
         self.password = password
         self.email_address = email_address
+        self.role = role
 
     def get_user_id(self):
-        return self.__user_id
+        return self.user_id
+    
+    # Cari email atau username
+    @staticmethod
+    def find_email_or_username(identifier):
+        conn = db_connect()
+        cursor = conn.cursor()
 
-    def set_user_id(self, new_id: str):
-        self.__user_id = new_id
+        try :
+            sql = """
+                SELECT id, username, email, password, role
+                FROM [dbo].[user]
+                WHERE email = %s OR username = %s
+            """
+            cursor.execute(sql, (identifier, identifier))
+            row = cursor.fetchone()
 
-    def registrasi(self):
-        print(f"User {self.username} berhasil terdaftar dengan email {self.email_address}.")
+            if row:
+                return User(user_id=row[0], username=row[1], email_address=row[2], password=row[3], role=row[4])
+            return None
+        
+        finally:
+            conn.close()
+    
+    # Cari apakah username dan email sudah ada
+    @staticmethod
+    def check_user_email_exist(username, email):
+        conn = db_connect()
+        cursor = conn.cursor()
 
-    def login(self, username: str, password: str):
-        if self.username == username and self.password == password:
-            print("Login berhasil!")
+        try:
+            sql = """
+                SELECT COUNT(*) FROM [dbo].[User]
+                WHERE username = %s OR email = %s
+            """
+            cursor.execute(sql, (username, email))
+            count = cursor.fetchone()[0]
+            return count > 0
+        
+        finally:
+            conn.close()
+    
+    # Membuat User
+    @staticmethod
+    def create_user(username, hashed_password, email):
+        conn = db_connect
+        cursor = conn.cursor()
+
+        try:
+            sql = """
+                INSERT INTO [dbo].[User] (username, password, email, role)
+                VALUES (%s, %s, %s, 'user')
+            """
+            cursor.execute(sql, (username, hashed_password, email))
+            conn.commit()
             return True
-        else:
-            print("Username atau password salah.")
+        
+        except Exception as error:
+            print(f"Error membuat user: {error}")
             return False
+        
+        finally:
+            conn.close()
+    
+    # Update Password User
+    @staticmethod
+    def update_password(email, hashed_password):
+        conn = db_connect()
+        cursor = conn.cursor()
 
-    def lupa_password(self, email: str):
-        if self.email_address == email:
-            print("Link reset password telah dikirim ke email Anda.")
-        else:
-            print("Email tidak ditemukan.")
-
-    def cari_kategori_aktivitas(self, kategori: str):
-        print(f"Mencari aktivitas dengan kategori: {kategori}")
-
-    def tampilan_aktivitas_dan_finansial(self):
-        print(f"Menampilkan data aktivitas dan finansial untuk user {self.username}.")
+        try:
+            sql = """
+                UPDATE [dbo].[User]
+                SET password = %s WHERE email = %s
+            """
+            conn.commit()
+            return True
+        
+        except Exception as error:
+            print(f"Error Update Password: {error}")
+            return False
+        
+        finally:
+            conn.close()
