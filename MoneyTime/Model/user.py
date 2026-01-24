@@ -84,6 +84,7 @@ class User ():
                 UPDATE [dbo].[User]
                 SET password = %s WHERE email = %s
             """
+            cursor.execute(sql, (hashed_password, email))
             conn.commit()
             return True
         
