@@ -1,6 +1,6 @@
 from Controller.databaseController import db_connect
 
-class User ():
+class User():
     def __init__(self, user_id = None, username = None, email_address = None, password = None, role = 'user'):
         self.user_id = user_id
         self.username = username

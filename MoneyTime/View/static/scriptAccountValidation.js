@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DOM ELEMENTS ---
     const formVerify = document.getElementById('form-verify-otp');
     const otpError = document.getElementById('otp-error');
-    const verifyBtn = document.getElementById('verify-btn');
     const toastContainer = document.getElementById('toast-container');
     const resendLink = document.getElementById('resend-link');
     const otpInputs = document.querySelectorAll('.otp-inputs input');
