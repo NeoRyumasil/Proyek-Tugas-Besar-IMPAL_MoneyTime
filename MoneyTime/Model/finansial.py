@@ -1,53 +1,61 @@
+from typing import Optional
 from Controller.databaseController import db_connect
 
 class Finansial():
-    # Constructor
-    def __init__(self, finansial_id: str, budget: int, kategori: str, status: str):
-        self.__finansial_id = finansial_id
-        self.__budget = budget
-        self.__kategori = kategori
-        self.__status = status
-        
-    def get_finansial_id(self):
-        return self.__finansial_id   
+    
+    # Cari data User dan Kategori
+    def get_user_and_category(self, user_id : str, kategori : str) -> Optional[int]:
 
-    def set_finansial_id(self, value):
-        self.__finansial_id = value 
+        try :
+            conn = db_connect()
+            cursor = conn.cursor()
+            sql = """
+                SELECT FinansialID FROM [dbo].[Finansial]
+                WHERE UserID = %s AND Kategori = %s
+            """
+            cursor.execute(sql, (user_id, kategori))
+            row = cursor.fetchone()
+            if row :
+                return int(row[0])
+            else:
+                return None
         
-    def get_budget(self):
-        return self.__budget
-    
-    def set_budget(self, value):
-        self.__budget = value
-
-    def kategori(self):
-        return self.__kategori
-
-    def kategori(self, value):
-        self.__kategori = value
-    
-    def get_status(self):
-        return self.__status
-    
-    def set_status(self, value):
-        self.__status = value
+        except Exception as error:
+            print(f"Error get user dan kategori: {error}")
+            return None
         
-    def edit_data_finansial(self):
-        # logic disini
-        pass
-    
-    def tambah_data_finansial(self):
-        # logic disini
-        pass
-    
-    def set_budget(self):
-        # logic disini
-        pass
-    
-    def set_kategori_finansial(self):
-        # logic disini
-        pass
-    
-    def hitung_sisa_budget(self):
-        # logic disini
-        pass
+        finally:
+            conn.close()
+        
+    # Buat Data Finansial
+    def create_financial(self, user_id : str, kategori : str, budget : int = 0, status : str = 'active') -> Optional[int]:
+
+        try:
+            conn = db_connect()
+            cursor = conn.cursor()
+            sql = """
+                INSERT INTO [dbo].[Finansial] (UserID, budget, kategori, status)
+                VALUES (%s, %s, %s, %s)
+            """
+            cursor.execute(sql, (user_id, budget, kategori, status))
+            conn.commit()
+
+            sql = """
+                SELECT TOP 1 FinansialID FROM [dbo].[Finansial]
+                WHERE UserID = %s AND kategori = %s 
+                ORDER BY FinansialID DESC
+            """
+            cursor.execute(sql, (user_id, kategori))
+            row = cursor.fetchone()
+
+            if row :
+                return int(row[0])
+            else :
+                return None
+        
+        except Exception as error :
+            print(f"Error buat Finansial: {error}")
+            return None
+        
+        finally:
+            conn.close()
