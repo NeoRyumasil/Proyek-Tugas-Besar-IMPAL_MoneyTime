@@ -10,7 +10,7 @@ class Pemasukkan():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                INSERT INTO [dbo].[Pemasukkan] (FinansialID, deskripsi, nominal, tanggal)
+                INSERT INTO Pemasukkan (finansialid, deskripsi, nominal, tanggal)
                 VALUES (%s, %s, %s, %s)
             """
             cursor.execute(sql, (finansial_id, deskripsi, nominal, tanggal))
@@ -30,15 +30,15 @@ class Pemasukkan():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                SELECT p.PemasukkanID, p.deskripsi, p.nominal, f.kategori, 'Income'
-                FROM [dbo].[Pemasukkan] p 
-                JOIN [dbo].[Finansial] f ON p.FinansialID = f.FinansialID
-                WHERE f.UserID = %s
+                SELECT p.pemasukkanid, p.deskripsi, p.nominal, f.kategori, 'Income'
+                FROM Pemasukkan p 
+                JOIN Finansial f ON p.finansialid = f.finansialid
+                WHERE f.userid = %s
             """
             parameter = [user_id]
 
             if keyword:
-                sql += "AND (p.deskripis LIKE %s OR f.kategori LIKE %s)"
+                sql += "AND (p.deskripsi LIKE %s OR f.kategori LIKE %s)"
                 parameter.extend([f"%{keyword}%", f"%{keyword}%"])
             
             cursor.execute(sql, tuple(parameter))
@@ -58,9 +58,10 @@ class Pemasukkan():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                DELETE p FROM [dbo].[Pemasukkan] p
-                JOIN [dbo].[Finansial] f ON p.FinasialID = f.FinansialID
-                WHERE p.PemasukkanID = %s AND f.UserID = %s
+                DELETE FROM Pemasukkan p
+                USING Finansial f
+                WHERE p.finansialid = f.finansialid
+                AND p.pemasukkanid = %s AND f.userid = %s
             """
             cursor.execute(sql, (transaction_id, user_id))
             conn.commit()
@@ -80,10 +81,11 @@ class Pemasukkan():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                UPDATE p SET p.deskripsi = %s, p.nominal = %s, p.Tanggal = %s, p.FinansialID = %s
-                FROM [dbo].[Pemasukkan] p
-                JOIN [dbo].[Finansial] f ON p.FinansialID = f.FinansialID
-                WHERE p.PemasukkanID = %s AND f.UserID = %s
+                UPDATE Pemasukkan p
+                SET deskripsi = %s, nominal = %s, tanggal = %s,, finansialid = %s
+                FROM Finansial f
+                WHERE p.finansialid = f.finansialid
+                AND p.pemasukkanid = %s AND f.userid = %s
             """
             cursor.execute(sql, (deskripsi, nominal, tanggal, finansial_id, transaction_id, user_id))
             conn.commit()
