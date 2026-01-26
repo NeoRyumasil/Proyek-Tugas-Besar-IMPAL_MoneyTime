@@ -13,7 +13,7 @@ class Aktivitas():
             cursor = conn.cursor()
             sql = """
                     INSERT INTO Aktivitas
-                    (UserID, Nama_Aktivitas, Deskripsi, Tenggat, Waktu, Kategori, Prioritas, Status)
+                    (userid, nama_aktivitas, deskripsi, tenggat, waktu, kategori, prioritas, status)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pending')
             """
             cursor.execute(sql, (user_id, title, description, tenggat_waktu, time, category, priority))
@@ -34,9 +34,9 @@ class Aktivitas():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                SELECT AktivitasID, Nama_Aktivitas, Deskripsi, Tenggat, Waktu, Kategori, Prioritas, Status
+                SELECT aktivitasid, nama_aktivitas, deskripsi, tenggat, waktu, kategori, prioritas, status
                 FROM Aktivitas
-                WHERE UserID = %s
+                WHERE userid = %s
             """
             cursor.execute(sql, (user_id,))
             return cursor.fetchall()
@@ -56,8 +56,8 @@ class Aktivitas():
             cursor = conn.cursor()
             sql = """
                 UPDATE Aktivitas
-                SET Status = %s 
-                WHERE AktivitasID = %s
+                SET status = %s 
+                WHERE aktivitasid = %s
             """
             cursor.execute(sql, (status, aktivitas_id))
             conn.commit()
@@ -78,13 +78,13 @@ class Aktivitas():
             cursor = conn.cursor()
             sql = """
                 UPDATE Aktivitas
-                SET Nama_Aktivitas = %s,
-                    Deskripsi = %s,
-                    Tenggat = %s,
-                    Waktu = %s,
-                    Kategori = %s,
-                    Prioritas = %s
-                WHERE AktivitasID = %s
+                SET nama_aktivitas = %s,
+                    deskripsi = %s,
+                    tenggat = %s,
+                    waktu = %s,
+                    kategori = %s,
+                    prioritas = %s
+                WHERE aktivitasid = %s
             """
             cursor.execute(sql, (title, description, tenggat_waktu, time, category, priority, aktivitas_id))
             conn.commit()
@@ -105,7 +105,7 @@ class Aktivitas():
             cursor = conn.cursor()
             sql = """
                 DELETE FROM Aktivitas
-                WHERE AktivitasID = %s
+                WHERE aktivitasid = %s
             """
             cursor.execute(sql, (aktivitas_id,))
             conn.commit()
@@ -125,8 +125,8 @@ class Aktivitas():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                SELECT DISTINCT Kategori FROM Aktivitas
-                WHERE UserID = %s
+                SELECT DISTINCT kategori FROM Aktivitas
+                WHERE userid = %s
             """
             cursor.execute(sql, (user_id,))
             rows = cursor.fetchall()
