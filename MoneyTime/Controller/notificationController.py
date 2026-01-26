@@ -1,7 +1,4 @@
 import datetime
-from Controller.databaseController import db_connect
-from Controller.finansialController import FinansialController
-
 import smtplib
 import os
 
@@ -9,249 +6,156 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
 
+from Model.notifikasi import Notifikasi
 
 class NotificationController():
     def __init__(self):
-        pass
+        self.model = Notifikasi()
 
+    # Ambil notifikasi
     def get_notifications(self, user_id):
-        conn = None
-        try:
-            conn = db_connect()
-            cursor = conn.cursor()
+        rows = self.model.get_pending_notifications(user_id)
 
-            # Query mengambil data
-            sql = """
-                SELECT NamaAktivitas, DeskripsiAktivitas, TenggatWaktu, KategoriAktivitas, Waktu, AktivitasID, IsRead
-                FROM [dbo].[Aktivitas] 
-                WHERE UserID = %s AND StatusAktivitas = 'Pending'
-                ORDER BY TenggatWaktu ASC
-            """
+        notification = []
+        now = datetime.datetime.now()
+
+        for row in rows:
+            title = row[0]
+            deskripsi = row[1]
+            tenggat_waktu_raw = row[2]
+            kategori = row[3]
+            waktu = row[4]
+            id_aktivitas = row[5]
+            is_read = row[6]
+        
+            tenggat_waktu = self.parse_datetime(tenggat_waktu_raw)
             
-            cursor.execute(sql, (user_id,))
-            rows = cursor.fetchall()
+            if not tenggat_waktu:
+                continue
 
-            notifications = []
+            tenggat_waktu = self.apply_custom_time(tenggat_waktu, waktu)
+
+            delta = tenggat_waktu - now
+            time_info, notif_type = self.calculate_time(delta)
+
+            notification.append({
+                'id' : id_aktivitas,
+                'title' : title,
+                'message' : deskripsi,
+                'date' : time_info,
+                'category' : kategori,
+                'type' : notif_type,
+                'is_read' : is_read
+            })
+
+            return notification
+        
+    # Parsing datetime
+    def parse_datetime(self, date):
+        if not date:
+            return None
+        
+        if isinstance(date, datetime.date) and not isinstance(date, datetime.datetime):
+            return datetime.datetime.combine(date, datetime.time.min)
+        
+        if isinstance(date, str):
+
+            try:
+                return datetime.datetime.strptime(date, '%d-%m-%Y %H:%M:%S')
             
-            # Waktu sekarang (datetime object)
-            now = datetime.datetime.now()
+            except:
 
-            for row in rows:
-                title = row[0]
-                deskripsi = row[1]
-                tenggat_waktu_raw = row[2] 
-                kategori = row[3]
-                waktu_str = row[4]
-                id_aktivitas = row[5]
-                is_read = row[6]
-
-                # --- FIX: Konversi datetime.date ke datetime.datetime ---
-                tenggat_waktu = None
+                try:
+                    return datetime.datetime.strptime(date, '%d-%m-%Y')
                 
-                if tenggat_waktu_raw:
-                    # Jika tipe datanya 'date' (hanya tanggal), ubah jadi 'datetime' (tanggal + 00:00:00)
-                    if isinstance(tenggat_waktu_raw, datetime.date) and not isinstance(tenggat_waktu_raw, datetime.datetime):
-                        tenggat_waktu = datetime.datetime.combine(tenggat_waktu_raw, datetime.time.min)
-                    # Jika tipe datanya string (kasus jarang di pyodbc tapi mungkin terjadi)
-                    elif isinstance(tenggat_waktu_raw, str):
-                        try:
-                            tenggat_waktu = datetime.datetime.strptime(tenggat_waktu_raw, '%Y-%m-%d %H:%M:%S')
-                        except:
-                            try:
-                                tenggat_waktu = datetime.datetime.strptime(tenggat_waktu_raw, '%Y-%m-%d')
-                            except:
-                                tenggat_waktu = None
-                    # Jika sudah datetime, pakai langsung
-                    else:
-                        tenggat_waktu = tenggat_waktu_raw
+                except:
+                    return None
+        
+        return date
+    
+    # Custom Date
+    def apply_custom_date(self, date, time):
+        if time:
 
-                if not tenggat_waktu:
-                    continue
-
-                # --- FIX: Update Jam jika kolom Waktu diisi ---
-                # Jika user mengisi kolom 'Waktu' terpisah (misal "14:30"), kita update jam pada tenggat_waktu
-                if waktu_str:
-                    try:
-                        # Parsing string waktu (misal "14:30:00" atau "14:30")
-                        jam_str = str(waktu_str)
-                        if len(jam_str) >= 5:
-                            jam_obj = datetime.datetime.strptime(jam_str[:5], '%H:%M').time()
-                            # Gabungkan Tanggal asli dengan Jam baru
-                            tenggat_waktu = datetime.datetime.combine(tenggat_waktu.date(), jam_obj)
-                            display_time = jam_str[:5]
-                        else:
-                            display_time = tenggat_waktu.strftime('%H:%M')
-                    except:
-                        display_time = tenggat_waktu.strftime('%H:%M')
-                else:
-                    display_time = tenggat_waktu.strftime('%H:%M')
-
-                # Hitung selisih (Sekarang aman karena keduanya datetime)
-                delta = tenggat_waktu - now
+            try:
+                time_str = str(time)
+                if len(time_str) >= 5:
+                    time_obj = datetime.datetime.strptime(time_str[:5], '%H:%M').time()
+                    return datetime.datetime.combine(date.date(), time_obj)
                 
-                notif_type = ""
-                time_info = ""
-                message = ""
+            except:
+                pass
 
-                # --- LOGIKA STATUS ---
-                if delta.total_seconds() < 0:
-                    notif_type = "Overdue"
-                    past_seconds = abs(delta.total_seconds())
-                    
-                    if past_seconds < 60:
-                        time_info = "Just now"
-                    elif past_seconds < 3600:
-                        time_info = f"{int(past_seconds / 60)} min ago"
-                    elif past_seconds < 86400:
-                        time_info = f"{int(past_seconds / 3600)}h ago"
-                    else:
-                        time_info = f"{int(past_seconds / 86400)} days ago"
-                    message = deskripsi
-                else:
-                    notif_type = "Reminder"
-                    future_seconds = delta.total_seconds()
-                    
-                    if future_seconds < 60:
-                        time_info = "< 1 min"
-                    elif future_seconds < 3600:
-                        time_info = f"In {int(future_seconds / 60)} min"
-                    elif future_seconds < 86400:
-                        time_info = f"In {int(future_seconds / 3600)} hours"
-                    else:
-                        days = int(future_seconds / 86400)
-                        time_info = f"In {days} days"
-                    
-                    message = deskripsi
-
-                notifications.append({
-                    'id': id_aktivitas,
-                    'title': title,
-                    'message': message,
-                    'date': time_info, 
-                    'category': kategori,
-                    'type': notif_type,
-                    'is_read': is_read
-                })
+        return date
+    
+    # Hitung Waktu
+    def calculate_time(self, delta):
+        if delta.total_seconds() < 0:
+            notif_type = "Overdue"
+            past_seconds = abs(delta.total_seconds())
             
-            return notifications
+            if past_seconds < 60:
+                return "Now", notif_type
+            elif past_seconds < 3600:
+                return f"{int(past_seconds/60)} minutes ago", notif_type
+            elif past_seconds < 86400:
+                return f"{int(past_seconds / 3600)} hours ago", notif_type
+            else:
+                return f"{int(past_seconds / 86400)} days ago", notif_type
+        
+        else:
+            notif_type = "Reminder"
+            future_seconds =  delta.total_seconds()
 
-        except Exception as e:
-            print(f"[ERROR] NotificationController Error: {e}")
-            return []
-        finally:
-            if conn:
-                conn.close()
+            if future_seconds < 60:
+                return "Under 1 Minute", notif_type
+            elif future_seconds < 3600:
+                return f"In {int(future_seconds / 60)} minutes", notif_type
+            elif future_seconds < 86400:
+                return f"In {int(future_seconds / 3600)} hours", notif_type
+            else:
+                days = int(future_seconds / 86400)
+                return f"In {days} days", notif_type
 
+    # Mark All Read
     def mark_all_read(self, user_id):
-        conn = None
-        try:
-            conn = db_connect()
-            cursor = conn.cursor()
-
-            # Query update semua notifikasi user tersebut menjadi IsRead = 1
-            sql = """
-                UPDATE [dbo].[Aktivitas]
-                SET IsRead = 1
-                WHERE UserID = %s
-            """
-            
-            cursor.execute(sql, (user_id,))
-            conn.commit()
-            
-            print(f"Semua notifikasi untuk User {user_id} telah ditandai terbaca.")
-            return True
-
-        except Exception as e:
-            print("Error update mark all read:", e)
-            return False
-            
-        finally:
-            if conn:
-                conn.close()
+        return self.model.update_all_mark_read(user_id)
+    
+    # Mark as Read
+    def mark_as_read(self, aktivitas_id):
+        return self.model.update_mark_read(aktivitas_id)
+    
+    # Toggle Status
+    def toggle_status(self, aktivitas_id):
+        return self.model.update_toggle(aktivitas_id)
     
     # Kirim email notifikasi
     def kirim_notifikasi(self, user_id: str, pesan: str):
+        
         try:
-            # Ambil email user dari database
-            conn = db_connect()
-            cursor = conn.cursor()
+            email_penerima = self.model.get_email_user(user_id)
 
+            if not email_penerima:
+                print("Email User Tidak Ditemukan")
+                return False
+            
             email_sender = os.getenv('EMAIL_SENDER')
             email_password = os.getenv('EMAIL_PASSWORD')
 
-            sql = """
-                SELECT email
-                FROM [dbo].[User]
-                WHERE id = %s
-            """
+            message = MIMEMultipart()
+            message['From'] = email_sender
+            message['To'] = email_penerima
+            message['Subject'] = "Notifikasi dari MoneyTime"
+            message.attach(MIMEText(pesan, 'plain'))
 
-            cursor.execute(sql, (user_id,))
-            result = cursor.fetchone()
-
-            if not result:
-                print("User tidak ditemukan.")
-                return False
-
-            email_penerima = result[0]
-
-            # Siapkan email
-            msg = MIMEMultipart()
-            msg['From'] = email_sender
-            msg['To'] = email_penerima
-            msg['Subject'] = "Notifikasi dari MoneyTime"
-
-            # Tambahkan isi pesan
-            msg.attach(MIMEText(pesan, 'plain'))
-
-            # Kirim email
             with smtplib.SMTP('smtp.gmail.com', 587) as server:
                 server.starttls()
                 server.login(email_sender, email_password)
-                server.send_message(msg)
-
-            print("Notifikasi terkirim ke", email_penerima)
-            return True
-
-        except Exception as e:
-            print("Error saat mengirim notifikasi:", e)
-            return False
-
-        finally:
-            if 'conn' in locals(): conn.close()
-
-   # Tampilkan notifikasi
-    def tampilkan_notifikasi(self, user_id: str):
-        # cek finansial user di database
-        finansialController = FinansialController()
-
-        finansialController.get_or_create_finansial(user_id)
-        
-        pass
-
-    def toggle_status(self, aktivitas_id):
-        conn = None
-        try:
-            conn = db_connect()
-            cursor = conn.cursor()
-
-            # Query SQL pintar: Menggunakan CASE untuk membalik nilai IsRead
-            sql = """
-                UPDATE [dbo].[Aktivitas]
-                SET IsRead = CASE WHEN IsRead = 1 THEN 0 ELSE 1 END
-                OUTPUT INSERTED.IsRead
-                WHERE AktivitasID = %s
-            """
+                server.send_message(message)
             
-            cursor.execute(sql, (aktivitas_id,))
-            result = cursor.fetchone() # Mengambil status terbaru (0 atau 1)
-            conn.commit()
-
-            if result:
-                return True, result[0] # Return sukses dan status terbaru
-            return False, None
-
-        except Exception as e:
-            print("Error update toggle status:", e)
-            return False, None
-        finally:
-            if conn: conn.close()
+            print("Notifikasi Terkirim ke ", email_penerima)
+            return True
+        
+        except Exception as error:
+            print(f"Error mengirim notifikasi {error}")
+            return False
