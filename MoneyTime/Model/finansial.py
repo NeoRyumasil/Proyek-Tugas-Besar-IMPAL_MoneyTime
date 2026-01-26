@@ -10,8 +10,8 @@ class Finansial():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                SELECT FinansialID FROM [dbo].[Finansial]
-                WHERE UserID = %s AND Kategori = %s
+                SELECT finansialid FROM Finansial
+                WHERE userid = %s AND kategori = %s
             """
             cursor.execute(sql, (user_id, kategori))
             row = cursor.fetchone()
@@ -34,19 +34,13 @@ class Finansial():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                INSERT INTO [dbo].[Finansial] (UserID, budget, kategori, status)
+                INSERT INTO Finansial (userid, budget, kategori, status)
                 VALUES (%s, %s, %s, %s)
+                RETURNING finansialid
             """
             cursor.execute(sql, (user_id, budget, kategori, status))
-            conn.commit()
-
-            sql = """
-                SELECT TOP 1 FinansialID FROM [dbo].[Finansial]
-                WHERE UserID = %s AND kategori = %s 
-                ORDER BY FinansialID DESC
-            """
-            cursor.execute(sql, (user_id, kategori))
             row = cursor.fetchone()
+            conn.commit()
 
             if row :
                 return int(row[0])
