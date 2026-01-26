@@ -31,8 +31,13 @@ class Assistant():
             cursor = conn.cursor()
             sql = """
                 SELECT message, role, timestamp
-                FROM Chatlog
-                WHERE userid = %s
+                FROM (
+                    SELECT message, role, timestamp
+                    FROM Chatlog
+                    WHERE userid = %s
+                    ORDER BY timestamp DESC
+                    LIMIT 50
+                ) AS subquery
                 ORDER BY timestamp ASC
             """
             cursor.execute(sql, (user_id))
