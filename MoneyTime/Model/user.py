@@ -20,7 +20,7 @@ class User():
         try :
             sql = """
                 SELECT id, username, email, password, role
-                FROM [dbo].[user]
+                FROM "user"
                 WHERE email = %s OR username = %s
             """
             cursor.execute(sql, (identifier, identifier))
@@ -41,7 +41,7 @@ class User():
 
         try:
             sql = """
-                SELECT COUNT(*) FROM [dbo].[User]
+                SELECT COUNT(*) FROM "user"
                 WHERE username = %s OR email = %s
             """
             cursor.execute(sql, (username, email))
@@ -59,7 +59,7 @@ class User():
 
         try:
             sql = """
-                INSERT INTO [dbo].[User] (username, password, email, role)
+                INSERT INTO "user" (username, password, email, role)
                 VALUES (%s, %s, %s, 'user')
             """
             cursor.execute(sql, (username, hashed_password, email))
@@ -81,7 +81,7 @@ class User():
 
         try:
             sql = """
-                UPDATE [dbo].[User]
+                UPDATE "user"
                 SET password = %s WHERE email = %s
             """
             cursor.execute(sql, (hashed_password, email))
