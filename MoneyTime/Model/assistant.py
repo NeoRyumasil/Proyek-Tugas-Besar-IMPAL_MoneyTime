@@ -10,7 +10,7 @@ class Assistant():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                INSERT INTO Chatlog (userid, message, role, timestamp)
+                INSERT INTO "Chatlog" ("userid", "message", "role", "timestamp")
                 VALUES (%s, %s, %s, NOW())
             """
             cursor.execute(sql, (user_id, content, role))
@@ -30,15 +30,15 @@ class Assistant():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                SELECT message, role, timestamp
+                SELECT "message", "role", "timestamp"
                 FROM (
-                    SELECT message, role, timestamp
-                    FROM Chatlog
-                    WHERE userid = %s
-                    ORDER BY timestamp DESC
+                    SELECT "message", "role", "timestamp"
+                    FROM "Chatlog"
+                    WHERE "userid" = %s
+                    ORDER BY "timestamp" DESC
                     LIMIT 50
                 ) AS subquery
-                ORDER BY timestamp ASC
+                ORDER BY "timestamp" ASC
             """
             cursor.execute(sql, (user_id))
             rows = cursor.fetchall()

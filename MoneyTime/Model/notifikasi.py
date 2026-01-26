@@ -11,10 +11,10 @@ class Notifikasi():
             conn = db_connect()
             cursor = conn.cursor
             sql = """
-                SELECT nama_aktivitas, deskripsi, tenggat, kategori, waktu, aktivitasid, isread
-                FROM Aktivitas
-                WHERE userid = %s AND status = 'Pending'
-                ORDER BY tenggat ASC
+                SELECT "nama_aktivitas", "deskripsi", "tenggat", "kategori", "waktu", "aktivitasid", "isread"
+                FROM "Aktivitas"
+                WHERE "userid" = %s AND "status" = 'Pending'
+                ORDER BY "tenggat" ASC
             """
             cursor.execute(sql, (user_id))
             rows = cursor.fetchall()
@@ -34,8 +34,8 @@ class Notifikasi():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                UPDATE Aktivitas
-                SET isread = 1 WHERE aktivitasid = %s
+                UPDATE "Aktivitas"
+                SET "isread" = 1 WHERE "aktivitasid" = %s
             """
             cursor.execute(sql, (aktivitas_id))
             conn.commit()
@@ -54,7 +54,9 @@ class Notifikasi():
         try:
             conn = db_connect()
             cursor = conn.cursor()
-            sql = "UPDATE Aktivitas SET isread = 1 WHERE userid = %s"
+            sql = """
+                UPDATE "Aktivitas" SET "isread" = 1 WHERE "userid" = %s
+            """
             cursor.execute(sql, (user_id))
             conn.commit()
             return True
@@ -73,10 +75,10 @@ class Notifikasi():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                UPDATE Aktivitas
-                SET isread = NOT isread
-                WHERE aktivitasid = %s
-                RETURNING isread
+                UPDATE "Aktivitas"
+                SET "isread" = NOT "isread"
+                WHERE "aktivitasid" = %s
+                RETURNING "isread"
             """   
             cursor.execute(sql, (aktivitas_id))
             result = cursor.fetchone()
@@ -100,7 +102,9 @@ class Notifikasi():
         try:
             conn = db_connect()
             cursor = conn.cursor()
-            sql = "SELECT email FROM User WHERE id = %s"
+            sql = """
+                SELECT "email" FROM "User" WHERE "id" = %s
+            """
             cursor.execute(sql, (user_id))
             result = cursor.fetchone()
 

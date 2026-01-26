@@ -19,9 +19,9 @@ class User():
 
         try :
             sql = """
-                SELECT id, username, email, password, role
-                FROM User
-                WHERE email = %s OR username = %s
+                SELECT "id", "username", "email", "password", "role"
+                FROM "User"
+                WHERE "email" = %s OR "username" = %s
             """
             cursor.execute(sql, (identifier, identifier))
             row = cursor.fetchone()
@@ -41,8 +41,8 @@ class User():
 
         try:
             sql = """
-                SELECT COUNT(*) FROM User
-                WHERE username = %s OR email = %s
+                SELECT COUNT(*) FROM "User"
+                WHERE "username" = %s OR "email" = %s
             """
             cursor.execute(sql, (username, email))
             count = cursor.fetchone()[0]
@@ -59,7 +59,7 @@ class User():
 
         try:
             sql = """
-                INSERT INTO User (username, password, email, role)
+                INSERT INTO "User" ("username", "password", "email", "role")
                 VALUES (%s, %s, %s, 'user')
             """
             cursor.execute(sql, (username, hashed_password, email))
@@ -81,8 +81,8 @@ class User():
 
         try:
             sql = """
-                UPDATE User
-                SET password = %s WHERE email = %s
+                UPDATE "User"
+                SET "password" = %s WHERE "email" = %s
             """
             cursor.execute(sql, (hashed_password, email))
             conn.commit()

@@ -10,8 +10,8 @@ class Finansial():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                SELECT finansialid FROM Finansial
-                WHERE userid = %s AND kategori = %s
+                SELECT "finansialid" FROM "Finansial"
+                WHERE "userid" = %s AND "kategori" = %s
             """
             cursor.execute(sql, (user_id, kategori))
             row = cursor.fetchone()
@@ -34,9 +34,9 @@ class Finansial():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                INSERT INTO Finansial (userid, budget, kategori, status)
+                INSERT INTO "Finansial" ("userid", "budget", "kategori", "status")
                 VALUES (%s, %s, %s, %s)
-                RETURNING finansialid
+                RETURNING "finansialid"
             """
             cursor.execute(sql, (user_id, budget, kategori, status))
             row = cursor.fetchone()

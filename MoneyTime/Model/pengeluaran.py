@@ -10,7 +10,7 @@ class Pengeluaran():
                 conn = db_connect()
                 cursor = conn.cursor()
                 sql = """
-                    INSERT INTO Pengeluaran (finansialid, deskripsi, nominal, tanggal)
+                    INSERT INTO "Pengeluaran" ("finansialid", "deskripsi", "nominal", "tanggal")
                     VALUES (%s, %s, %s, %s)
                 """
                 cursor.execute(sql, (finansial_id, deskripsi, nominal, tanggal))
@@ -30,15 +30,17 @@ class Pengeluaran():
                 conn = db_connect()
                 cursor = conn.cursor()
                 sql = """
-                    SELECT p.pengeluaranid, p.deskripsi, p.nominal, f.kategori, 'Expense'
-                    FROM Pengeluaran p 
-                    JOIN Finansial f ON p.finansialid = f.finansialid
-                    WHERE f.userid = %s
+                    SELECT p."pengeluaranid", p."deskripsi", p."nominal", f."kategori", 'Expense'
+                    FROM "Pengeluaran" p 
+                    JOIN "Finansial" f ON p."finansialid" = f."finansialid"
+                    WHERE f."userid" = %s
                 """
                 parameter = [user_id]
 
                 if keyword:
-                    sql += "AND (p.deskripsi LIKE %s OR f.kategori LIKE %s)"
+                    sql += """
+                        AND (p."deskripsi" ILIKE %s OR f."kategori" ILIKE %s)
+                    """
                     parameter.extend([f"%{keyword}%", f"%{keyword}%"])
                 
                 cursor.execute(sql, tuple(parameter))
@@ -58,10 +60,10 @@ class Pengeluaran():
                 conn = db_connect()
                 cursor = conn.cursor()
                 sql = """
-                    DELETE FROM Pengeluaran p
-                    USING Finansial f
-                    WHERE p.finansialid = f.finansialid
-                    AND p.pengeluaranid = %s AND f.userid = %s
+                    DELETE FROM "Pengeluaran" p
+                    USING "Finansial" f
+                    WHERE p."finansialid" = f."finansialid"
+                    AND p."pengeluaranid" = %s AND f."userid" = %s
                 """
                 cursor.execute(sql, (transaction_id, user_id))
                 conn.commit()
@@ -81,11 +83,11 @@ class Pengeluaran():
                 conn = db_connect()
                 cursor = conn.cursor()
                 sql = """
-                    UPDATE Pengeluaran p
-                    SET deskripsi = %s, nominal = %s, tanggal = %s,, finansialid = %s
-                    FROM Finansial f
-                    WHERE p.finansialid = f.finansialid
-                    AND p.pengeluaranid = %s AND f.userid = %s
+                    UPDATE "Pengeluaran" p
+                    SET "deskripsi" = %s, "nominal" = %s, "tanggal" = %s, "finansialid" = %s
+                    FROM "Finansial" f
+                    WHERE p."finansialid" = f."finansialid"
+                    AND p."pengeluaranid" = %s AND f."userid" = %s
                 """
                 cursor.execute(sql, (deskripsi, nominal, tanggal, finansial_id, transaction_id, user_id))
                 conn.commit()
