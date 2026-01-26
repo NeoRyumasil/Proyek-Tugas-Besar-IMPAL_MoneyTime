@@ -10,8 +10,8 @@ class Assistant():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                INSERT INTO [dbo].[ChatLog] (UserID, Message, Role, Timestamp)
-                VALUES (%s, %s, %s, GETDATE())
+                INSERT INTO Chatlog (userid, message, role, timestamp)
+                VALUES (%s, %s, %s, NOW())
             """
             cursor.execute(sql, (user_id, content, role))
             conn.commit()
@@ -30,10 +30,10 @@ class Assistant():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                SELECT Message, Role, Timestamp
-                FROM [dbo].[ChatLog]
-                WHERE UserID = %s
-                ORDER BY Timestap ASC
+                SELECT message, role, timestamp
+                FROM Chatlog
+                WHERE userid = %s
+                ORDER BY timestamp ASC
             """
             cursor.execute(sql, (user_id))
             rows = cursor.fetchall()
