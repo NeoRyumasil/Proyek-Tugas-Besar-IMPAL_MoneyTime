@@ -12,7 +12,7 @@ class Aktivitas():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                    INSERT INTO [dbo].[Aktivitas]
+                    INSERT INTO Aktivitas
                     (UserID, Nama_Aktivitas, Deskripsi, Tenggat, Waktu, Kategori, Prioritas, Status)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pending')
             """
@@ -35,10 +35,10 @@ class Aktivitas():
             cursor = conn.cursor()
             sql = """
                 SELECT AktivitasID, Nama_Aktivitas, Deskripsi, Tenggat, Waktu, Kategori, Prioritas, Status
-                FROM [dbo].[Aktivitas]
+                FROM Aktivitas
                 WHERE UserID = %s
             """
-            cursor.execute(sql, (user_id))
+            cursor.execute(sql, (user_id,))
             return cursor.fetchall()
         
         except Exception as error:
@@ -55,7 +55,7 @@ class Aktivitas():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                UPDATE [dbo].[Aktivitas]
+                UPDATE Aktivitas
                 SET Status = %s 
                 WHERE AktivitasID = %s
             """
@@ -77,7 +77,7 @@ class Aktivitas():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                UPDATE [dbo].[Aktivitas]
+                UPDATE Aktivitas
                 SET Nama_Aktivitas = %s,
                     Deskripsi = %s,
                     Tenggat = %s,
@@ -104,10 +104,10 @@ class Aktivitas():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                DELETE FROM [dbo].[Aktivitas]
+                DELETE FROM Aktivitas
                 WHERE AktivitasID = %s
             """
-            cursor.execute(sql, (aktivitas_id))
+            cursor.execute(sql, (aktivitas_id,))
             conn.commit()
             return True
         
@@ -125,10 +125,10 @@ class Aktivitas():
             conn = db_connect()
             cursor = conn.cursor()
             sql = """
-                SELECT DISTINCT Kategori FROM [dbo].[Aktivitas]
+                SELECT DISTINCT Kategori FROM Aktivitas
                 WHERE UserID = %s
             """
-            cursor.execute(sql, (user_id))
+            cursor.execute(sql, (user_id,))
             rows = cursor.fetchall()
             return rows
         
