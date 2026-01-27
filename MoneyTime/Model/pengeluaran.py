@@ -30,7 +30,7 @@ class Pengeluaran():
                 conn = db_connect()
                 cursor = conn.cursor()
                 sql = """
-                    SELECT p."pengeluaranid", p."deskripsi", p."nominal", f."kategori", 'Expense'
+                    SELECT p."pengeluaranid", p."deskripsi", p."nominal", p."tanggal", f."kategori", 'Expense'
                     FROM "Pengeluaran" p 
                     JOIN "Finansial" f ON p."finansialid" = f."finansialid"
                     WHERE f."userid" = %s

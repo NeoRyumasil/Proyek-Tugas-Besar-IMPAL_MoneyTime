@@ -32,7 +32,7 @@ class FinansialController:
         income = self.pemasukkan_model.get_all_pemasukkan_user(user_id, keyword)
         expense = self.pengeluaran_model.get_all_Pengeluaran_user(user_id, keyword)
 
-        result = List[Dict[str, Any]] = []
+        result : List[Dict[str, Any]] = []
 
         # Mapping row
         def map_row(rows):
