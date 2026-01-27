@@ -14,7 +14,7 @@ class UserController:
 
     # Autentikasi
     def authenticate(self, username_input, password_input):
-        user = User.find_email_or_username(username_input, password_input)
+        user = User.find_email_or_username(username_input)
 
         if user and check_password_hash(user.password, password_input):
             return user

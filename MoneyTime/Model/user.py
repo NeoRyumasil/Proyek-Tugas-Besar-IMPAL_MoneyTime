@@ -13,7 +13,7 @@ class User():
     
     # Cari email atau username
     @staticmethod
-    def find_email_or_username(username, email):
+    def find_email_or_username(identifier):
         conn = db_connect()
         cursor = conn.cursor()
 
@@ -23,7 +23,7 @@ class User():
                 FROM "User"
                 WHERE "email" = %s OR "username" = %s
             """
-            cursor.execute(sql, (email, username))
+            cursor.execute(sql, (identifier, identifier))
             row = cursor.fetchone()
 
             if row:
