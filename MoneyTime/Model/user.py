@@ -13,7 +13,7 @@ class User():
     
     # Cari email atau username
     @staticmethod
-    def find_email_or_username(identifier):
+    def find_email_or_username(username, email):
         conn = db_connect()
         cursor = conn.cursor()
 
@@ -23,7 +23,7 @@ class User():
                 FROM "User"
                 WHERE "email" = %s OR "username" = %s
             """
-            cursor.execute(sql, (identifier, identifier))
+            cursor.execute(sql, (email, username))
             row = cursor.fetchone()
 
             if row:
@@ -54,7 +54,7 @@ class User():
     # Membuat User
     @staticmethod
     def create_user(username, hashed_password, email):
-        conn = db_connect
+        conn = db_connect()
         cursor = conn.cursor()
 
         try:

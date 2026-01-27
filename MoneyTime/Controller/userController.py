@@ -96,7 +96,7 @@ class UserController:
             server.login(email_sender, email_password)
             server.sendmail(email_sender, target_email, message.as_string())
             server.quit()
-            return otp_code()
+            return otp_code
     
         except Exception as error:
             print(f"Error kirim email: {error}")
