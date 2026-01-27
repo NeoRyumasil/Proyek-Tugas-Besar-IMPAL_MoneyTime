@@ -280,7 +280,7 @@ def forgot_password():
 @app.route('/send-otp', methods=['POST'])
 def send_otp():
     email = request.form.get('email')
-    if not user_controller.check_email_exists(email):
+    if not user_controller.check_email(email):
         return jsonify({'success': False, 'message': 'Email not found.'})
     
     otp = user_controller.send_reset_otp(email)
