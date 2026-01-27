@@ -9,8 +9,9 @@ def db_connect():
             user = os.getenv('DB_USERNAME'),
             password = os.getenv('DB_PASSWORD'),
             dbname = os.getenv('DB_DATABASE'),
-            port = "5432",
-            connect_timeout=10
+            port = "6543",
+            connect_timeout=10,
+            sslmode = "require"
         )
         
         return connection
