@@ -31,7 +31,7 @@ seperti, penjadwalan, hingga perhitungan waktu. Pengguna juga dapat memanajemen 
 - JavaScript
 
 **Backend:**
-- Microsoft Azure Database
+- Supabase
 - Python (Flask)
 - Groq
 
@@ -75,7 +75,7 @@ pip install pymssql
   ```
   
 ### Step 4 Access Azure Database
-- Make the SQL Server in Azure
+- Make the PosGreSQL Database in Supabase
 - Make the database
 - Access it with pymssql
 
@@ -89,5 +89,5 @@ pip install pymssql
 
 ## 📋 Requirements
 - Python Flask Framework
-- Microsoft Azure Database
+- Supabase
 - Groq API Key

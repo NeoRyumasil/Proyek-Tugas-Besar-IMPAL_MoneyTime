@@ -9,7 +9,7 @@ def db_connect():
             user = os.getenv('DB_USERNAME'),
             password = os.getenv('DB_PASSWORD'),
             dbname = os.getenv('DB_DATABASE'),
-            port = "5342",
+            port = "5432",
             connect_timeout=10
         )
         
