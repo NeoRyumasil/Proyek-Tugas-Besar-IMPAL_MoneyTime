@@ -181,9 +181,9 @@ class AssistantController:
             if function_name == "add_financial_transaction":
                 finansial_id = self.finansial_controller.get_or_create_finansial(user_id=user_id, kategori=arguments.get("kategori", "Umum"))
 
-                if arguments["type"].lower() == "income":
+                if arguments["type"].lower() == "income" or arguments["type"].lower() == "pemasukkan":
                     trigger = self.finansial_controller.add_pemasukan(finansial_id, arguments["deskripsi"], arguments["nominal"], arguments["tanggal"])
-                elif arguments["type"].lower() == "expense":
+                elif arguments["type"].lower() == "expense" or arguments["type"].lower() == "pengeluaran":
                     trigger = self.finansial_controller.add_pengeluaran(finansial_id, arguments["deskripsi"], arguments["nominal"], arguments["tanggal"])
                 
                 if trigger:
