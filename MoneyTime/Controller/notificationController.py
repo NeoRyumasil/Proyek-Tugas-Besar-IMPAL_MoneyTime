@@ -33,7 +33,7 @@ class NotificationController():
             if not tenggat_waktu:
                 continue
 
-            tenggat_waktu = self.apply_custom_time(tenggat_waktu, waktu)
+            tenggat_waktu = self.apply_custom_date(tenggat_waktu, waktu)
 
             delta = tenggat_waktu - now
             time_info, notif_type = self.calculate_time(delta)

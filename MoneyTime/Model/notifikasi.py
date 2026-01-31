@@ -9,14 +9,14 @@ class Notifikasi():
 
         try:
             conn = db_connect()
-            cursor = conn.cursor
+            cursor = conn.cursor()
             sql = """
                 SELECT "nama_aktivitas", "deskripsi", "tenggat", "kategori", "waktu", "aktivitasid", "isread"
                 FROM "Aktivitas"
                 WHERE "userid" = %s AND "status" = 'Pending'
                 ORDER BY "tenggat" ASC
             """
-            cursor.execute(sql, (user_id))
+            cursor.execute(sql, (user_id,))
             rows = cursor.fetchall()
             return rows
         
