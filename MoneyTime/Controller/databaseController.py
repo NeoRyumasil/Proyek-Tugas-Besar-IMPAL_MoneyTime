@@ -4,7 +4,7 @@ from urllib.parse import urlparse, urlunparse
 
 def db_connect():
     try:
-        db_url = os.getenv('POSTGRES_URL')
+        db_url = os.getenv('POSTGRES_URL_NON_POOLING')
         
         if db_url:
             parsed = urlparse(db_url)
