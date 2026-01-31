@@ -1,12 +1,5 @@
 import psycopg2
 import os
-
-def db_connect():
-    import psycopg2
-import os
-
-import psycopg2
-import os
 from urllib.parse import urlparse, urlunparse
 
 def db_connect():
