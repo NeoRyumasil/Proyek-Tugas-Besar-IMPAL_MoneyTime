@@ -491,10 +491,9 @@ def assistant():
         f"Data Aktivitas Saya:\n {schedule_summary}"
     )
 
-    ai_reply = assistant_controller.send_message_with_history(
-        user_message, 
-        chat_history,
-        context_data=context_data
+    ai_reply = assistant_controller.process_chat(
+        user_id=user_id,
+        user_message=user_message
     )
 
     chat_history.append({'role': 'user', 'parts': [user_message]})

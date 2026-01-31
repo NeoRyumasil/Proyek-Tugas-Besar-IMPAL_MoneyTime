@@ -63,11 +63,18 @@ class AssistantController:
         
         try:
             history = self.assistant_model.get_chat_history(user_id)
+            financial_summary = self.finansial_controller.get_financial_summary(user_id)
+            activity_summary = self.finansial_controller.get_financial_summary(user_id)
+
 
             messages = [
                 {
                     "role" : "system",
-                    "content" : """
+                    "content" :f"""
+                                # Data User Saat Ini
+                                {financial_summary}
+                                {activity_summary}
+
                                 # PERAN
                                 - Kamu adalah Arvita, AI ahli dalam manajemen Waktu dan keuangan yang punya gaya santai, cerdas, dan... ya, agak smug. 
                                 - Gaya komunikasimu: Santai, tidak formal, tapi penuh percaya diri

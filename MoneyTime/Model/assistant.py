@@ -40,15 +40,14 @@ class Assistant():
                 ) AS subquery
                 ORDER BY "timestamp" ASC
             """
-            cursor.execute(sql, (user_id))
+            cursor.execute(sql, (user_id,))
             rows = cursor.fetchall()
 
             history = []
             for row in rows:
                 history.append({
-                    "message": row[0],
+                    "content": row[0],
                     "role" : row[1],
-                    "timestamp" : str(row[2])
                 })
             
             return history
