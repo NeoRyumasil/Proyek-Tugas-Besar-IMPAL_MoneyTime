@@ -74,6 +74,7 @@ class AssistantController:
                                 # Data User Saat Ini
                                 {financial_summary}
                                 {activity_summary}
+                                Tanggal Hari Ini: {datetime.now().strftime('%Y-%m-%d')}
 
                                 # PERAN
                                 - Kamu adalah Arvita, AI ahli dalam manajemen Waktu dan keuangan yang punya gaya santai, cerdas, dan... ya, agak smug. 
@@ -175,40 +176,67 @@ class AssistantController:
             print(f"Maaf Arvita Lagi Bad Mood: {e}")
 
     # Untuk Tool Call
-    def execute_tool(self, user_id : str, function_name : str, arguments : dict) -> str:
+    def execute_tool(self, function_name, arguments, user_id):
+        
+        if isinstance(arguments, str):
+            
+            try:
+                arguments = json.loads(arguments)
+            
+            except:
+                return "Error: Argumen bukan format JSON yang valid"
 
         try:
-            if function_name == "add_financial_transaction":
-                finansial_id = self.finansial_controller.get_or_create_finansial(user_id=user_id, kategori=arguments.get("kategori", "Umum"))
-
-                if arguments["type"].lower() == "income" or arguments["type"].lower() == "pemasukkan":
-                    trigger = self.finansial_controller.add_pemasukan(finansial_id, arguments["deskripsi"], arguments["nominal"], arguments["tanggal"])
-                elif arguments["type"].lower() == "expense" or arguments["type"].lower() == "pengeluaran":
-                    trigger = self.finansial_controller.add_pengeluaran(finansial_id, arguments["deskripsi"], arguments["nominal"], arguments["tanggal"])
-                
-                if trigger:
-                    return "Berhasil Disimpan"
-                else:
-                    return "Gagal Menyimpan Transaksi"
+            raw_date = arguments.get("tanggal") or arguments.get("date") or "hari ini"
             
+            if raw_date == "hari ini":
+                tanggal_final = datetime.now().strftime('%Y-%m-%d')
+            else:
+                tanggal_final = raw_date
+
+            kategori_final = arguments.get("kategori") or arguments.get("category") or "Umum"
+
+            if function_name == "add_financial_transaction":
+                finansial_id = self.finansial_controller.get_or_create_finansial(
+                    user_id, 
+                    kategori=kategori_final
+                )
+
+                trigger = False
+                trans_type = (arguments.get("type") or "").lower()
+
+                if trans_type in ["income", "pemasukkan"]:
+                    trigger = self.finansial_controller.add_pemasukan(
+                        finansial_id, 
+                        arguments.get("deskripsi", "Tanpa Deskripsi"), 
+                        arguments.get("nominal", 0), 
+                        tanggal_final
+                    )
+                elif trans_type in ["expense", "pengeluaran"]:
+                    trigger = self.finansial_controller.add_pengeluaran(
+                        finansial_id, 
+                        arguments.get("deskripsi", "Tanpa Deskripsi"), 
+                        arguments.get("nominal", 0), 
+                        tanggal_final
+                    )
+                
+                return "Berhasil Disimpan" if trigger else "Gagal Menyimpan ke Database"
+
             elif function_name == "add_schedule":
                 result = self.schedule_controller.add_schedule(
                     user_id=user_id,
-                    title=arguments["title"],
+                    title=arguments.get("title", "Aktivitas Baru"),
                     description=arguments.get("description", ""),
-                    date=arguments["date"],
-                    time=arguments["time"],
-                    category=arguments["category"],
-                    priority=arguments["priority"]
+                    date=tanggal_final,
+                    time=arguments.get("time", "00:00"),
+                    category=kategori_final,
+                    priority=arguments.get("priority", "Medium")
                 )
+                return "Jadwal Berhasil Ditambahkan" if result else "Gagal Menambah Jadwal"
 
-                if result:
-                    return "Jadwal berhasil ditambahkan"
-                else:
-                    return "Gagal menambahkan jadwal"
-            
             return "Fungsi tidak ditemukan"
-        
+
         except Exception as error:
-            return f"Terjadi error saat menjalankan perintah: {str(error)}"
+            print(f"Detail Error Tool: {error}")
+            return f"Error: {str(error)}"
 
