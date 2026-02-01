@@ -4,7 +4,7 @@ from Controller.databaseController import db_connect
 class Pemasukkan():
     
         # Membuat Pemasukkan
-        def create_Pemasukkan(self, finansial_id : int, deskripsi : str, nominal : int, tanggal : str) -> bool :
+        def create_pemasukkan(self, finansial_id : int, deskripsi : str, nominal : int, tanggal : str) -> bool :
             conn = db_connect()
 
             try:
@@ -21,7 +21,7 @@ class Pemasukkan():
                 return False
         
         # Ambil semua Pemasukkan user
-        def get_all_Pemasukkan_user(self, user_id : str, keyword : str = None) -> List[Tuple]:
+        def get_all_pemasukkan_user(self, user_id : str, keyword : str = None) -> List[Tuple]:
             conn = db_connect()
 
             try:
@@ -63,7 +63,7 @@ class Pemasukkan():
                 return []
 
         # Hapus Pemasukkan
-        def delete_Pemasukkan(self, transaction_id : int, user_id : str) -> bool:
+        def delete_pemasukkan(self, transaction_id : int, user_id : str) -> bool:
             conn = db_connect()
 
             try:
@@ -83,7 +83,7 @@ class Pemasukkan():
                 return False
             
         # Update Pemasukkan
-        def update_Pemasukkan(self, transaction_id : int, user_id : str, deskripsi : str, nominal : int, tanggal : str, finansial_id : int) -> bool :
+        def update_pemasukkan(self, transaction_id : int, user_id : str, deskripsi : str, nominal : int, tanggal : str, finansial_id : int) -> bool :
             conn = db_connect()
 
             try:
