@@ -20,13 +20,13 @@ class NotificationController():
         now = datetime.datetime.now()
 
         for row in rows:
-            title = row[0]
-            deskripsi = row[1]
-            tenggat_waktu_raw = row[2]
-            kategori = row[3]
-            waktu = row[4]
-            id_aktivitas = row[5]
-            is_read = row[6]
+            title = row['nama_aktivitas']
+            deskripsi = row['deskripsi']
+            tenggat_waktu_raw = row['tenggatwaktu']
+            kategori = row['kategori']
+            waktu = row['waktu']
+            id_aktivitas = row['aktivitasid']
+            is_read = row['isread']
         
             tenggat_waktu = self.parse_datetime(tenggat_waktu_raw)
             

@@ -47,15 +47,15 @@ class Pengeluaran():
                         if keyword not in (row['deskripsi'] or "").lower() and keyword not in (kategori or "").lower():
                             continue
 
-                        results.append({
-                            "pengeluaranid": row["pengeluaranid"],
-                            "deskripsi": row["deskripsi"],
-                            "nominal": row["nominal"],
-                            "tanggal": row["tanggal"],
-                            "kategori": row["kategori"],
-                            "type": "Expense"
-                        })
-                    
+                    results.append({
+                        "pengeluaranid": row["pengeluaranid"],
+                        "deskripsi": row["deskripsi"],
+                        "nominal": row["nominal"],
+                        "tanggal": row["tanggal"],
+                        "kategori": row["kategori"],
+                        "type": "Expense"
+                    })
+                
                 return results
            
             except Exception as error:

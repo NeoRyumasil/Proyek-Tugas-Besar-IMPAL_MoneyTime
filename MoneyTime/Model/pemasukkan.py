@@ -47,15 +47,15 @@ class Pemasukkan():
                         if keyword not in (row['deskripsi'] or "").lower() and keyword not in (kategori or "").lower():
                             continue
 
-                        results.append({
-                            "pemasukkanid": row["pemasukkanid"],
-                            "deskripsi": row["deskripsi"],
-                            "nominal": row["nominal"],
-                            "tanggal": row["tanggal"],
-                            "kategori": row["kategori"],
-                            "type": "Income"
-                        })
-                    
+                    results.append({
+                        "pemasukkanid": row["pemasukkanid"],
+                        "deskripsi": row["deskripsi"],
+                        "nominal": row["nominal"],
+                        "tanggal": row["tanggal"],
+                        "kategori": row["kategori"],
+                        "type": "Income"
+                    })
+                
                 return results
            
             except Exception as error:

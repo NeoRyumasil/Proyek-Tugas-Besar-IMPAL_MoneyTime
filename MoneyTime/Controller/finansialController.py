@@ -39,12 +39,12 @@ class FinansialController:
             for row in rows:
                 transaction_id, deskripsi, nominal, tanggal, kategori, tipe = row
                 result.append({
-                    'id': int(transaction_id),
-                    'type': tipe,
-                    'deskripsi': deskripsi,
-                    'nominal': int(nominal),
-                    'tanggal': str(tanggal) if tanggal else None,
-                    'kategori': kategori
+                    'id': int(row['pemasukkanid'] if 'pemasukkanid' in row else row['pengeluaranid']),
+                    'type': row['type'],
+                    'deskripsi': row['deskripsi'],
+                    'nominal': int(row['nominal']),
+                    'tanggal': str(row['tanggal']) if row['tanggal'] else None,
+                    'kategori': row['kategori']
                 })
         
         map_row(income)
