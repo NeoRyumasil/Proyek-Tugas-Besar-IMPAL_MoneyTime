@@ -32,7 +32,7 @@ class ScheduleController:
                 time = "23:59"
 
             results.append({
-                'id': row["id"],
+                'id': row["aktivitasid"],
                 'title': row["nama_aktivitas"] if row["nama_aktivitas"] else "No Activity",
                 'description': row["deskripsi"] if row["deskripsi"] else "",
                 'date': tenggat,
