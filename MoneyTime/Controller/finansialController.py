@@ -93,8 +93,8 @@ class FinansialController:
         income = self.pemasukkan_model.get_all_pemasukkan_user(user_id)
         expense = self.pengeluaran_model.get_all_Pengeluaran_user(user_id)
 
-        kategori_income = list(set(row[4] for row in income))
-        kategori_expense = list(set(row[4] for row in expense))
+        kategori_income = list(set(row["kategori"] for row in income))
+        kategori_expense = list(set(row["kategori"] for row in expense))
 
         if not kategori_income:
             kategori_income = ["Gaji", "Return Investasi", "Penjualan", "Lainnya"]

@@ -17,7 +17,7 @@ class ScheduleController:
         results = []
 
         for row in rows:
-            tenggat_waktu = row[3]
+            tenggat_waktu = row["tenggat"]
             tenggat = ""
 
             if tenggat_waktu:
@@ -26,20 +26,20 @@ class ScheduleController:
                 else:
                     tenggat = str(tenggat_waktu).split(' ')[0]
 
-            if row[4]:
-                time = row[4]
+            if row["waktu"]:
+                time = row["waktu"]
             else:
                 time = "23:59"
 
             results.append({
-                'id': row[0],
-                'title': row[1] if row[1] else "No Activity",
-                'description': row[2] if row[2] else "",
+                'id': row["id"],
+                'title': row["nama_aktivitas"] if row["nama_aktivitas"] else "No Activity",
+                'description': row["deskripsi"] if row["deskripsi"] else "",
                 'date': tenggat,
                 'time': time,
-                'category': row[5] if row[5] else "Other",
-                'priority': row[6] if row[6] else "None",
-                'status': row[7] if row[7] else "Pending"
+                'category': row["kategori"] if row["kategori"] else "Other",
+                'priority': row["prioritas"] if row["prioritas"] else "None",
+                'status': row["status"] if row["status"] else "Pending"
             }) 
 
             results.sort(key=lambda x: x['date'] if x['date'] else '31-12-0000')
