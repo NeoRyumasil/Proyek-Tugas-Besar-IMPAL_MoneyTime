@@ -22,7 +22,7 @@ class NotificationController():
         for row in rows:
             title = row['nama_aktivitas']
             deskripsi = row['deskripsi']
-            tenggat_waktu_raw = row['tenggatwaktu']
+            tenggat_waktu_raw = row['tenggat']
             kategori = row['kategori']
             waktu = row['waktu']
             id_aktivitas = row['aktivitasid']
@@ -48,7 +48,7 @@ class NotificationController():
                 'is_read' : is_read
             })
 
-            return notification
+        return notification
         
     # Parsing datetime
     def parse_datetime(self, date):
