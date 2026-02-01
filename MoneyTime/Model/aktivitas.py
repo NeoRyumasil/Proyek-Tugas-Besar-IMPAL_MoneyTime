@@ -33,7 +33,7 @@ class Aktivitas():
         try:
             result = conn.table("Aktivitas").select(
                 "aktivitasid, nama_aktivitas, deskripsi, tenggat, waktu, kategori, prioritas, status"
-            ).eq("userid", user_id).execute
+            ).eq("userid", user_id).execute()
 
             return result.data
         
