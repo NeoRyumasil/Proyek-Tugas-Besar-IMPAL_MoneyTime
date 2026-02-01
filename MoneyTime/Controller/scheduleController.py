@@ -42,8 +42,8 @@ class ScheduleController:
                 'status': row["status"] if row["status"] else "Pending"
             }) 
 
-            results.sort(key=lambda x: x['date'] if x['date'] else '31-12-0000')
-            return results
+        results.sort(key=lambda x: x['date'] if x['date'] else '31-12-0000')
+        return results
 
     # Update Status
     def update_status(self, schedule_id: int, status: str) -> bool:
@@ -70,7 +70,7 @@ class ScheduleController:
            return "Gak ada Jadwalnya"
        
        total_schedules = len(schedules)
-       pending_schedules = sum(1 for schedule in schedules if schedule['status'].lower() == 'pending')
+       pending_count = sum(1 for schedule in schedules if schedule['status'].lower() == 'pending')
        completed_schedules = sum(1 for schedule in schedules if schedule['status'].lower() == 'completed')
 
        priority_order = {'High' : 0, 'Medium' : 1, 'Low': 2, 'None': 3}
@@ -85,7 +85,7 @@ class ScheduleController:
        summary = [
            f"Ringkasan Aktivitas User: \n",
            f"Total Aktivitas: {total_schedules}",
-           f"Pending : {pending_schedules}",
+           f"Pending : {pending_count}",
            f"Selesai : {completed_schedules}"
        ]
 
