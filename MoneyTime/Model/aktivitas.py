@@ -1,5 +1,4 @@
 from Controller.databaseController import db_connect
-from datetime import datetime
 
 class Aktivitas():
     def __init__(self):
@@ -7,135 +6,99 @@ class Aktivitas():
 
     # Buat Aktivitas
     def create_activity(self, user_id, title, description, tenggat_waktu, time, category, priority):
-        
-        try:
-            conn = db_connect()
-            cursor = conn.cursor()
-            sql = """
-                    INSERT INTO "Aktivitas"
-                    ("userid", "nama_aktivitas", "deskripsi", "tenggat", "waktu", "kategori", "prioritas", "status")
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pending')
-            """
-            cursor.execute(sql, (user_id, title, description, tenggat_waktu, time, category, priority))
-            conn.commit()
-            return True
+        conn = db_connect()
 
-        except Exception as error:
-            print(f"Error dalam membuat aktivitas: {error}")
-            return False
+        try:
+            conn.table("Aktivitas").insert({
+                "userid": user_id,
+                "nama_aktivitas": title,
+                "deskripsi": description,
+                "tenggat": tenggat_waktu,
+                "waktu": time,
+                "kategori": category,
+                "prioritas": priority,
+                "status": "Pending"
+            }).execute()
+
+            return True
         
-        finally:
-            conn.close()
+        except Exception as error:
+            print(f"Error membuat aktivitas: {error}")
+            return False
         
     # Cari Aktivitas User
     def get_user_activity(self, user_id):
+        conn = db_connect()
 
         try:
-            conn = db_connect()
-            cursor = conn.cursor()
-            sql = """
-                SELECT "aktivitasid", "nama_aktivitas", "deskripsi", "tenggat", "waktu", "kategori", "prioritas", "status"
-                FROM "Aktivitas"
-                WHERE "userid" = %s
-            """
-            cursor.execute(sql, (user_id,))
-            return cursor.fetchall()
+            result = conn.table("Aktivitas").select(
+                "aktivitasid, nama_aktivitas, deskripsi, tenggat, waktu, kategori, prioritas, status"
+            ).eq("userid", user_id).execute
+
+            return result.data
         
+
         except Exception as error:
-            print(f"Error ambil aktivitas: {error}")
-            return[]
-        
-        finally:
-            conn.close()
+            print(f"Error ngambil aktivitas: {error}")
+            return []
 
     # Update Status Aktivitas
     def update_status(self, aktivitas_id, status):
-        
+        conn = db_connect()
+
         try:
-            conn = db_connect()
-            cursor = conn.cursor()
-            sql = """
-                UPDATE "Aktivitas"
-                SET "status" = %s 
-                WHERE "aktivitasid" = %s
-            """
-            cursor.execute(sql, (status, aktivitas_id))
-            conn.commit()
+            conn.table("Aktivitas").update({
+                "status": status
+            }).eq("aktivitasid", aktivitas_id).execute()
+
             return True
         
         except Exception as error:
-            print(f"Error Update Status: {error}")
+            print(f"Error update status: {error}")
             return False
-        
-        finally:
-            conn.close()
     
     # Update Aktivitas
     def update_activity(self, aktivitas_id, title, description, tenggat_waktu, time, category, priority):
+        conn = db_connect()
 
         try:
-            conn = db_connect()
-            cursor = conn.cursor()
-            sql = """
-                UPDATE "Aktivitas"
-                SET "nama_aktivitas" = %s,
-                    "deskripsi" = %s,
-                    "tenggat" = %s,
-                    "waktu" = %s,
-                    "kategori" = %s,
-                    "prioritas" = %s
-                WHERE "aktivitasid" = %s
-            """
-            cursor.execute(sql, (title, description, tenggat_waktu, time, category, priority, aktivitas_id))
-            conn.commit()
+            conn.table("Aktivitas").update({
+                "nama_aktivitas": title,
+                "deskripsi": description,
+                "tenggat": tenggat_waktu,
+                "waktu": time,
+                "kategori": category,
+                "prioritas": priority
+            }).eq("aktivitasid", aktivitas_id).execute()
+
             return True
         
         except Exception as error:
-            print(f"Error update aktivitas: {error}")
+            print(f"Error Update Aktivitas: {error}")
             return False
-        
-        finally:
-            conn.close()
 
     # Hapus Aktivitas
     def delete_activity(self, aktivitas_id):
-        
+        conn = db_connect()
+
         try:
-            conn = db_connect()
-            cursor = conn.cursor()
-            sql = """
-                DELETE FROM "Aktivitas"
-                WHERE "aktivitasid" = %s
-            """
-            cursor.execute(sql, (aktivitas_id,))
-            conn.commit()
+            conn.table("Aktivitas").delete().eq("aktivitasid", aktivitas_id).execute()
             return True
         
         except Exception as error:
-            print(f"Error delete aktivitas: {error}")
+            print(f"Error Delete Aktivitas: {error}")
             return False
-        
-        finally:
-            conn.close()
     
     # Cari Kategori
     def get_category(self, user_id):
+        conn = db_connect()
 
         try:
-            conn = db_connect()
-            cursor = conn.cursor()
-            sql = """
-                SELECT DISTINCT "kategori" FROM "Aktivitas"
-                WHERE "userid" = %s
-            """
-            cursor.execute(sql, (user_id,))
-            rows = cursor.fetchall()
-            return rows
+            result = conn.table("Aktivitas").select("kategori").eq("userid", user_id).execute()
+            kategori = list(set(row["kategori"] for row in result.data if row["kategori"]))
+            return kategori
         
         except Exception as error:
             print(f"Error Cari Kategori: {error}")
-            return[]
-        
-        finally:
-            conn.close()
+            return []
     

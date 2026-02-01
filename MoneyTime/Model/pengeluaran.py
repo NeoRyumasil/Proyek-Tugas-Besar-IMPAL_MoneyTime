@@ -1,103 +1,109 @@
-from typing import List, Tuple, Any
+from typing import List, Tuple
 from Controller.databaseController import db_connect
 
 class Pengeluaran():
     
         # Membuat pengeluaran
         def create_Pengeluaran(self, finansial_id : int, deskripsi : str, nominal : int, tanggal : str) -> bool :
+            conn = db_connect()
 
             try:
-                conn = db_connect()
-                cursor = conn.cursor()
-                sql = """
-                    INSERT INTO "Pengeluaran" ("finansialid", "deskripsi", "nominal", "tanggal")
-                    VALUES (%s, %s, %s, %s)
-                """
-                cursor.execute(sql, (finansial_id, deskripsi, nominal, tanggal))
-                conn.commit()
+                conn.table("Pengeluaran").insert({
+                    "finansialid": finansial_id,
+                    "deskripsi": deskripsi,
+                    "nominal": nominal,
+                    "tanggal": tanggal
+                }).execute()
                 return True
             
             except Exception as error:
-                print(f"Error buat pengeluaran : {error}")
-            
-            finally:
-                conn.close()
+                print(f"Error buat pengeluaran: {error}")
+                return False
         
         # Ambil semua pengeluaran user
         def get_all_Pengeluaran_user(self, user_id : str, keyword : str = None) -> List[Tuple]:
+            conn = db_connect()
 
             try:
-                conn = db_connect()
-                cursor = conn.cursor()
-                sql = """
-                    SELECT p."pengeluaranid", p."deskripsi", p."nominal", p."tanggal", f."kategori", 'Expense'
-                    FROM "Pengeluaran" p 
-                    JOIN "Finansial" f ON p."finansialid" = f."finansialid"
-                    WHERE f."userid" = %s
-                """
-                parameter = [user_id]
+                result_query = conn.table("Pengeluaran").select(
+                    "pengeluaranid, deskripsi, nominal, tanggal, Finansial(kategori, userid)"
+                )
 
-                if keyword:
-                    sql += """
-                        AND (p."deskripsi" ILIKE %s OR f."kategori" ILIKE %s)
-                    """
-                    parameter.extend([f"%{keyword}%", f"%{keyword}%"])
-                
-                cursor.execute(sql, tuple(parameter))
-                return cursor.fetchall()
-            
+                result_query = result_query.eq("Finansial.userid", user_id)
+
+                result = result_query.execute()
+
+                results = []
+
+                for row in result.data:
+                    if row["Finansial"]:
+                        kategori = row["Finansial"]["kategori"]
+                    else:
+                        None
+                    
+                    if keyword:
+                        keyword = keyword.lower()
+
+                        if keyword not in (row['deskripsi'] or "").lower() and keyword not in (kategori or "").lower():
+                            continue
+
+                        results.append({
+                            "pengeluaranid": row["pengeluaranid"],
+                            "deskripsi": row["deskripsi"],
+                            "nominal": row["nominal"],
+                            "tanggal": row["tanggal"],
+                            "kategori": row["kategori"],
+                            "type": "Expense"
+                        })
+                    
+                return results
+           
             except Exception as error:
-                print(f"Error Ambil pengeluaran: {error}")
+                print(f"Error ambil pengeluaran: {error}")
                 return []
-            
-            finally:
-                conn.close()
 
         # Hapus pengeluaran
         def delete_Pengeluaran(self, transaction_id : int, user_id : str) -> bool:
+            conn = db_connect()
 
             try:
-                conn = db_connect()
-                cursor = conn.cursor()
-                sql = """
-                    DELETE FROM "Pengeluaran" p
-                    USING "Finansial" f
-                    WHERE p."finansialid" = f."finansialid"
-                    AND p."pengeluaranid" = %s AND f."userid" = %s
-                """
-                cursor.execute(sql, (transaction_id, user_id))
-                conn.commit()
-                return cursor.rowcount > 0
+                result = conn.table("Pengeluaran").select(
+                    "pengeluaranid, Finansial(userid)"
+                ).eq("pengeluaranid", transaction_id).execute()
+
+                if not result.data or result.data[0]["Finansial"]["userid"] != user_id:
+                    return False
+                
+                conn.table("Pengeluaran").delete().eq("pengeluaranid", transaction_id).execute()
+                
+                return True
             
             except Exception as error:
-                print(f"Delete Error : {error}")
+                print(f"Delete error: {error}")
                 return False
             
-            finally:
-                conn.close()
-        
         # Update pengeluaran
         def update_Pengeluaran(self, transaction_id : int, user_id : str, deskripsi : str, nominal : int, tanggal : str, finansial_id : int) -> bool :
+            conn = db_connect()
 
             try:
-                conn = db_connect()
-                cursor = conn.cursor()
-                sql = """
-                    UPDATE "Pengeluaran" p
-                    SET "deskripsi" = %s, "nominal" = %s, "tanggal" = %s, "finansialid" = %s
-                    FROM "Finansial" f
-                    WHERE p."finansialid" = f."finansialid"
-                    AND p."pengeluaranid" = %s AND f."userid" = %s
-                """
-                cursor.execute(sql, (deskripsi, nominal, tanggal, finansial_id, transaction_id, user_id))
-                conn.commit()
-                return cursor.rowcount > 0
+                result = conn.table("Pengeluaran").select(
+                    "pengeluaranid, Finansial(userid)"
+                ).eq("pengeluaranid", transaction_id).execute()
+
+                if not result.data or result.data[0]["Finansial"]["userid"] != user_id:
+                    return False
+                
+                conn.table("Pengeluaran").update({
+                    "deskripsi": deskripsi,
+                    "nominal": nominal,
+                    "tanggal": tanggal,
+                    "finansialid": finansial_id
+                }).eq("pengeluaranid", transaction_id).execute()
+
+                return True
             
             except Exception as error:
-                print(f"Update pengeluaran Error : {error}")
+                print(f"Update pengeluaran error: {error}")
                 return False
-            
-            finally:
-                conn.close()
-    
-    
+           

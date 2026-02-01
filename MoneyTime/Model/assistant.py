@@ -1,60 +1,48 @@
 from Controller.databaseController import db_connect
 from typing import List, Dict, Any
+from datetime import datetime, timezone
 
 class Assistant():
     
     # Buat Nyimpan Chat Log
     def create_log(self, user_id : str, content : str, role : str) -> bool:
-        
-        try:
-            conn = db_connect()
-            cursor = conn.cursor()
-            sql = """
-                INSERT INTO "Chatlog" ("userid", "message", "role", "timestamp")
-                VALUES (%s, %s, %s, NOW())
-            """
-            cursor.execute(sql, (user_id, content, role))
-            conn.commit()
-            return True
-    
-        except Exception as error:
-            print(f"Error membuat log: {error}")
+        conn = db_connect()
 
-        finally:
-            conn.close()
+        try:
+            conn.table("Chatlog").insert({
+                "userid": user_id,
+                "message": content,
+                "role": role,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }).execute()
+
+            return True
+        
+        except Exception as error:
+            print(f"Error membuat chatlog: {error}")
+            return False
     
     # Cek History untuk AI
     def get_chat_history(self, user_id : str, limit : int = 50) -> List[Dict[str, Any]]:
+        conn = db_connect()
 
         try:
-            conn = db_connect()
-            cursor = conn.cursor()
-            sql = """
-                SELECT "message", "role", "timestamp"
-                FROM (
-                    SELECT "message", "role", "timestamp"
-                    FROM "Chatlog"
-                    WHERE "userid" = %s
-                    ORDER BY "timestamp" DESC
-                    LIMIT 50
-                ) AS subquery
-                ORDER BY "timestamp" ASC
-            """
-            cursor.execute(sql, (user_id,))
-            rows = cursor.fetchall()
+            result = conn.table("Chatlog").select(
+                "message, role, timestamp"
+            ).eq("userid", user_id).order("timestamp", desc=True).limit(limit).execute()
+
+            rows = list(reversed(result.data))
 
             history = []
+
             for row in rows:
                 history.append({
-                    "content": row[0],
-                    "role" : row[1],
+                    "content": row["message"],
+                    "role": row["role"],
                 })
             
             return history
         
         except Exception as error:
-            print(f"Error Ngambil History : {error}")
+            print(f"Error Ngambil History: {error}")
             return []
-        
-        finally:
-            conn.close()

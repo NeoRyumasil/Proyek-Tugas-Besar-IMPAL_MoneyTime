@@ -1,26 +1,19 @@
-import psycopg2
 import os
-from urllib.parse import urlparse, urlunparse
+from supabase import create_client, Client
 
-def db_connect():
+def db_connect() -> Client:
     try:
-        password = os.getenv('POSTGRES_PASSWORD')
-        db_url = f"postgresql://postgres:{password}@db.ocugskvqpuixwbblrpcf.supabase.co:5432/postgres"
+        url = os.getenv('SUPABASE_URL')
+        key = os.getenv('SUPABASE_ANON_KEY')
+
+        if not url or not key:
+            print("Error URL atau KEY tidak ditemukan")
+            return None
         
-        if db_url:
-            connection = psycopg2.connect(db_url, sslmode="require")
-            return connection
-            
-        else:
-            return psycopg2.connect(
-                host=os.getenv('POSTGRES_HOST'),
-                user=os.getenv('POSTGRES_USER'),
-                password=os.getenv('POSTGRES_PASSWORD'),
-                dbname=os.getenv('POSTGRES_DATABASE'),
-                port="5432",
-                sslmode="require"
-            )
+        return create_client(url, key)
     
-    except Exception as e:
-        print(f"Gagal koneksi ke Database: {e}")
+    except Exception as error:
+        print(f"Gagal terhubung ke database: {error}")
         return None
+
+

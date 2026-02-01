@@ -5,51 +5,37 @@ class Finansial():
     
     # Cari data User dan Kategori
     def get_user_and_category(self, user_id : str, kategori : str) -> Optional[int]:
-
-        try :
-            conn = db_connect()
-            cursor = conn.cursor()
-            sql = """
-                SELECT "finansialid" FROM "Finansial"
-                WHERE "userid" = %s AND "kategori" = %s
-            """
-            cursor.execute(sql, (user_id, kategori))
-            row = cursor.fetchone()
-            if row :
-                return int(row[0])
-            else:
-                return None
-        
-        except Exception as error:
-            print(f"Error get user dan kategori: {error}")
-            return None
-        
-        finally:
-            conn.close()
-        
-    # Buat Data Finansial
-    def create_financial(self, user_id : str, kategori : str, budget : int = 0, status : str = 'active') -> Optional[int]:
+        conn = db_connect()
 
         try:
-            conn = db_connect()
-            cursor = conn.cursor()
-            sql = """
-                INSERT INTO "Finansial" ("userid", "budget", "kategori", "status")
-                VALUES (%s, %s, %s, %s)
-                RETURNING "finansialid"
-            """
-            cursor.execute(sql, (user_id, budget, kategori, status))
-            row = cursor.fetchone()
-            conn.commit()
+            result = conn.table("Finansial").select("finansialid").eq("userid", user_id).eq("kategori", kategori).execute()
 
-            if row :
-                return int(row[0])
-            else :
-                return None
-        
-        except Exception as error :
-            print(f"Error buat Finansial: {error}")
+            if result.data:
+                return int(result.data[0]["finansialid"])
+            
             return None
         
-        finally:
-            conn.close()
+        except Exception as error:
+            print(f"Error mendapatkan user dan kategori: {error}")
+            return None
+
+    # Buat Data Finansial
+    def create_financial(self, user_id : str, kategori : str, budget : int = 0, status : str = 'active') -> Optional[int]:
+        conn = db_connect()
+
+        try:
+            result = conn.table("Finansial").insert({
+                "userid": user_id,
+                "budget": budget,
+                "kategori": kategori,
+                "status": status
+            }).execute()
+
+            if result.data:
+                return int(result.data[0]["finansialid"])
+            
+            return None
+        
+        except Exception as error:
+            print(f"Error buat Finansial: {error}")
+            return None

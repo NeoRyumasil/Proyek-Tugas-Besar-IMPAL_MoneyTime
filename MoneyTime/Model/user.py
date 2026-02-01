@@ -15,82 +15,67 @@ class User():
     @staticmethod
     def find_email_or_username(identifier):
         conn = db_connect()
-        cursor = conn.cursor()
 
         try :
-            sql = """
-                SELECT "id", "username", "email", "password", "role"
-                FROM "User"
-                WHERE "email" = %s OR "username" = %s
-            """
-            cursor.execute(sql, (identifier, identifier))
-            row = cursor.fetchone()
+            result = conn.table("User").select("id, username, email, password, role").eq("email", identifier).execute()
+            row = result.data
 
+            if not row:
+                result = conn.table("User").select("id, username, email, password, role").eq("username", identifier).execute()
+                row = result.data
+            
             if row:
-                return User(user_id=row[0], username=row[1], email_address=row[2], password=row[3], role=row[4])
-            return None
+                user = row[0]
+                return User(user_id=user['id'], username=user['username'], email_address=user['email'], password=user['password'], role=user['role'])
         
-        finally:
-            conn.close()
+        except Exception as error:
+            print(f"Error mendapatkan user: {error}")
     
     # Cari apakah username dan email sudah ada
     @staticmethod
     def check_user_email_exist(username, email):
         conn = db_connect()
-        cursor = conn.cursor()
-
-        try:
-            sql = """
-                SELECT COUNT(*) FROM "User"
-                WHERE "username" = %s OR "email" = %s
-            """
-            cursor.execute(sql, (username, email))
-            count = cursor.fetchone()[0]
-            return count > 0
         
-        finally:
-            conn.close()
-    
+        try:
+            username_result = conn.table("User").select("id").eq("username", username).execute()
+            email_result = conn.table("User").select("id").eq("email", email).execute()
+            return len(username_result.data) > 0 or len(email_result.data > 0)
+        
+        except Exception as error:
+            print(f"Error cek user: {error}")
+            return False
+
     # Membuat User
     @staticmethod
     def create_user(username, hashed_password, email):
         conn = db_connect()
-        cursor = conn.cursor()
-
+        
         try:
-            sql = """
-                INSERT INTO "User" ("username", "password", "email", "role")
-                VALUES (%s, %s, %s, 'user')
-            """
-            cursor.execute(sql, (username, hashed_password, email))
-            conn.commit()
+            conn.table("User").insert({
+                "username": username,
+                "password": hashed_password,
+                "email": email,
+                "role": "user"
+            }).execute()
+
             return True
         
         except Exception as error:
             print(f"Error membuat user: {error}")
             return False
-        
-        finally:
-            conn.close()
     
     # Update Password User
     @staticmethod
     def update_password(email, hashed_password):
         conn = db_connect()
-        cursor = conn.cursor()
-
+        
         try:
-            sql = """
-                UPDATE "User"
-                SET "password" = %s WHERE "email" = %s
-            """
-            cursor.execute(sql, (hashed_password, email))
-            conn.commit()
+            conn.table("User").update({
+                "password": hashed_password
+            }).eq("email", email).execute()
+
             return True
         
         except Exception as error:
-            print(f"Error Update Password: {error}")
+            print(f"Error update password: {error}")
             return False
-        
-        finally:
-            conn.close()
