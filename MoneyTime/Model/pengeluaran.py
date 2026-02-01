@@ -52,7 +52,7 @@ class Pengeluaran():
                         "deskripsi": row["deskripsi"],
                         "nominal": row["nominal"],
                         "tanggal": row["tanggal"],
-                        "kategori": row["kategori"],
+                        "kategori": kategori,
                         "type": "Expense"
                     })
                 
