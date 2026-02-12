@@ -38,6 +38,11 @@ class NotificationController():
             delta = tenggat_waktu - now
             time_info, notif_type = self.calculate_time(delta)
 
+            if isinstance(is_read, bool):
+                is_read = is_read
+            else:
+                is_read = bool(is_read)
+
             notification.append({
                 'id' : id_aktivitas,
                 'title' : title,

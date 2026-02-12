@@ -25,7 +25,7 @@ class Notifikasi():
 
         try:
             result = conn.table("Aktivitas").update({
-                "isread": 1
+                "isread": True
             }).eq("aktivitasid", aktivitas_id).execute()
             
             return len(result.data) > 0
@@ -40,7 +40,7 @@ class Notifikasi():
 
         try:
             conn.table("Aktivitas").update({
-                "isread": 1
+                "isread": True
             }).eq("userid", user_id).execute()
             
             return True
@@ -60,7 +60,11 @@ class Notifikasi():
                 return False, None
             
             current_value = result.data[0]["isread"]
-            new_value = not current_value
+            
+            if isinstance(current_value, bool):
+                new_value = not current_value
+            else:
+                new_value = not bool(current_value)
 
             conn.table("Aktivitas").update({
                 "isread": new_value

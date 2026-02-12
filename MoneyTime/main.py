@@ -48,7 +48,16 @@ def inject_notifications():
             # Hitung berapa yang is_read-nya 0 (False)
             unread_count = 0
             if notifications:
-                unread_count = sum(1 for n in notifications if n['is_read'] == 0)
+                for notif in notifications:
+                    is_read_value = notif.get('is_read', True)
+
+                    if isinstance(is_read_value, bool):
+                        is_unread = not is_read_value
+                    else:
+                        is_unread = not bool(is_read_value)
+                    
+                    if is_unread:
+                        unread_count += 1
             
             # Kembalikan notifications DAN unread_count
             return dict(notifications=notifications, unread_count=unread_count)
@@ -57,6 +66,7 @@ def inject_notifications():
         except Exception as e:
             print(f"Error injecting notifications: {e}")
             return dict(notifications=[], unread_count=0)
+        
     return dict(notifications=[], unread_count=0)
 
 # ==========================================
