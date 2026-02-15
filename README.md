@@ -8,13 +8,13 @@ seperti, penjadwalan, hingga perhitungan waktu. Pengguna juga dapat memanajemen 
 
 ## 🧑‍💻 Team
 
-|          **Name**          |      **NIM**        |
-|----------------------------|---------------------|
-| Ghanif Hadiyana Akbar      | 103012300018        |
-| Taraka Yumna Sarwoko       | 103012300242        |
-| Muhammad Zaini             | 103012300313        |
-| Muhammad Alvin Ababil      | 103012330064        |
-| Alif Ihsan                 | 103012330079        |
+|          **Name**          |      **NIM**        |                 **Role**              |
+|----------------------------|---------------------|---------------------------------------|
+| Ghanif Hadiyana Akbar      | 103012300018        | Full Stack Programmer                 |
+| Taraka Yumna Sarwoko       | 103012300242        | Back-End Programmer                   |
+| Muhammad Zaini             | 103012300313        | Full Stack Programmer                 |
+| Muhammad Alvin Ababil      | 103012330064        | Project Manager & Back-End Programmer |
+| Alif Ihsan                 | 103012330079        | UI/UX Designer & Front-End Programmer |
 
 ## 🚀 Features
 - **📆 Manajemen Waktu**                   : Pengguna dapat melakukan manajemen waktu kesehariannya.
@@ -49,7 +49,7 @@ pip install flask
 pip install requests
 pip install python-dotenv
 pip install groq
-pip install pymssql
+pip install supabase
 ```
 
 ### Step 3 Setup Environtment
@@ -61,10 +61,8 @@ pip install pymssql
   FLASK_ENV=development
   FLASK_RUN_PORT=8080
 
-  DB_SERVER=your-server.database.windows.net
-  DB_DATABASE=your_db_name
-  DB_USERNAME=your_username
-  DB_PASSWORD=your_password
+  SUPABASE_URL = YOUR_SUPABASE_URL
+  SUPABASE_ANON_KEY = YOUR_SUPABASE_ANON_KEY
   
   EMAIL_SENDER=your_email@gmail.com
   EMAIL_PASSWORD=your_app_password
@@ -74,10 +72,10 @@ pip install pymssql
   GROQ_API_KEY = INSERT_YOUR_KEY_HERE
   ```
   
-### Step 4 Access Azure Database
+### Step 4 Access Supabase Database
 - Make the PosGreSQL Database in Supabase
 - Make the database
-- Access it with pymssql
+- Access it with supabase
 
 ### Step 5 Run the Project
 ```bash
