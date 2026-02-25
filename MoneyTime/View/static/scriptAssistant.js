@@ -1,3 +1,80 @@
+// Fungsi untuk load chat history dari backend dan menambahkan clear button
+document.addEventListener('DOMContentLoaded', function() {
+    loadChatHistory();
+    addClearButton();
+});
+
+// Fungsi untuk load chat history dari backend
+async function loadChatHistory() {
+    try {
+        const response = await fetch('/api/chat-history');
+        const data = await response.json();
+
+        if (data.success && data.history.length > 0) {
+            renderHistory(data.history);
+        }
+    } catch (error) {
+        console.error('Error loading chat history:', error);
+    }
+}
+
+// Render chat history ke dalam chat body
+function renderHistory(history) {
+    const chatBody = document.getElementById('mt-chat-body');
+
+    if (chatBody) {
+        chatBody.innerHTML = '';
+
+        history.forEach(item => {
+            const isUser = item.role === 'user';
+            addMessage(item.content, 'mt-message', isUser ? 'mt-user-message' : 'mt-assistant-message');
+        }); 
+    }
+
+    scrollToBottom();
+}
+
+// Fungsi tambah pesan ke chat body
+function addMessage(text, isUser) {
+    const chatBody = document.getElementById('mt-chat-body');
+
+    if (!chatBody) return;
+
+    const div = document.createElement('div');  
+    div.className = isUser ? 'mt-msg-container mt-msg-user' : 'mt-msg-container mt-msg-bot';
+
+    if (isUser) {
+        div.innerHTML = `
+            <div class="mt-user-avatar-frame">
+                <img src="/static/avatarUser.svg" alt="User Avatar" />
+            </div>
+            <div class="mt-bubble mt-bubble-user">      
+                ${escapeHtml(text).replace(/\n/g, '<br>')}
+            </div>
+        `;
+    } else {
+        div.innerHTML = `
+            <div class="mt-avatar-frame">
+                <img src="/static/Daylili.png" alt="Bot Avatar" style="width: 60px; height: 60px;"/>
+            </div>
+            <div class="mt-bubble mt-bubble-bot">      
+                ${typeof marked !== 'undefined' ? marked.parse(text) : escapeHtml(text).replace(/\n/g, '<br>')}
+            </div>
+        `;
+    }
+            
+    chatBody.appendChild(div);
+    scrollToBottom();       
+}
+
+// Escape HTML untuk mencegah XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');  
+    div.textContent = text;
+    return div.innerHTML;   
+}
+
+
 // Fungsi untuk scroll ke bawah
 function scrollToBottom() {
     const chatBody = document.getElementById('mt-chat-body');
@@ -123,4 +200,56 @@ function sendMessage(){
         appendMessage('Terjadi kesalahan koneksi.', 'mt-message', 'mt-assistant-message');
         console.error('Error:', error);
     });
+}
+
+// Fungsi untuk menambahkan tombol clear
+function addClearButton() {
+    const chatHeader = document.querySelector('.mt-chat-header');
+    if (!chatHeader || document.getElementById('clear-button')) return;
+    
+    const clearButton = document.createElement('button');
+    clearButton.id = 'clear-button';
+    clearButton.textContent = 'Clear Chat';
+    clearButton.className = 'mt-clear-button';
+    clearButton.innerHTML = '<i class="fa-solid fa-trash" style="color:#fff;font-size:12px;"></i>';
+    btn.style.cssText = `
+        background:rgba(249, 0, 0, 0.79);
+        border:none;
+        border-radius:50%;
+        width:28px;
+        height:28px;
+        cursor:pointer;
+        margin-left:8px;
+        text-color:white;
+    `;
+    clearButton.onclick = ClearHistory;
+    
+    const minimize = header.querySelector('.mt-minimize-btn');
+    if (minimize) minimize.before(btn);
+}
+
+// Fungsi untuk clear chat history
+async function ClearHistory() {
+    if(!confirm('Hapus Semua Riwayat Chat?')) return;
+
+    try {
+        const result = fetch('/api/clear_history', { method: 'POST' });
+        const data = await result.json();
+
+        if (data.success) {
+            const chatBody = document.getElementById('mt-chat-body');
+            if (chatBody) chatBody.innerHTML = `
+                div class="mt-msg-container mt-msg-bot">
+                    <div class="mt-avatar-frame">
+                        <img src="/static/Daylili.png" alt="Arvita" style="width:60px;height:60px;"/>
+                    </div>
+                    <div class="mt-bubble mt-bubble-bot">
+                        Halo Aku Arvita! Asisten virtual untuk membantu keuangan dan aktivitasmu.
+                    </div>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Gagal menghapus riwayat chat:', error);
+    }
 }

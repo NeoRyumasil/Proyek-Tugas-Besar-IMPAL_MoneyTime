@@ -308,3 +308,21 @@ class AssistantController:
             print(f"Detail Error Tool: {error}")
             return f"Error: {str(error)}"
 
+    # Untuk Ambil History Chat
+    def get_chat_history(self, user_id : str, limit : int = 10) :
+        try:
+            history = self.assistant_model.get_chat_history(user_id, limit)
+            return history
+        
+        except Exception as error:
+            print(f"Error ambil history chat: {error}")
+            return []
+    
+    # Untuk Clear History Chat
+    def clear_chat_history(self, user_id : str) :
+        try:
+            return self.assistant_model.clear_chat_history(user_id)
+        
+        except Exception as error:
+            print(f"Error clear history chat: {error}")
+            return False

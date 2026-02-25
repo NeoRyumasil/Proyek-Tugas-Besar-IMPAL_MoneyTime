@@ -46,3 +46,15 @@ class Assistant():
         except Exception as error:
             print(f"Error Ngambil History: {error}")
             return []
+    
+    # Clear History
+    def clear_chat_history(self, user_id : str) -> bool:
+        conn = db_connect()
+
+        try:
+            conn.table("Chatlog").delete().eq("userid", user_id).execute()
+            return True
+        
+        except Exception as error:
+            print(f"Error Clear History: {error}")
+            return False    

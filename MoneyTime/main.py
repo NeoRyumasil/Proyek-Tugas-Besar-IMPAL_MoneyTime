@@ -562,5 +562,35 @@ def api_schedule_categories():
     categories = schedule_controller.get_categories(user_id)
     return jsonify({'success': True, 'categories': categories})
 
+# ==========================================
+#           CHAT HISTORY ROUTES
+# ==========================================
+
+@app.route('/api/chat-history', methods=['GET'])
+def get_chat_history():
+    if 'user' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    user_id = session['user'].get('id')
+    
+    # Ambil dari database via AssistantController
+    assistant = AssistantController(finansial_controller, schedule_controller, user_id)
+    history = assistant.get_chat_history(user_id)
+    
+    return jsonify({'success': True, 'history': history})
+
+@app.route('/api/chat-history/clear', methods=['POST'])
+def clear_chat_history():
+    if 'user' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    user_id = session['user'].get('id')
+    
+    # Panggil method untuk clear history
+    assistant = AssistantController(finansial_controller, schedule_controller, user_id)
+    success = assistant.clear_chat_history(user_id)
+    
+    return jsonify({'success': success})
+
 if __name__ == '__main__':
     app.run(debug=True)
