@@ -23,7 +23,7 @@ class Assistant():
             return False
     
     # Cek History untuk AI
-    def get_chat_history(self, user_id : str, limit : int = 50) -> List[Dict[str, Any]]:
+    def get_chat_history(self, user_id : str, limit : int = 10) -> List[Dict[str, Any]]:
         conn = db_connect()
 
         try:
