@@ -206,28 +206,36 @@ function sendMessage(){
 
 // Fungsi untuk menambahkan tombol clear
 function addClearButton() {
-    const chatHeader = document.querySelector('.mt-header');
-    if (!chatHeader || document.getElementById('clear-button')) return;
+    const header = document.querySelector('.mt-header');
+    if (!header || document.getElementById('clear-button')) return;
     
-    const clearButton = document.createElement('button');
-    clearButton.id = 'clear-button';
-    clearButton.textContent = 'Clear Chat';
-    clearButton.className = 'mt-clear-button';
-    clearButton.innerHTML = '<i class="fa-solid fa-trash" style="color:#fff;font-size:12px;"></i>';
+    // Pastikan header punya position relative
+    if (getComputedStyle(header).position === 'static') {
+        header.style.position = 'relative';
+    }
+    
+    const btn = document.createElement('button');
+    btn.id = 'clear-button';
+    btn.innerHTML = '<i class="fa-solid fa-trash" style="color:#fff;font-size:12px;"></i>';
     btn.style.cssText = `
-        background:rgba(249, 0, 0, 0.79);
-        border:none;
-        border-radius:50%;
-        width:28px;
-        height:28px;
-        cursor:pointer;
-        margin-left:8px;
-        text-color:white;
+        background: rgba(249, 0, 0, 0.79);
+        border: none;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        right: 70px;        
+        top: 50%;
+        transform: translateY(-50%);
     `;
-    clearButton.onclick = clearHistory;
+    btn.title = "Clear Chat History";
+    btn.onclick = clearHistory;
     
-    const minimize = header.querySelector('.mt-minimize-btn');
-    if (minimize) minimize.before(btn);
+    header.appendChild(btn);
 }
 
 // Fungsi untuk clear chat history
