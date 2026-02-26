@@ -21,19 +21,21 @@ async function loadChatHistory() {
 // Render chat history ke dalam chat body
 function renderHistory(history) {
     const chatBody = document.getElementById('mt-chat-body');
+    if (!chatBody) return;
 
-    if (chatBody) {
-        chatBody.innerHTML = '';
+    console.log("History dari server:", history); 
 
-        history.forEach(item => {
-            const isUser = item.role === 'user';
-            addMessage(item.content, 'mt-message', isUser ? 'mt-user-message' : 'mt-assistant-message');
-        }); 
-    }
+    chatBody.innerHTML = '';
+
+    history.forEach((item, index) => {
+        console.log(`Item ${index}: role=${item.role}, content=${item.content.substring(0, 30)}...`); 
+        
+        const isUser = item.role === 'user';  
+        addMessage(item.content, isUser);
+    });
 
     scrollToBottom();
 }
-
 // Fungsi tambah pesan ke chat body
 function addMessage(text, isUser) {
     const chatBody = document.getElementById('mt-chat-body');
@@ -204,7 +206,7 @@ function sendMessage(){
 
 // Fungsi untuk menambahkan tombol clear
 function addClearButton() {
-    const chatHeader = document.querySelector('.mt-chat-header');
+    const chatHeader = document.querySelector('.mt-header');
     if (!chatHeader || document.getElementById('clear-button')) return;
     
     const clearButton = document.createElement('button');
@@ -222,24 +224,28 @@ function addClearButton() {
         margin-left:8px;
         text-color:white;
     `;
-    clearButton.onclick = ClearHistory;
+    clearButton.onclick = clearHistory;
     
     const minimize = header.querySelector('.mt-minimize-btn');
     if (minimize) minimize.before(btn);
 }
 
 // Fungsi untuk clear chat history
-async function ClearHistory() {
+async function clearHistory() {
     if(!confirm('Hapus Semua Riwayat Chat?')) return;
 
     try {
-        const result = fetch('/api/clear_history', { method: 'POST' });
+        const result = await fetch('/api/chat-history/clear', { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
         const data = await result.json();
 
         if (data.success) {
             const chatBody = document.getElementById('mt-chat-body');
             if (chatBody) chatBody.innerHTML = `
-                div class="mt-msg-container mt-msg-bot">
+                <div class="mt-msg-container mt-msg-bot">
                     <div class="mt-avatar-frame">
                         <img src="/static/Daylili.png" alt="Arvita" style="width:60px;height:60px;"/>
                     </div>

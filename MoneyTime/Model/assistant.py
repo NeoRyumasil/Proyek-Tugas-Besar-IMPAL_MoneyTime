@@ -23,26 +23,22 @@ class Assistant():
             return False
     
     # Cek History untuk AI
-    def get_chat_history(self, user_id : str, limit : int = 10) -> List[Dict[str, Any]]:
+    def get_chat_history(self, user_id: str, limit: int = 10) -> List[Dict[str, Any]]:
         conn = db_connect()
-
         try:
-            result = conn.table("Chatlog").select(
-                "message, role, timestamp"
-            ).eq("userid", user_id).order("timestamp", desc=True).limit(limit).execute()
+            result = conn.table("Chatlog").select("message, role, timestamp").eq("userid", user_id).order("timestamp", desc=True).limit(limit).execute()
 
             rows = list(reversed(result.data))
-
             history = []
 
             for row in rows:
+                role = row["role"].lower() if row.get("role") else "user"
                 history.append({
                     "content": row["message"],
-                    "role": row["role"],
+                    "role": role, 
                 })
             
             return history
-        
         except Exception as error:
             print(f"Error Ngambil History: {error}")
             return []

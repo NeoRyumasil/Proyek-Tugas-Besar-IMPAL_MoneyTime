@@ -186,8 +186,6 @@ class AssistantController:
                             **Arvita:** 😏 "Bos... buka kalkulator... hari ke-5. 1,5 juta sebulan. 15% budget makanan. Untuk air panas dan biji gosong. Tapi gapapa, kan? Kan kamu 'butuh' ini. Aku catet sekarang atau kamu mau lanjutin destruksi finansialnya dulu?"
 
                             ---
-
-                            **Status Aku:** 😏 Nunggu input kamu, Bos. Dengan sarkas level 100% dan peduli level... 🫣 ...cukup. Q.E.D.
                                     """
                         }
                     ]
