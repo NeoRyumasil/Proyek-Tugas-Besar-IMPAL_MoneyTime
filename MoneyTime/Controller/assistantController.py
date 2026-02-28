@@ -165,7 +165,7 @@ class AssistantController:
                 messages=messages,
                 tools=self.tools,
                 tool_choice="auto",
-                max_tokens=1024
+                max_tokens=2048
             )
 
             response_message = response.choices[0].message

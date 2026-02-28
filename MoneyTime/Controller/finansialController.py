@@ -115,7 +115,7 @@ class FinansialController:
         total_expense = sum(t['nominal'] for t in transactions if t['type'] == "Expense")
         balance = total_income - total_expense
 
-        recent_transaction = transactions[:7]
+        recent_transaction = transactions[:30]
         recent_transaction_str = ""
 
         for transaction in recent_transaction:
@@ -127,7 +127,7 @@ class FinansialController:
             f"Total Pengeluaran: Rp.{total_expense:,}\n"
             f"Sisa Saldo: Rp.{balance:,}\n"
             f"Transaksi Terakhir:\n {recent_transaction_str}"
-            f"[INSTRUKSI KHUSUS : Gunakan data di atas untuk memberikan saran keuangan]"
+            f"[INSTRUKSI KHUSUS : Gunakan data di atas untuk memberikan saran keuangan gunakan sisa saldo dan Total Pengeluaran sebagai acuan utama.]"
             f"Jika saldo minus atau tipis, marahi user"
         )
 
