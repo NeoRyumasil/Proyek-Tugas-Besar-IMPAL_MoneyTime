@@ -1,10 +1,10 @@
 import json
 import os
-
 from groq import Groq
 from datetime import datetime
 
-from Model.assistant import Assistant
+from Database.models import Chatlog
+from Database.orm import get_db
 
 from Controller.finansialController import FinansialController
 from Controller.scheduleController import ScheduleController
@@ -14,58 +14,28 @@ class AssistantController:
         self.client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         self.model_name = "llama-3.3-70b-versatile"
 
-        self.assistant_model = Assistant()
+        self.db = next(get_db())
+
         self.finansial_controller = finansial_controller
         self.schedule_controller = schedule_controller
-        
-        self.tools = [
-            {
-                "type": "function",
-                "function": {
-                    "name": "add_financial_transaction",
-                    "description": "Menambahkan transaksi baru (Pemasukan atau Pengeluaran) ke dalam catatan keuangan user.",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "type": {"type": "string", "description": "Jenis transaksi: 'Income' atau 'Expense'."},
-                            "nominal": {"type": "integer", "description": "Jumlah nominal transaksi (wajib angka)."},
-                            "deskripsi": {"type": "string", "description": "Deskripsi singkat atau nama transaksi."},
-                            "kategori": {"type": "string", "description": "Kategori transaksi (e.g., 'Gaji', 'Makanan', 'Transportasi')."},
-                            "tanggal": {"type": "string", "description": "Tanggal transaksi dalam format YYYY-MM-DD. Untuk parameter `tanggal` jika user menyebutkannya (contoh: '2025-12-11'). Jika user bilang 'hari ini' atau tidak menyebutkan tanggal, gunakan tanggal hari ini yang ada di context (contoh: '2025-12-11')."}
-                        },
-                        "required": ["type", "nominal", "deskripsi", "kategori",  "tanggal"]
-                    }
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "add_schedule",
-                    "description": "Menambahkan aktivitas/jadwal baru ke dalam catatan waktu user.",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "title": {"type": "string", "description": "Nama singkat atau judul aktivitas."},
-                            "description": {"type": "string", "description": "Deskripsi detail aktivitas."},
-                            "date": {"type": "string", "description": "Tanggal aktivitas dalam format YYYY-MM-DD. Untuk parameter `date` jika user menyebutkannya (contoh: '2025-12-11'). Jika user bilang 'hari ini' atau tidak menyebutkan tanggal, gunakan tanggal hari ini yang ada di context (contoh: '2025-12-11')."},
-                            "time": {"type": "string", "description": "Waktu aktivitas dalam format HH:MM (24 jam, wajib 4 digit)."},
-                            "category": {"type": "string", "description": "Kategori aktivitas (e.g., 'Kerja', 'Kuliah', 'Olahraga')."},
-                            "priority": {"type": "string", "description": "Tingkat prioritas aktivitas ('High', 'Medium', 'Low')."}
-                        },
-                        "required": ["title", "description", "date", "time", "category", "priority"]
-                    }
-                }
-            }
-        ]   
+
+    # Buat Log
+    def create_log(self, user_id: str, message: str, role: str):
+        try:
+            new_log = Chatlog(userid=user_id, message=message, role=role, timestamp=datetime.now())
+            self.db.add(new_log)
+            self.db.commit()
+
+        except Exception as e:
+            self.db.rollback()
+            print(f"Error logging chat: {e}")
 
     # Untuk Chatbot
     def process_chat(self, user_id : str, user_message : str) -> str :
-        
         try:
-            history = self.assistant_model.get_chat_history(user_id)
+            history = self.get_chat_history(user_id)
             financial_summary = self.finansial_controller.get_financial_summary(user_id)
-            activity_summary = self.finansial_controller.get_financial_summary(user_id)
-
+            activity_summary = self.schedule_controller.get_schedule_summary(user_id)
 
             messages = [
                 {
@@ -154,14 +124,14 @@ class AssistantController:
                             - Kamu tidak mengelola keuangan dengan cara yang melibatkan penipuan atau kecurangan
                             - Jika pengguna bersikap kasar berlebihan, kamu mengakhiri percakapan dengan tegas dan jelas
                             """
-                        }
-                    ]
+                }
+            ]
 
             messages.extend(history)
-            messages.append({"role" : "user", "content" : user_message})
+            messages.append({"role": "user", "content": user_message})
 
             response = self.client.chat.completions.create(
-                model = self.model_name,
+                model=self.model_name,
                 messages=messages,
                 tools=self.tools,
                 tool_choice="auto",
@@ -172,7 +142,7 @@ class AssistantController:
             tool_calls = response_message.tool_calls
 
             if tool_calls:
-                self.assistant_model.create_log(user_id, user_message, "user")
+                self.create_log(user_id, user_message, "user")
                 messages.append(response_message)
 
                 for tool_call in tool_calls:
@@ -195,13 +165,13 @@ class AssistantController:
 
                     final_response = second_response.choices[0].message.content
 
-                    self.assistant_model.create_log(user_id, final_response, "assistant")
+                    self.create_log(user_id, final_response, "assistant")
                     return final_response
             else:
                 chat_reply = response_message.content
 
-                self.assistant_model.create_log(user_id, user_message, "user")
-                self.assistant_model.create_log(user_id, chat_reply, "assistant")
+                self.create_log(user_id, user_message, "user")
+                self.create_log(user_id, chat_reply, "assistant")
 
                 return chat_reply
             
@@ -210,12 +180,10 @@ class AssistantController:
 
     # Untuk Tool Call
     def execute_tool(self, function_name, arguments, user_id):
-        
         if isinstance(arguments, str):
-            
             try:
                 arguments = json.loads(arguments)
-            
+
             except:
                 return "Error: Argumen bukan format JSON yang valid"
 
@@ -272,11 +240,13 @@ class AssistantController:
         except Exception as error:
             print(f"Detail Error Tool: {error}")
             return f"Error: {str(error)}"
+        
 
     # Untuk Ambil History Chat
     def get_chat_history(self, user_id : str, limit : int = 10) :
         try:
-            history = self.assistant_model.get_chat_history(user_id, limit)
+            logs = self.db.query(Chatlog).filter_by(userid=user_id).order_by(Chatlog.timestamp.desc()).limit(limit).all()
+            history = [{"role": log.role, "content": log.message} for log in reversed(logs)]
             return history
         
         except Exception as error:
@@ -286,8 +256,11 @@ class AssistantController:
     # Untuk Clear History Chat
     def clear_chat_history(self, user_id : str) :
         try:
-            return self.assistant_model.clear_chat_history(user_id)
+            self.db.query(Chatlog).filter_by(userid=user_id).delete()
+            self.db.commit()
+            return True
         
         except Exception as error:
+            self.db.rollback()
             print(f"Error clear history chat: {error}")
             return False

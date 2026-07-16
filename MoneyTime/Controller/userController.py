@@ -1,4 +1,5 @@
-from Model.user import User          
+from Database.models import User
+from Database.orm import get_db       
 
 import os
 import smtplib
@@ -9,12 +10,15 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import render_template
+from sqlalchemy import or_
 
 class UserController:
+    def __init__(self):
+        self.db = next(get_db())
 
     # Autentikasi
     def authenticate(self, username_input, password_input):
-        user = User.find_email_or_username(username_input)
+        user = self.db.query(User).filter(or_(User.username == username_input, User.email == username_input)).first()
 
         if user and check_password_hash(user.password, password_input):
             return user
@@ -26,24 +30,48 @@ class UserController:
         if password != confirm_password:
             return {'success' : False, 'message' : "Password Gak Cocok"}
         
-        if User.check_user_email_exist(username, email):
+        existing_user = self.db.query(User).filter(or_(User.username == username, User.email == email)).first()
+        
+        if existing_user:
             return {'success' : False, 'message' : "Username atau Email sudah ada"}
     
         return {'success' : True}
     
     # Finalisasi Registrasi
     def finalize_registration(self, username, email, password):
-        hashed_password = generate_password_hash(password)
-        return User.create_user(username, hashed_password, email)
+        try:
+            hashed_password = generate_password_hash(password)
+        
+            new_user = User(username=username, password=hashed_password, email=email, role='user')
+            self.db.add(new_user)
+            self.db.commit()
+            return True
+        
+        except Exception as error:
+            self.db.rollback()
+            print(f"Error Registrasi: {error}")
+            return False
     
     # Cek Email
     def check_email(self, email):
-        return User.check_user_email_exist(email, email)
+        return self.db.query(User).filter_by(email=email).first() is not None
     
     # Update Password
     def update_password(self, email, password):
-        hashed_password = generate_password_hash(password)
-        return User.update_password(email, hashed_password)
+        try:
+            user = self.db.query(User).filter_by(email=email).first()
+
+            if user:
+                user.password = generate_password_hash(password)
+                self.db.commit()
+                return True
+
+            return False
+        
+        except Exception as error:
+            self.db.rollback()
+            print(f"Error Update Password: {error}")
+            return False
     
     # Kirm OTP ke Email
     def send_otp_email(self, target_email, subject, template):

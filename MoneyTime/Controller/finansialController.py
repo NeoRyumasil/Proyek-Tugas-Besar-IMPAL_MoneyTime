@@ -1,111 +1,219 @@
 from typing import Optional, List, Dict, Any
+from datetime import datetime
 
-from Model.finansial import Finansial
-from Model.pemasukkan import Pemasukkan
-from Model.pengeluaran import Pengeluaran
+from Database.models import Finansial, Pemasukkan, Pengeluaran
+from Database.orm import get_db
 
 class FinansialController:
     def __init__(self):
-        self.finansial_model = Finansial()
-        self.pemasukkan_model = Pemasukkan()
-        self.pengeluaran_model = Pengeluaran()
+        self.db = next(get_db())
 
     # Ambil atau tambah Finansial
     def get_or_create_finansial(self, user_id: str, kategori: str, budget: int = 0, status: str = 'active') -> Optional[int]:
-        existing_id = self.finansial_model.get_user_and_category(user_id, kategori)
+        try:
+            finansial = self.db.query(Finansial).filter_by(userid=user_id, kategori=kategori).first()
+            
+            if finansial:
+                return finansial.finansialid
+            
+            new_finansial = Finansial(
+                userid=user_id, 
+                kategori=kategori, 
+                budget=budget, 
+                status=status, 
+                date=datetime.now().date()
+            )
 
-        if existing_id:
-            return existing_id
-        
-        return self.finansial_model.create_financial(user_id, kategori, budget, status)
+            self.db.add(new_finansial)
+            self.db.commit()
+            return new_finansial.finansialid
+            
+        except Exception as e:
+            self.db.rollback()
+            print(f"Error get_or_create_finansial: {e}")
+            return None
 
     # Tambah Pemasukkan
     def add_pemasukan(self, finansial_id: int, deskripsi: str, nominal: int, tanggal: str) -> bool:
-        return self.pemasukkan_model.create_pemasukkan(finansial_id, deskripsi, nominal, tanggal)
+        try:
+            tanggal_obj = datetime.strptime(tanggal, '%Y-%m-%d').date()
+            
+            new_pemasukkan = Pemasukkan(
+                finansialid=finansial_id, 
+                deskripsi=deskripsi, 
+                nominal=nominal, 
+                tanggal=tanggal_obj
+            )
+
+            self.db.add(new_pemasukkan)
+            self.db.commit()
+            return True
+        
+        except Exception as e:
+            self.db.rollback()
+            print(f"Error add_pemasukan: {e}")
+            return False
     
     # Tambah Pengeluaran
     def add_pengeluaran(self, finansial_id: int, deskripsi: str, nominal: int, tanggal: str) -> bool:
-        return self.pengeluaran_model.create_Pengeluaran(finansial_id, deskripsi, nominal, tanggal)
+        try:
+            tanggal_obj = datetime.strptime(tanggal, '%Y-%m-%d').date()
+            
+            new_pengeluaran = Pengeluaran(
+                finansialid=finansial_id, 
+                deskripsi=deskripsi, 
+                nominal=nominal, 
+                tanggal=tanggal_obj
+            )
+
+            self.db.add(new_pengeluaran)
+            self.db.commit()
+            return True
+        
+        except Exception as e:
+            self.db.rollback()
+            print(f"Error add_pengeluaran: {e}")
+            return False
 
     # Ambil data transaksi
     def get_transactions(self, user_id: str, keyword: str = None) -> List[Dict[str, Any]]:
-        income = self.pemasukkan_model.get_all_pemasukkan_user(user_id, keyword)
-        expense = self.pengeluaran_model.get_all_Pengeluaran_user(user_id, keyword)
-
-        result : List[Dict[str, Any]] = []
-
-        # Mapping row
-        def map_row(rows):
-            for row in rows:
-                transaction_id, deskripsi, nominal, tanggal, kategori, tipe = row
-                result.append({
-                    'id': int(row['pemasukkanid'] if 'pemasukkanid' in row else row['pengeluaranid']),
-                    'type': row['type'],
-                    'deskripsi': row['deskripsi'],
-                    'nominal': int(row['nominal']),
-                    'tanggal': str(row['tanggal']) if row['tanggal'] else None,
-                    'kategori': row['kategori']
-                })
+        result = []
         
-        map_row(income)
-        map_row(expense)
-
-        # Sorting
         try:
-            result.sort(key=lambda r: r.get('tanggal') or '', reverse=True)
-        
-        except Exception:
-            pass
+            # Ambil Income
+            incomes = self.db.query(Pemasukkan, Finansial).join(Finansial).filter(Finansial.userid == user_id).all()
+            for pem, fin in incomes:
+                if not keyword or keyword.lower() in (pem.deskripsi or "").lower() or keyword.lower() in (fin.kategori or "").lower():
+                    result.append({
+                        'id': pem.pemasukkanid,
+                        'type': 'Income',
+                        'deskripsi': pem.deskripsi,
+                        'nominal': int(pem.nominal),
+                        'tanggal': str(pem.tanggal) if pem.tanggal else None,
+                        'kategori': fin.kategori
+                    })
 
-        return result
+            # Ambil Expenses
+            expenses = self.db.query(Pengeluaran, Finansial).join(Finansial).filter(Finansial.userid == user_id).all()
+            for peng, fin in expenses:
+                if not keyword or keyword.lower() in (peng.deskripsi or "").lower() or keyword.lower() in (fin.kategori or "").lower():
+                    result.append({
+                        'id': peng.pengeluaranid,
+                        'type': 'Expense',
+                        'deskripsi': peng.deskripsi,
+                        'nominal': int(peng.nominal),
+                        'tanggal': str(peng.tanggal) if peng.tanggal else None,
+                        'kategori': fin.kategori
+                    })
+
+            # Sorting 
+            result.sort(key=lambda r: r.get('tanggal') or '', reverse=True)
+            return result
+            
+        except Exception as e:
+            print(f"Error get_transactions: {e}")
+            return []
 
     # Hapus Transaksi
     def delete_transaction(self, user_id: str, transaction_id: int, transaction_type: str) -> bool:
-        if transaction_type.lower() == 'income':
-            return self.pemasukkan_model.delete_pemasukkan(transaction_id, user_id)
-        elif transaction_type.lower() == 'expense':
-            return self.pengeluaran_model.delete_Pengeluaran(transaction_id, user_id)
-        return False
+        try:
+            if transaction_type.lower() == 'income':
+                item = self.db.query(Pemasukkan).join(Finansial).filter(
+                    Pemasukkan.pemasukkanid == transaction_id, 
+                    Finansial.userid == user_id
+                ).first()
+
+            elif transaction_type.lower() == 'expense':
+                item = self.db.query(Pengeluaran).join(Finansial).filter(
+                    Pengeluaran.pengeluaranid == transaction_id, 
+                    Finansial.userid == user_id
+                ).first()
+
+            else:
+                return False
+
+            if item:
+                self.db.delete(item)
+                self.db.commit()
+                return True
+                
+            return False
+            
+        except Exception as e:
+            self.db.rollback()
+            print(f"Error delete_transaction: {e}")
+            return False
 
     # Edit Transaksi
-    def edit_transaction(self, user_id: str, transaction_id: int, transaction_type: str,
-                        deskripsi: str, nominal: int, tanggal: str, kategori: str) -> bool:
+    def edit_transaction(self, user_id: str, transaction_id: int, transaction_type: str, deskripsi: str, nominal: int, tanggal: str, kategori: str) -> bool:
 
-        if transaction_type.lower() == 'income':
-            status_type = 'Pemasukkan'
-        elif transaction_type.lower() == 'expense':
-            status_type = 'Pengeluaran'
-        
+        status_type = 'Pemasukkan' if transaction_type.lower() == 'income' else 'Pengeluaran'
+    
         finansial_id = self.get_or_create_finansial(user_id, kategori, status=status_type)
 
         if not finansial_id:
             return False
         
-        if transaction_type.lower() == 'income':
-            return self.pemasukkan_model.update_pemasukkan(transaction_id, user_id, deskripsi, nominal, tanggal, finansial_id)
-        elif transaction_type.lower() == 'expense':
-            return self.pengeluaran_model.update_Pengeluaran(transaction_id, user_id, deskripsi, nominal, tanggal, finansial_id)
-        
-        return False
+        try:
+            tanggal_obj = datetime.strptime(tanggal, '%Y-%m-%d').date()
+            
+            if transaction_type.lower() == 'income':
+                item = self.db.query(Pemasukkan).join(Finansial).filter(
+                    Pemasukkan.pemasukkanid == transaction_id, 
+                    Finansial.userid == user_id
+                ).first()
+
+            elif transaction_type.lower() == 'expense':
+                item = self.db.query(Pengeluaran).join(Finansial).filter(
+                    Pengeluaran.pengeluaranid == transaction_id, 
+                    Finansial.userid == user_id
+                ).first()
+
+            else:
+                return False
+
+            if item:
+                item.deskripsi = deskripsi
+                item.nominal = nominal
+                item.tanggal = tanggal_obj
+                item.finansialid = finansial_id
+                self.db.commit()
+                return True
+                
+            return False
+            
+        except Exception as e:
+            self.db.rollback()
+            print(f"Error edit_transaction: {e}")
+            return False
 
     # Ekstrak kategori yang ada
     def get_categories(self, user_id: str) -> Dict[str, List[str]]:
-        income = self.pemasukkan_model.get_all_pemasukkan_user(user_id)
-        expense = self.pengeluaran_model.get_all_Pengeluaran_user(user_id)
+        try:
+            incomes = self.db.query(Finansial.kategori).join(Pemasukkan).filter(Finansial.userid == user_id).distinct().all()
+            expenses = self.db.query(Finansial.kategori).join(Pengeluaran).filter(Finansial.userid == user_id).distinct().all()
 
-        kategori_income = list(set(row["kategori"] for row in income))
-        kategori_expense = list(set(row["kategori"] for row in expense))
+            kategori_income = [k[0] for k in incomes if k[0]]
+            kategori_expense = [k[0] for k in expenses if k[0]]
 
-        if not kategori_income:
-            kategori_income = ["Gaji", "Return Investasi", "Penjualan", "Lainnya"]
+            if not kategori_income:
+                kategori_income = ["Gaji", "Return Investasi", "Penjualan", "Lainnya"]
+            
+            if not kategori_expense:
+                kategori_expense = ["Pendidikan", "Kebutuhan Sehari-hari", "Pajak", "Hiburan"]
+
+            return {
+                "Income" : kategori_income,
+                "Expense" : kategori_expense
+            }
         
-        if not kategori_expense:
-            kategori_expense = ["Pendidikan", "Kebutuhan Sehari-hari", "Pajak", "Hiburan"]
+        except Exception as e:
+            print(f"Error get_categories: {e}")
 
-        return {
-            "Income" : kategori_income,
-            "Expense" : kategori_expense
-        }
+            return {
+                "Income" : ["Gaji", "Return Investasi", "Penjualan", "Lainnya"],
+                "Expense" : ["Pendidikan", "Kebutuhan Sehari-hari", "Pajak", "Hiburan"]
+            }
     
     # Ringkasan finansial untuk AI
     def get_financial_summary(self, user_id: str) -> str:

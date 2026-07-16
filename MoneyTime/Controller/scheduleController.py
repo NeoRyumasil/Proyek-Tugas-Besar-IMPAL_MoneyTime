@@ -1,66 +1,119 @@
-from Model.aktivitas import Aktivitas
+from Database.models import Aktivitas
+from Database.orm import get_db
 from typing import List, Dict, Any
 from datetime import datetime
 
 class ScheduleController:
     def __init__(self):
-        self.model = Aktivitas()
+        self.db = next(get_db())
 
     # Tambah Aktivitas
     def add_schedule(self, user_id: str, title: str, description: str, date: str, time: str, category: str, priority: str) -> bool:
-        tenggat_waktu = f"{date} {time}"
-        return self.model.create_activity(user_id, title, description, tenggat_waktu, time, category, priority)
+        try:
+            tenggat_waktu = datetime.strptime(f"{date}", '%Y-%m-%d').date()
+            
+            new_aktivitas = Aktivitas(
+                userid=user_id,
+                nama_aktivitas=title,
+                deskripsi=description,
+                tenggat=tenggat_waktu,
+                waktu=time,
+                kategori=category,
+                prioritas=priority,
+                status="Pending",
+                isread=False
+            )
+            
+            self.db.add(new_aktivitas)
+            self.db.commit()
+            return True
+            
+        except Exception as e:
+            self.db.rollback()
+            print(f"Error add schedule: {e}")
+            return False
 
     # Cari Aktivitas
     def get_schedules(self, user_id: str) -> List[Dict[str, Any]]:
-        rows = self.model.get_user_activity(user_id)
+        rows = self.db.query(Aktivitas).filter_by(userid=user_id).all()
         results = []
 
         for row in rows:
-            tenggat_waktu = row["tenggat"]
-            tenggat = ""
-
-            if tenggat_waktu:
-                if isinstance(tenggat_waktu, datetime):
-                    tenggat = tenggat_waktu.strftime('%d-%m-%Y')
-                else:
-                    tenggat = str(tenggat_waktu).split(' ')[0]
-
-            if row["waktu"]:
-                time = row["waktu"]
-            else:
-                time = "23:59"
+            tenggat = row.tenggat.strftime('%d-%m-%Y') if row.tenggat else ""
+            time = row.waktu if row.waktu else "23:59"
 
             results.append({
-                'id': row["aktivitasid"],
-                'title': row["nama_aktivitas"] if row["nama_aktivitas"] else "No Activity",
-                'description': row["deskripsi"] if row["deskripsi"] else "",
+                'id': row.aktivitasid,
+                'title': row.nama_aktivitas or "No Activity",
+                'description': row.deskripsi or "",
                 'date': tenggat,
                 'time': time,
-                'category': row["kategori"] if row["kategori"] else "Other",
-                'priority': row["prioritas"] if row["prioritas"] else "None",
-                'status': row["status"] if row["status"] else "Pending"
+                'category': row.kategori or "Other",
+                'priority': row.prioritas or "None",
+                'status': row.status or "Pending"
             }) 
 
-        results.sort(key=lambda x: x['date'] if x['date'] else '31-12-0000')
+        results.sort(key=lambda x: datetime.strptime(x['date'], '%d-%m-%Y') if x['date'] else datetime.max)
         return results
 
     # Update Status
     def update_status(self, schedule_id: int, status: str) -> bool:
-        return self.model.update_status(schedule_id, status)
+        try:
+            aktivitas = self.db.query(Aktivitas).filter_by(aktivitasid=schedule_id).first()
+            if aktivitas:
+                aktivitas.status = status
+                self.db.commit()
+                return True
+            
+            return False
+            
+        except Exception as e:
+            self.db.rollback()
+            print(f"Error update status: {e}")
+            return False
 
     # Edit Aktivitas
     def edit_schedule(self, schedule_id: int, title: str, description: str, date: str, time: str, category: str, priority: str) -> bool:
-        tenggat_waktu = f"{date} {time}"
-        return self.model.update_activity(schedule_id, title, description, tenggat_waktu, time, category, priority)
+        try:
+            aktivitas = self.db.query(Aktivitas).filter_by(aktivitasid=schedule_id).first()
+            if aktivitas:
+                aktivitas.nama_aktivitas = title
+                aktivitas.deskripsi = description
+                aktivitas.tenggat = datetime.strptime(date, '%Y-%m-%d').date()
+                aktivitas.waktu = time
+                aktivitas.kategori = category
+                aktivitas.prioritas = priority
+                
+                self.db.commit()
+                return True
+            
+            return False
+            
+        except Exception as e:
+            self.db.rollback()
+            print(f"Error edit schedule: {e}")
+            return False
 
     # Hapus Aktivitas
     def delete_schedule(self, schedule_id: int) -> bool:
-        return self.model.delete_activity(schedule_id)
+        try:
+            aktivitas = self.db.query(Aktivitas).filter_by(aktivitasid=schedule_id).first()
+            if aktivitas:
+                self.db.delete(aktivitas)
+                self.db.commit()
+                return True
+            
+            return False
+            
+        except Exception as e:
+            self.db.rollback()
+            print(f"Error delete schedule: {e}")
+            return False
 
     # Cari Kategori
     def get_categories(self, user_id: str) -> List[str]:
-        return self.model.get_category(user_id)
+        rows = self.db.query(Aktivitas.kategori).filter_by(userid=user_id).distinct().all()
+        return [row[0] for row in rows if row[0]]
     
     # Buat Summary dari Schedule (Untuk AI)
     def get_schedule_summary(self, user_id):
@@ -77,7 +130,7 @@ class ScheduleController:
 
        pending_schedules = sorted(
            [schedule for schedule in schedules if schedule['status'].lower() == 'pending'],
-           key=lambda priority : (priority_order.get(priority['priority'], 99), priority['date'], priority['time'])
+           key=lambda p : (priority_order.get(p['priority'], 99), datetime.strptime(p['date'], '%d-%m-%Y') if p['date'] else datetime.max, p['time'])
        )
 
        top_pending = pending_schedules[:7]
@@ -97,5 +150,3 @@ class ScheduleController:
            summary.append("Aktivitasnya selesai semua YAY")
 
        return "\n".join(summary)
-
-    
