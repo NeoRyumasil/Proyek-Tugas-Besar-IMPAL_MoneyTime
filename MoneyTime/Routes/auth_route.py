@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, session, redirect, url_for
 from Controller.userController import UserController
+from Utils.limiter import limiter
 
 auth = Blueprint('auth', __name__)
 
@@ -34,6 +35,7 @@ def register() :
 
 # Login Route
 @auth.route('/login', methods=['POST'])
+@limiter.limit("5 per minute")
 def login() :
     username = request.form.get('login_username')
     password = request.form.get('login_password')
@@ -63,6 +65,7 @@ def logout() :
 
 # Send Validation OTP Route
 @auth.route('/send-validation-otp', methods=['POST'])
+@limiter.limit("3 per minute")
 def send_validation_otp() :
     email = request.form.get('email') or session.get('pending_validation_email')
 
@@ -106,6 +109,7 @@ def verify_validation_otp() :
 
 # Send Forgot Password OTP Route
 @auth.route('/send-forgot-password-otp', methods=['POST'])
+@limiter.limit("3 per minute")
 def send_forgot_password_otp() :
     email = request.form.get('email')
 

@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, session
 from Controller.assistantController import AssistantController
 from Controller.finansialController import FinansialController
 from Controller.scheduleController import ScheduleController
+from Utils.limiter import limiter
 
 assistant = Blueprint('assistant', __name__)
 
@@ -10,6 +11,7 @@ schedule_controller = ScheduleController()
 
 # Assistant Route
 @assistant.route('/assistant', methods=['POST'])
+@limiter.limit("10 per minute")
 def assistant_handler() :
 
      # Auth Check
