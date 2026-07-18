@@ -2,6 +2,7 @@ flask
 flask-sqlalchemy
 flask-caching
 flask-limiter
+flask-talisman
 requests
 python-dotenv
 groq

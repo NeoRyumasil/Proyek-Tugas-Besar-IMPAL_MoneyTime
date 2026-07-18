@@ -9,6 +9,7 @@ from Database.orm import db
 from Utils.cache import cache
 from Utils.limiter import limiter
 from Utils.error_handler import error_handlers
+from Utils.talisman import init_talisman
 
 from Controller.notificationController import NotificationController
 
@@ -37,6 +38,7 @@ db.init_app(app)
 cache.init_app(app)
 limiter.init_app(app)
 error_handlers(app)
+init_talisman(app)
 
 notification_controller = NotificationController()
 
