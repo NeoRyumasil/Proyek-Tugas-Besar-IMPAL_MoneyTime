@@ -10,7 +10,7 @@ schedule_controller = ScheduleController()
 
 # Assistant Route
 @assistant.route('/assistant', methods=['POST'])
-def assistant() :
+def assistant_handler() :
 
      # Auth Check
     if 'user' not in session:
