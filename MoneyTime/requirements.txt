@@ -1,8 +1,10 @@
 flask
 flask-sqlalchemy
+flask-caching
 requests
 python-dotenv
 groq
 supabase
 markupsafe
 psycopg2-binary
+redis

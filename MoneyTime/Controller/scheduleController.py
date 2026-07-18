@@ -1,5 +1,6 @@
 from Database.models import Aktivitas
 from Database.orm import db
+from Utils.cache import cache
 from typing import List, Dict, Any
 from datetime import datetime
 
@@ -26,6 +27,10 @@ class ScheduleController:
             
             self.db.add(new_aktivitas)
             self.db.commit()
+
+            cache.delete_memoized(self.get_categories, user_id)
+            cache.delete_memoized(self.get_schedule_summary, user_id)
+
             return True
             
         except Exception as e:
@@ -71,7 +76,11 @@ class ScheduleController:
             aktivitas = self.db.query(Aktivitas).filter_by(aktivitasid=schedule_id).first()
             if aktivitas:
                 aktivitas.status = status
+                user_id = aktivitas.userid
                 self.db.commit()
+
+                cache.delete_memoized(self.get_schedule_summary, user_id)
+
                 return True
             
             return False
@@ -93,7 +102,13 @@ class ScheduleController:
                 aktivitas.kategori = category
                 aktivitas.prioritas = priority
                 
+                user_id = aktivitas.userid
+
                 self.db.commit()
+
+                cache.delete_memoized(self.get_categories, user_id)
+                cache.delete_memoized(self.get_schedule_summary, user_id)
+
                 return True
             
             return False
@@ -108,8 +123,13 @@ class ScheduleController:
         try:
             aktivitas = self.db.query(Aktivitas).filter_by(aktivitasid=schedule_id).first()
             if aktivitas:
+                user_id = aktivitas.userid
                 self.db.delete(aktivitas)
                 self.db.commit()
+
+                cache.delete_memoized(self.get_categories, user_id)
+                cache.delete_memoized(self.get_schedule_summary, user_id)
+                
                 return True
             
             return False
@@ -120,11 +140,13 @@ class ScheduleController:
             return False
 
     # Cari Kategori
+    @cache.memoize(timeout=300)
     def get_categories(self, user_id: str) -> List[str]:
         rows = self.db.query(Aktivitas.kategori).filter_by(userid=user_id).distinct().all()
         return [row[0] for row in rows if row[0]]
     
     # Buat Summary dari Schedule (Untuk AI)
+    @cache.memoize(timeout=300)
     def get_schedule_summary(self, user_id):
        schedules = self.get_schedules(user_id)
 

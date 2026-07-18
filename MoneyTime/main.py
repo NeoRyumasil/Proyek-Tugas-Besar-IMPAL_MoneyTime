@@ -5,7 +5,10 @@ import os
 import secrets
 
 from Database.orm import db
+from Utils.cache import cache
+
 from Controller.notificationController import NotificationController
+
 from Routes.assistant_route import assistant
 from Routes.auth_route import auth
 from Routes.notification_route import notification
@@ -28,6 +31,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SUPABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
+cache.init_app(app)
 
 notification_controller = NotificationController()
 

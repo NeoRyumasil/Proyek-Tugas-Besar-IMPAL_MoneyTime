@@ -3,6 +3,7 @@ from datetime import datetime
 
 from Database.models import Finansial, Pemasukkan, Pengeluaran
 from Database.orm import db
+from Utils.cache import cache
 
 class FinansialController:
     def __init__(self):
@@ -26,6 +27,9 @@ class FinansialController:
 
             self.db.add(new_finansial)
             self.db.commit()
+
+            cache.delete_memoized(self.get_categories, user_id)
+
             return new_finansial.finansialid
             
         except Exception as e:
@@ -47,6 +51,13 @@ class FinansialController:
 
             self.db.add(new_pemasukkan)
             self.db.commit()
+
+            finansial = self.db.query(Finansial).filter_by(finansialid=finansial_id).first()
+
+            if finansial:
+                cache.delete_memoized(self.get_categories, finansial.userid)
+                cache.delete_memoized(self.get_financial_summary, finansial.userid)
+            
             return True
         
         except Exception as e:
@@ -68,6 +79,12 @@ class FinansialController:
 
             self.db.add(new_pengeluaran)
             self.db.commit()
+            finansial = self.db.query(Finansial).filter_by(finansialid=finansial_id).first()
+
+            if finansial:
+                cache.delete_memoized(self.get_categories, finansial.userid)
+                cache.delete_memoized(self.get_financial_summary, finansial.userid)
+
             return True
         
         except Exception as e:
@@ -161,6 +178,10 @@ class FinansialController:
             if item:
                 self.db.delete(item)
                 self.db.commit()
+
+                cache.delete_memoized(self.get_categories, user_id)
+                cache.delete_memoized(self.get_financial_summary, user_id)
+
                 return True
                 
             return False
@@ -204,6 +225,10 @@ class FinansialController:
                 item.tanggal = tanggal_obj
                 item.finansialid = finansial_id
                 self.db.commit()
+
+                cache.delete_memoized(self.get_categories, user_id)
+                cache.delete_memoized(self.get_financial_summary, user_id)
+
                 return True
                 
             return False
@@ -214,6 +239,7 @@ class FinansialController:
             return False
 
     # Ekstrak kategori yang ada
+    @cache.memoize(timeout=300)
     def get_categories(self, user_id: str) -> Dict[str, List[str]]:
         try:
             incomes = self.db.query(Finansial.kategori).join(Pemasukkan).filter(Finansial.userid == user_id).distinct().all()
@@ -242,6 +268,7 @@ class FinansialController:
             }
     
     # Ringkasan finansial untuk AI
+    @cache.memoize(timeout=300)
     def get_financial_summary(self, user_id: str) -> str:
         transactions = self.get_transactions(user_id)
 
