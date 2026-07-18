@@ -75,3 +75,22 @@ def clear_chat_history() :
     success = assistant.clear_chat_history(user_id)
 
     return jsonify({'success': success})
+
+# History for Frontend
+@assistant.route('/api/chat-history-paginated', methods=['GET'])
+def get_chat_history_paginated() :
+
+    # Auth Check
+    if 'user' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    user_id = session['user'].get('id')
+    
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+
+    assistant_controller = AssistantController(finansial_controller, schedule_controller, user_id)
+    
+    history_data = assistant_controller.get_paginated_chat_history(user_id, page=page, per_page=per_page)
+
+    return jsonify({'success': True, 'history': history_data})

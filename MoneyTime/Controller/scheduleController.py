@@ -34,8 +34,9 @@ class ScheduleController:
             return False
 
     # Cari Aktivitas
-    def get_schedules(self, user_id: str) -> List[Dict[str, Any]]:
-        rows = self.db.query(Aktivitas).filter_by(userid=user_id).all()
+    def get_schedules(self, user_id: str, page: int = 1, per_page: int = 10) -> List[Dict[str, Any]]:
+        query = self.db.query(Aktivitas).filter_by(userid=user_id)
+        rows = db.paginate(query, page=page, per_page=per_page, error_out=False)
         results = []
 
         for row in rows:
@@ -54,7 +55,15 @@ class ScheduleController:
             }) 
 
         results.sort(key=lambda x: datetime.strptime(x['date'], '%d-%m-%Y') if x['date'] else datetime.max)
-        return results
+        
+        return {
+            'data': results,
+            'total_items': rows.total,
+            'total_pages': rows.pages,
+            'current_page': rows.page,
+            'has_next': rows.has_next,
+            'has_prev': rows.has_prev
+        }
 
     # Update Status
     def update_status(self, schedule_id: int, status: str) -> bool:

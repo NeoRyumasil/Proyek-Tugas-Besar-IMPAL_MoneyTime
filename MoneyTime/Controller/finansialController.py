@@ -76,7 +76,7 @@ class FinansialController:
             return False
 
     # Ambil data transaksi
-    def get_transactions(self, user_id: str, keyword: str = None) -> List[Dict[str, Any]]:
+    def get_transactions(self, user_id: str, keyword: str = None, is_paginate: bool = False, page: int = 1, per_page: int = 10) -> List[Dict[str, Any]]:
         result = []
         
         try:
@@ -108,11 +108,37 @@ class FinansialController:
 
             # Sorting 
             result.sort(key=lambda r: r.get('tanggal') or '', reverse=True)
-            return result
+
+            if not is_paginate:
+                return result
+            
+            total_items = len(result)
+            total_pages = (total_items + per_page - 1) // per_page
+
+            start = (page - 1) * per_page
+            end = start + per_page
+
+            paginated_result = result[start:end]
+
+            return {
+                'data': paginated_result,
+                'total_items': total_items,
+                'total_pages': total_pages,
+                'current_page': page,
+                'has_next': page < total_pages,
+                'has_prev': page > 1
+            }
             
         except Exception as e:
             print(f"Error get_transactions: {e}")
-            return []
+
+            if not is_paginate:
+                return []
+            
+            return {
+                'data': [], 'total_items': 0, 'total_pages': 0, 
+                'current_page': 1, 'has_next': False, 'has_prev': False
+            }
 
     # Hapus Transaksi
     def delete_transaction(self, user_id: str, transaction_id: int, transaction_type: str) -> bool:

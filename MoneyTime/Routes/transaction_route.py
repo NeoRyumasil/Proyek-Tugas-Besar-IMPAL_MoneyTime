@@ -15,7 +15,11 @@ def api_transaction() :
     
     user_id = session['user'].get('id')
     keyword = request.args.get('q', '')
-    transactions = finansial_controller.get_transactions(user_id, keyword)
+
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+
+    transactions = finansial_controller.get_transactions(user_id, keyword, is_paginate=True, page=page, per_page=per_page)
 
     return jsonify({'success': True, 'transactions': transactions})
 

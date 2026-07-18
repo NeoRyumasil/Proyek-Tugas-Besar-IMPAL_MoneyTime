@@ -265,3 +265,34 @@ class AssistantController:
             self.db.rollback()
             print(f"Error clear history chat: {error}")
             return False
+
+    # Pagination Chat History
+    def get_paginated_chat_history(self, user_id: str, page: int = 1, per_page: int = 20):
+        try:
+            query = self.db.query(Chatlog).filter_by(userid=user_id).order_by(Chatlog.timestamp.desc())
+            
+            pagination = db.paginate(query, page=page, per_page=per_page, error_out=False)
+            
+            history = [{
+                "id": log.id, 
+                "role": log.role, 
+                "content": log.message, 
+                "timestamp": log.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            } for log in pagination.items]
+            
+            return {
+                'data': history,
+                'total_items': pagination.total,
+                'total_pages': pagination.pages,
+                'current_page': pagination.page,
+                'has_next': pagination.has_next,
+                'has_prev': pagination.has_prev
+            }
+            
+        except Exception as error:
+            print(f"Error ambil paginated history: {error}")
+            
+            return {
+                'data': [], 'total_items': 0, 'total_pages': 0, 
+                'current_page': 1, 'has_next': False, 'has_prev': False
+            }
