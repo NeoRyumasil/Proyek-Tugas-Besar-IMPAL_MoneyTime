@@ -1,5 +1,5 @@
 from Database.models import User
-from Database.orm import get_db       
+from Database.orm import db    
 
 import os
 import smtplib
@@ -14,7 +14,7 @@ from sqlalchemy import or_
 
 class UserController:
     def __init__(self):
-        self.db = next(get_db())
+        self.db = db.session
 
     # Autentikasi
     def authenticate(self, username_input, password_input):

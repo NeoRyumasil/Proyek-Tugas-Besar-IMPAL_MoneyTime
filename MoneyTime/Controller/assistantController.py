@@ -5,7 +5,7 @@ from groq import Groq
 from datetime import datetime
 
 from Database.models import Chatlog
-from Database.orm import get_db
+from Database.orm import db
 
 from Controller.finansialController import FinansialController
 from Controller.scheduleController import ScheduleController
@@ -15,7 +15,7 @@ class AssistantController:
         self.client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         self.model_name = "llama-3.3-70b-versatile"
 
-        self.db = next(get_db())
+        self.db = db.session
 
         self.finansial_controller = finansial_controller
         self.schedule_controller = schedule_controller

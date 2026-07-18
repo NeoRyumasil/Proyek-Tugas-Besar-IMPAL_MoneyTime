@@ -2,11 +2,11 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 from Database.models import Finansial, Pemasukkan, Pengeluaran
-from Database.orm import get_db
+from Database.orm import db
 
 class FinansialController:
     def __init__(self):
-        self.db = next(get_db())
+        self.db = db.session
 
     # Ambil atau tambah Finansial
     def get_or_create_finansial(self, user_id: str, kategori: str, budget: int = 0, status: str = 'active') -> Optional[int]:

@@ -1,8 +1,8 @@
 flask
+flask-sqlalchemy
 requests
 python-dotenv
 groq
 supabase
 markupsafe
-sqlalchemy
 psycopg2-binary

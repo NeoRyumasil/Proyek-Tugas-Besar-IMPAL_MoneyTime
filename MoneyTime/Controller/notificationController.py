@@ -7,11 +7,11 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
 
 from Database.models import Aktivitas, User
-from Database.orm import get_db
+from Database.orm import db
 
 class NotificationController():
     def __init__(self):
-        self.db = next(get_db())
+        self.db = db.session
 
     # Ambil notifikasi
     def get_notifications(self, user_id):

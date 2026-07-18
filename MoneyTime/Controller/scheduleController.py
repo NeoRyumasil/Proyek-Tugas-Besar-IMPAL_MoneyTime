@@ -1,11 +1,11 @@
 from Database.models import Aktivitas
-from Database.orm import get_db
+from Database.orm import db
 from typing import List, Dict, Any
 from datetime import datetime
 
 class ScheduleController:
     def __init__(self):
-        self.db = next(get_db())
+        self.db = db.session
 
     # Tambah Aktivitas
     def add_schedule(self, user_id: str, title: str, description: str, date: str, time: str, category: str, priority: str) -> bool:

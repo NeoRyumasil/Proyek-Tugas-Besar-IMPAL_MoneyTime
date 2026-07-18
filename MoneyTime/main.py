@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import os
 import secrets
 
+from Database.orm import db
 from Controller.notificationController import NotificationController
 from Routes.assistant_route import assistant
 from Routes.auth_route import auth
@@ -22,6 +23,11 @@ app = Flask(__name__,
     )
 
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SUPABASE_URL")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db.init_app(app)
 
 notification_controller = NotificationController()
 
