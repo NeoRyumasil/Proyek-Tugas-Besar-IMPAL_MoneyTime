@@ -5,8 +5,10 @@ import os
 import secrets
 
 from Database.orm import db
+
 from Utils.cache import cache
 from Utils.limiter import limiter
+from Utils.error_handler import error_handlers
 
 from Controller.notificationController import NotificationController
 
@@ -34,6 +36,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 cache.init_app(app)
 limiter.init_app(app)
+error_handlers(app)
 
 notification_controller = NotificationController()
 
