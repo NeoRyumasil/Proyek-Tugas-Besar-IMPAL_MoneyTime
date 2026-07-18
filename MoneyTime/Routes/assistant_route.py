@@ -26,13 +26,6 @@ def assistant_handler() :
     chat_history = session.get('chat_history', [])
 
     assistant_controller = AssistantController(finansial_controller, schedule_controller, user_id)
-    financial_summary = finansial_controller.get_financial_summary(user_id)
-    schedule_summary = schedule_controller.get_schedule_summary(user_id)
-
-    context_data = (
-        f"Data Keuangan Saya:\n {financial_summary}"
-        f"Data Aktivitas Saya:\n {schedule_summary}"
-    )
 
     ai_reply = assistant_controller.process_chat(
         user_id=user_id,

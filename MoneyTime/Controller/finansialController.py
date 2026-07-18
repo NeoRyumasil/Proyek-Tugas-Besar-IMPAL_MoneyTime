@@ -82,28 +82,28 @@ class FinansialController:
         try:
             # Ambil Income
             incomes = self.db.query(Pemasukkan, Finansial).join(Finansial).filter(Finansial.userid == user_id).all()
-            for pem, fin in incomes:
-                if not keyword or keyword.lower() in (pem.deskripsi or "").lower() or keyword.lower() in (fin.kategori or "").lower():
+            for pemasukkan, finansial in incomes:
+                if not keyword or keyword.lower() in (pemasukkan.deskripsi or "").lower() or keyword.lower() in (finansial.kategori or "").lower():
                     result.append({
-                        'id': pem.pemasukkanid,
+                        'id': pemasukkan.pemasukkanid,
                         'type': 'Income',
-                        'deskripsi': pem.deskripsi,
-                        'nominal': int(pem.nominal),
-                        'tanggal': str(pem.tanggal) if pem.tanggal else None,
-                        'kategori': fin.kategori
+                        'deskripsi': pemasukkan.deskripsi,
+                        'nominal': int(pemasukkan.nominal),
+                        'tanggal': str(pemasukkan.tanggal) if pemasukkan.tanggal else None,
+                        'kategori': finansial.kategori
                     })
 
             # Ambil Expenses
             expenses = self.db.query(Pengeluaran, Finansial).join(Finansial).filter(Finansial.userid == user_id).all()
-            for peng, fin in expenses:
-                if not keyword or keyword.lower() in (peng.deskripsi or "").lower() or keyword.lower() in (fin.kategori or "").lower():
+            for pengeluaran, finansial in expenses:
+                if not keyword or keyword.lower() in (pengeluaran.deskripsi or "").lower() or keyword.lower() in (finansial.kategori or "").lower():
                     result.append({
-                        'id': peng.pengeluaranid,
+                        'id': pengeluaran.pengeluaranid,
                         'type': 'Expense',
-                        'deskripsi': peng.deskripsi,
-                        'nominal': int(peng.nominal),
-                        'tanggal': str(peng.tanggal) if peng.tanggal else None,
-                        'kategori': fin.kategori
+                        'deskripsi': pengeluaran.deskripsi,
+                        'nominal': int(pengeluaran.nominal),
+                        'tanggal': str(pengeluaran.tanggal) if pengeluaran.tanggal else None,
+                        'kategori': finansial.kategori
                     })
 
             # Sorting 
