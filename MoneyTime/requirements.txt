@@ -12,4 +12,3 @@ markupsafe
 marshmallow-sqlalchemy
 psycopg2-binary
 redis
-resend

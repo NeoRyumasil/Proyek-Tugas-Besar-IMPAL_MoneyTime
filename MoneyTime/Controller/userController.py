@@ -4,9 +4,12 @@ from Schema.schema import UserSchema
 from marshmallow import ValidationError
 
 import os
-import resend
+import smtplib
 import random
 
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import render_template
 from sqlalchemy import or_
@@ -91,8 +94,17 @@ class UserController:
     
     # Kirim OTP ke Email
     def send_otp_email(self, target_email, subject, template):
-        resend.api_key = os.getenv('RESEND_API_KEY')
+        email_sender = os.getenv('EMAIL_SENDER')
+        email_password = os.getenv('EMAIL_PASSWORD')
         otp_code = str(random.randint(1000, 9999))
+
+        message = MIMEMultipart('related')
+        message['From'] = f"Moneytime <{email_sender}>"
+        message['To'] = target_email
+        message['Subject'] = subject
+
+        message_alternative = MIMEMultipart('alternative')
+        message.attach(message_alternative)
 
         # Load CSS
         css_content = ""
@@ -106,24 +118,34 @@ class UserController:
         # Load HTML
         try:
             html_content = render_template(template, otp_code=otp_code, css_style=css_content)
-
+            
         except Exception:
             html_content = f"Kode OTP Anda: {otp_code}"
         
-        # Send Email
+        message_alternative.attach(MIMEText(html_content, 'html'))
+
+        # Logo
         try:
-            params = {
-                "from": "Moneytime <onboarding@resend.dev>",
-                "to": [target_email],
-                "subject": subject,
-                "html": html_content
-            }
-            
-            resend.Emails.send(params)
+            image_path = os.path.join('View', 'static', 'avatarHeader.png')
+            with open(image_path, 'rb') as f:
+                image = MIMEImage(f.read())
+                image.add_header('Content-ID', '<logo_image>')
+                image.add_header('Content-Disposition', 'inline', filename='avatarHeader.png')
+                message.attach(image)
+        except:
+            pass
+
+        # Kirim Kode OTP
+        try:
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(email_sender, email_password)
+            server.sendmail(email_sender, target_email, message.as_string())
+            server.quit()
             return otp_code
     
         except Exception as error:
-            print(f"Error kirim email dengan Resend: {error}")
+            print(f"Error kirim email: {error}")
             return None
     
     # OTP untuk Validasi
