@@ -1,10 +1,6 @@
 import datetime
-import smtplib
+import resend
 import os
-
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.image import MIMEImage
 
 from Database.models import Aktivitas, User
 from Database.orm import db
@@ -171,22 +167,16 @@ class NotificationController():
                 print("Email User Tidak Ditemukan")
                 return False
             
-            email_penerima = user.email
-            email_sender = os.getenv('EMAIL_SENDER')
-            email_password = os.getenv('EMAIL_PASSWORD')
+            resend.api_key = os.getenv('RESEND_API_KEY')
 
-            message = MIMEMultipart()
-            message['From'] = email_sender
-            message['To'] = email_penerima
-            message['Subject'] = "Notifikasi dari MoneyTime"
-            message.attach(MIMEText(pesan, 'plain'))
+            params = {
+                "from": "MoneyTime <onboarding@resend.dev>",
+                "to": [user.email],
+                "subject": "Notifikasi dari MoneyTime",
+                "text": pesan
+            }
 
-            with smtplib.SMTP('smtp.gmail.com', 587) as server:
-                server.starttls()
-                server.login(email_sender, email_password)
-                server.send_message(message)
-            
-            print("Notifikasi Terkirim ke ", email_penerima)
+            resend.Emails.send(params)
             return True
         
         except Exception as error:
