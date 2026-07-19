@@ -7,7 +7,8 @@ def init_talisman(app):
         'default-src': [
             '\'self\'',           
             '\'unsafe-inline\'',  
-            # 'https://cdn.jsdelivr.net',
+            'https://cdn.jsdelivr.net',
+            'https://cdn.tailwindcss.com',
         ]
     }
 

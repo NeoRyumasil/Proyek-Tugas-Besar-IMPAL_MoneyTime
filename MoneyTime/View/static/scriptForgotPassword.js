@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- 1. DOM ELEMENTS INITIALIZATION ---
+    // DOM ELEMENTS INITIALIZATION 
     const step1 = document.getElementById('step-1-email');
     const step2 = document.getElementById('step-2-otp');
     const step3 = document.getElementById('step-3-password');
@@ -16,12 +16,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const toastContainer = document.getElementById('toast-container');
     const resendLink = document.getElementById('resend-link');
 
-    // --- 2. GLOBAL VARIABLES ---
+    // GLOBAL VARIABLES
     let currentEmail = ''; // Store email for resend purposes
     let resendTimer = null;
     let timeLeft = 30;
 
-    // --- 3. TOAST FUNCTION (NOTIFICATION) ---
+    // TOAST FUNCTION (NOTIFICATION) 
     function showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
 
-    // --- 4. RESEND TIMER FUNCTION (30 SECONDS) ---
+    // RESEND TIMER FUNCTION 
     function startResendTimer() {
         if (!resendLink) return;
 
@@ -62,11 +62,10 @@ document.addEventListener('DOMContentLoaded', () => {
             timeLeft--;
             resendLink.textContent = `Resend in ${timeLeft}s`;
 
-            // WHEN TIME IS UP
             if (timeLeft <= 0) {
                 clearInterval(resendTimer);
 
-                // ACTIVE DISPLAY (CLICKABLE)
+                // ACTIVE DISPLAY
                 resendLink.textContent = 'Resend';
                 resendLink.style.pointerEvents = 'auto';
                 resendLink.style.color = '#1A3E7F'; // MoneyTime Blue
@@ -76,8 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
-    // --- 5. TIMER TRIGGER (OBSERVER) ---
-    // Timer runs automatically when Step 2 appears
+    //  TIMER TRIGGER 
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
@@ -92,17 +90,15 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.observe(step2, { attributes: true, attributeFilter: ['style'] });
     }
 
-    // --- 6. RESEND BUTTON CLICK LOGIC ---
+    // RESEND BUTTON CLICK LOGIC 
     if (resendLink) {
         resendLink.addEventListener('click', async (e) => {
             e.preventDefault();
 
-            // Double check: Ensure timer is up & email exists
             if (timeLeft <= 0 && currentEmail) {
 
                 showToast('Sending new code...', 'success');
 
-                // Disable button while fetch process is running
                 resendLink.style.pointerEvents = 'none';
                 resendLink.textContent = 'Sending...';
 
@@ -110,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 formData.append('email', currentEmail);
 
                 try {
-                    const response = await fetch('/send-otp', {
+                    const response = await fetch('/send-forgot-password-otp', {
                         method: 'POST',
                         body: formData
                     });
@@ -118,10 +114,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (result.success) {
                         showToast('OTP resent successfully!', 'success');
-                        startResendTimer(); // Reset timer 30 seconds
+                        startResendTimer(); 
                     } else {
                         showToast('Failed: ' + result.message, 'error');
-                        // Return button to active state if failed
                         resendLink.textContent = 'Resend';
                         resendLink.style.pointerEvents = 'auto';
                     }
@@ -135,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 7. STEP 1: SEND OTP FOR THE FIRST TIME ---
+    // SEND OTP FOR THE FIRST TIME 
     form1.addEventListener('submit', async (e) => {
         e.preventDefault();
         error1.style.display = 'none';
@@ -151,7 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.disabled = true;
 
         try {
-            const response = await fetch('/send-otp', {
+
+            const response = await fetch('/send-forgot-password-otp', {
                 method: 'POST',
                 body: formData
             });
@@ -176,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- 8. HANDLING INPUT OTP (AUTO-FOCUS) ---
+    // HANDLING INPUT OTP
     const otpInputs = document.querySelectorAll('.otp-inputs input');
     otpInputs.forEach((input, index) => {
         input.addEventListener('input', (e) => {
@@ -194,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- 9. STEP 2: VERIFY OTP ---
+    // VERIFY OTP 
     form2.addEventListener('submit', async (e) => {
         e.preventDefault();
         error2.style.display = 'none';
@@ -212,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('otp', otpValue);
 
         try {
-            const response = await fetch('/verify-otp', {
+            const response = await fetch('/verify-forgot-password-otp', {
                 method: 'POST',
                 body: formData
             });
@@ -233,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- 10. STEP 3: UPDATE PASSWORD ---
+    // UPDATE PASSWORD 
     form3.addEventListener('submit', async (e) => {
         e.preventDefault();
         error3.style.display = 'none';
@@ -282,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result.success) {
                 showToast('Password updated successfully!', 'success');
 
-                // Redirect to login page after 2 seconds
+                // Redirect to Login Page
                 setTimeout(() => {
                     window.location.href = '/auth';
                 }, 2000);
@@ -297,7 +293,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- 11. TOGGLE PASSWORD (SHOW/HIDE) ---
     document.querySelectorAll('.password-toggle').forEach(icon => {
         icon.addEventListener('click', function() {
             const input = this.previousElementSibling;

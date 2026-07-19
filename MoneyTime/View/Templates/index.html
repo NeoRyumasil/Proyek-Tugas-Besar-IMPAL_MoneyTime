@@ -1,176 +1,201 @@
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="{{ url_for('static', filename='logoMoneyTime.svg') }}">
     
-    <link rel="stylesheet" href="{{ url_for('static', filename='styleLandingPage.css') }}">
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Opsional: Konfigurasi custom warna jika diperlukan -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1D4ED8', // Warna biru
+                        dark: '#111827',
+                    }
+                }
+            }
+        }
+    </script>
+    
     <script src="{{ url_for('static', filename='scriptLandingPage.js') }}"></script>
     <title>MoneyTime</title>
 </head>
 
-<body>
-    <div class="header-guest">
-        <div class="header-guest-container">
-            <div class="name-and-logo">
-                <img class="image-13-icon" alt="" src="{{ url_for('static', filename='logoMoneyTime.svg') }}">
-                <div class="name">
-                    <div class="logo">MoneyTime</div>
-                </div>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased overflow-x-hidden">
+
+    <!-- Navbar -->
+    <header class="fixed top-0 w-full bg-white/90 backdrop-blur-md shadow-sm z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <!-- Brand & Logo -->
+            <div class="flex items-center gap-3">
+                <img class="w-8 h-8" alt="MoneyTime Logo" src="{{ url_for('static', filename='logoMoneyTime.svg') }}">
+                <div class="text-xl font-extrabold tracking-tight text-gray-900">MoneyTime</div>
             </div>
-            <nav class="page-switch" id="mainNav" aria-label="Primary">
-                <a href="#home" class="page-link">
-                    <div class="page-1"><b class="page-text">Home</b></div>
-                </a>
-                <a href="#features" class="page-link">
-                    <div class="page-1"><b class="page-text">Features</b></div>
-                </a>
-                <a href="#about" class="page-link">
-                    <div class="page-1"><b class="page-text">About</b></div>
-                </a>
+
+            <!-- Navigation Links -->
+            <nav id="mainNav" class="hidden md:flex gap-8 items-center" aria-label="Primary">
+                <a href="#home" class="text-sm font-semibold text-gray-600 hover:text-primary transition-colors">Home</a>
+                <a href="#features" class="text-sm font-semibold text-gray-600 hover:text-primary transition-colors">Features</a>
+                <a href="#about" class="text-sm font-semibold text-gray-600 hover:text-primary transition-colors">About</a>
             </nav>
 
-            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false"
-                aria-controls="mainNav">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
-            </button>
-            <a href="{{ url_for('auth') }}?tab=register" class="get-started" id="getStartedContainer">
-                <div class="home">Get Started</div>
+            <!-- Get Started Button -->
+            <a href="{{ url_for('page.auth') }}?tab=register" id="getStartedContainer" class="hidden md:inline-flex bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2.5 px-6 rounded-full shadow-lg transition-transform hover:-translate-y-0.5">
+                Get Started
             </a>
-        </div>
-    </div>
 
-    <div class="hero" id="home">
-        <div class="hero-background">
-            <img class="hero-background-img" alt="" src="{{ url_for('static', filename='hero-background.png') }}">
+            <!-- Mobile Menu Toggle -->
+            <button class="md:hidden flex flex-col justify-center items-center w-8 h-8 space-y-1.5 focus:outline-none" id="navToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="mainNav">
+                <span class="block w-6 h-0.5 bg-gray-800 rounded"></span>
+                <span class="block w-6 h-0.5 bg-gray-800 rounded"></span>
+                <span class="block w-6 h-0.5 bg-gray-800 rounded"></span>
+            </button>
         </div>
-        <div class="hero-container">
-            <div class="chevron-circle-left-parent">
-                <!-- <img class="chevron-circle-left-icon" alt="" src="{{ url_for('static', filename='chevron-circle-left.svg') }}"> -->
-                <div class="hero-textimg">
-                    <div class="welcome-to-moneytime-parent">
-                        <b class="welcome-to-moneytime">Welcome to MoneyTime!</b>
-                        <div class="lorem-ipsum-dolor">Aplikasi yang Membantu Manajemen Waktu dan Keuangan Anda.
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 min-h-screen flex items-center bg-cover bg-center" style="background-image: url('{{ url_for("static", filename="hero-background.png") }}');">
+        <div class="absolute inset-0 bg-white/60 md:bg-transparent"></div>
+        
+        <div class="container mx-auto px-6 relative z-10 flex flex-col-reverse lg:flex-row items-center gap-12">
+            <!-- Hero Text -->
+            <div class="lg:w-1/2 flex flex-col gap-6 text-center lg:text-left">
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 leading-tight">
+                    Welcome to <span class="text-blue-600">MoneyTime!</span>
+                </h1>
+                <p class="text-lg md:text-xl text-gray-700 font-medium max-w-2xl mx-auto lg:mx-0">
+                    Aplikasi yang Membantu Manajemen Waktu dan Keuangan Anda.
+                </p>
+                <div class="lg:hidden mt-4">
+                    <a href="{{ url_for('page.auth') }}?tab=register" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition">Mulai Sekarang</a>
+                </div>
+            </div>
+            <!-- Hero Image -->
+            <div class="lg:w-1/2 flex justify-center">
+                <img class="w-full max-w-md lg:max-w-lg object-contain drop-shadow-2xl" alt="Velocity of money" src="{{ url_for('static', filename='Velocity-of-money-1.svg') }}">
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-24 bg-white">
+        <div class="container mx-auto px-6">
+            <!-- Section Title -->
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Key Features</h2>
+                <p class="text-gray-600 text-lg">Berikut Adalah Fitur-Fitur Utama yang Kami Tawarkan.</p>
+            </div>
+
+            <!-- Features Cards -->
+            <div class="grid md:grid-cols-2 gap-10 max-w-5xl mx-auto">
+                <!-- Card: Keuangan -->
+                <div class="bg-blue-50/50 border border-blue-100 rounded-3xl p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-3xl">
+                            💵
                         </div>
+                        <h3 class="text-2xl font-bold text-gray-900">Keuangan</h3>
                     </div>
-                    <img class="hero-image" alt="" src="{{ url_for('static', filename='Velocity-of-money-1.svg') }}">
+                    <p class="text-gray-600 leading-relaxed">
+                        Di sini Anda bisa mengatur keuangan Anda dengan mudah dan praktis. Dengan fitur pencatatan pengeluaran dan pemasukan, Anda dapat memantau arus kas Anda secara real-time dan membuat anggaran yang sesuai dengan kebutuhan Anda.
+                    </p>
                 </div>
-                <!-- <img class="chevron-circle-left-icon" alt="" src="{{ url_for('static', filename='chevron-circle-right.svg') }}"> -->
-            </div>
-            <!--
-            <div class="hero-pagination">
-                <div class="current-page">
-                </div>
-                <div class="a">
-                </div>
-                <div class="a">
-                </div>
-            </div>
-            -->
-        </div>
-    </div>
 
-    <div class="features-component" id="features">
-        <div class="features-container">
-            <div class="title">
-                <b class="key-features">Key Features</b>
-                <div class="lorem-ipsum-dolor">Berikut Adalah Fitur-Fitur Utama yang Kami Tawarkan.</div>
-            </div>
-            <div class="features-card">
-                <div class="money-card">
-                    <div class="card">
-                        <div class="card-container">
-                            <div class="features--title">
-                                <div class="logo-card">
-                                    <div class="div">💵</div>
-                                </div>
-                                <div class="money">Keuangan</div>
-                            </div>
-                            <div class="features--lorem-ipsum-dolor">Di sini Anda bisa mengatur keuangan Anda dengan
-                                mudah dan praktis. Dengan fitur pencatatan pengeluaran dan pemasukan,
-                                Anda dapat memantau arus kas Anda secara real-time dan membuat anggaran yang sesuai
-                                dengan kebutuhan Anda.</div>
+                <!-- Card: Waktu -->
+                <div class="bg-blue-50/50 border border-blue-100 rounded-3xl p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-3xl">
+                            ⏱️
                         </div>
+                        <h3 class="text-2xl font-bold text-gray-900">Waktu</h3>
                     </div>
-                </div>
-                <div class="money-card">
-                    <div class="card">
-                        <div class="card-container">
-                            <div class="features--title">
-                                <div class="logo-card">
-                                    <div class="div">⏱️</div>
-                                </div>
-                                <div class="money">Waktu</div>
-                            </div>
-                            <div class="features--lorem-ipsum-dolor">Di sini Anda bisa mengatur waktu Anda dengan
-                                efisien. Dengan fitur pengingat dan penjadwalan, Anda dapat mengelola
-                                tugas-tugas harian Anda dengan lebih baik dan memastikan bahwa Anda tidak melewatkan
-                                tenggat waktu penting.</div>
-                        </div>
-                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Di sini Anda bisa mengatur waktu Anda dengan efisien. Dengan fitur pengingat dan penjadwalan, Anda dapat mengelola tugas-tugas harian Anda dengan lebih baik dan memastikan bahwa Anda tidak melewatkan tenggat waktu penting.
+                    </p>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="about-us-component" id="about">
-        <img class="about-us--about-us-component" alt="" src="{{ url_for('static', filename='about-us-component.png') }}">
-        <div class="about-moneytime-parent">
-            <b class="about-moneytime">About MoneyTime</b>
-            <div class="cyclefy-is-a">
-                MoneyTime adalah situs manajemen waktu dan uang yang dirancang untuk memudahkan mahasiswa dalam manajemen waktu dan keuangan secara digital. 
-                Aplikasi ini memungkinkan mahasiswa untuk mengelola waktu dengan mengorganisir, memantau, dan melacak tugas-tugas secara otomatis. </div>
+    <!-- About Section -->
+    <section id="about" class="py-24 bg-gray-50">
+        <div class="container mx-auto px-6 max-w-6xl">
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <!-- About Image -->
+                <div class="lg:w-1/2 w-full">
+                    <img class="w-full rounded-3xl shadow-lg object-cover" alt="About Us" src="{{ url_for('static', filename='about-us-component.png') }}">
+                </div>
+                
+                <!-- About Text -->
+                <div class="lg:w-1/2 flex flex-col gap-6">
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900">About MoneyTime</h2>
+                    <p class="text-gray-600 text-lg leading-relaxed text-justify">
+                        MoneyTime adalah situs manajemen waktu dan uang yang dirancang untuk memudahkan mahasiswa dalam manajemen waktu dan keuangan secara digital. Aplikasi ini memungkinkan mahasiswa untuk mengelola waktu dengan mengorganisir, memantau, dan melacak tugas-tugas secara otomatis.
+                    </p>
+                </div>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <div class="footer">
-        <div class="footer-wrapper">
-            <div class="footer-top">
-                <div class="footer-about">
-                    <div class="footer-logo">
-                        <b class="footer-brand">
-                            <span>Money</span><span class="footer-brand-highlight">Time</span>
-                        </b>
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white pt-16 pb-8">
+        <div class="container mx-auto px-6 max-w-6xl">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12 border-b border-gray-800 pb-12">
+                <!-- Brand Info -->
+                <div class="col-span-1 lg:col-span-1 flex flex-col gap-4">
+                    <div class="text-2xl font-extrabold tracking-tight">
+                        <span>Money</span><span class="text-blue-500">Time</span>
                     </div>
-                    <div class="footer-desc">
+                    <p class="text-gray-400 text-sm leading-relaxed">
                         Aplikasi manajemen waktu dan keuangan.
-                    </div>
+                    </p>
                 </div>
 
-                <div class="footer-section">
-                    <b class="footer-title">Features</b>
-                    <div class="footer-links">
-                        <div>Money</div>
-                        <div>Time</div>
-                    </div>
+                <!-- Features Links -->
+                <div>
+                    <h4 class="text-lg font-bold mb-6">Features</h4>
+                    <ul class="flex flex-col gap-3 text-gray-400 text-sm">
+                        <li><a href="#features" class="hover:text-blue-400 transition-colors">Money</a></li>
+                        <li><a href="#features" class="hover:text-blue-400 transition-colors">Time</a></li>
+                    </ul>
                 </div>
 
-                <div class="footer-section">
-                    <b class="footer-title">Customer Service</b>
-                    <div class="footer-links">
-                        <div>Contact Us</div>
-                    </div>
+                <!-- CS Links -->
+                <div>
+                    <h4 class="text-lg font-bold mb-6">Customer Service</h4>
+                    <ul class="flex flex-col gap-3 text-gray-400 text-sm">
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Contact Us</a></li>
+                    </ul>
                 </div>
 
-                <div class="footer-section">
-                    <b class="footer-title">Follow Us</b>
-                    <div class="footer-socials">
-                        <img class="footer-icon" alt="" src="{{ url_for('static', filename='google.svg') }}">
-                        <img class="footer-icon" alt="" src="{{ url_for('static', filename='facebook.png') }}">
-                        <img class="footer-icon" alt="" src="{{ url_for('static', filename='x-twitter.png') }}">
+                <!-- Social Links -->
+                <div>
+                    <h4 class="text-lg font-bold mb-6">Follow Us</h4>
+                    <div class="flex gap-4 items-center">
+                        <a href="#" class="bg-gray-800 p-2.5 rounded-full hover:bg-gray-700 transition-colors">
+                            <img class="w-5 h-5 opacity-90 hover:opacity-100" alt="Google" src="{{ url_for('static', filename='google.svg') }}">
+                        </a>
+                        <a href="#" class="bg-gray-800 p-2.5 rounded-full hover:bg-gray-700 transition-colors">
+                            <img class="w-5 h-5 opacity-90 hover:opacity-100" alt="Facebook" src="{{ url_for('static', filename='facebook.png') }}">
+                        </a>
+                        <a href="#" class="bg-gray-800 p-2.5 rounded-full hover:bg-gray-700 transition-colors">
+                            <img class="w-5 h-5 opacity-90 hover:opacity-100" alt="Twitter" src="{{ url_for('static', filename='x-twitter.png') }}">
+                        </a>
                     </div>
                 </div>
             </div>
 
-            <div class="footer-divider"></div>
-            <b class="footer-copy">© 2025 MoneyTime. All rights reserved.</b>
+            <!-- Copyright -->
+            <div class="text-center text-sm text-gray-500">
+                © 2026 MoneyTime. All rights reserved.
+            </div>
         </div>
-    </div>
-
-
+    </footer>
 </body>
-
 </html>

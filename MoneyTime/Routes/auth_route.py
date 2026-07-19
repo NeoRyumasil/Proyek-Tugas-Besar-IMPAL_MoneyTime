@@ -25,7 +25,7 @@ def register() :
         'password' : password
     }
 
-    session['validation_email'] = email
+    session['pending_validation_email'] = email 
 
     return jsonify({
         'success' : True,
@@ -45,9 +45,9 @@ def login() :
 
     if user:
         session['user'] = {
-            'id': user.user_id,
+            'id': user.id,       
             'username': user.username,
-            'email': user.email_address
+            'email': user.email   
         }
 
         if remember_me == 'on' :
