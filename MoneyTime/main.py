@@ -1,5 +1,6 @@
 from flask import Flask, session
 from dotenv import load_dotenv
+from sqlalchemy.pool import NullPool
 
 import os
 import secrets
@@ -34,6 +35,11 @@ app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SUPABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'poolclass': NullPool,
+    'pool_pre_ping': True  
+}
 
 db.init_app(app)
 marshmallow.init_app(app)
