@@ -1,29 +1,31 @@
 from Database.models import Aktivitas
 from Database.orm import db
 from Utils.cache import cache
+from Schema.schema import AktivitasSchema
+from marshmallow import ValidationError
 from typing import List, Dict, Any
 from datetime import datetime
 
 class ScheduleController:
     def __init__(self):
         self.db = db.session
+        self.aktivitas_schema = AktivitasSchema()
 
     # Tambah Aktivitas
     def add_schedule(self, user_id: str, title: str, description: str, date: str, time: str, category: str, priority: str) -> bool:
         try:
-            tenggat_waktu = datetime.strptime(f"{date}", '%Y-%m-%d').date()
             
-            new_aktivitas = Aktivitas(
-                userid=user_id,
-                nama_aktivitas=title,
-                deskripsi=description,
-                tenggat=tenggat_waktu,
-                waktu=time,
-                kategori=category,
-                prioritas=priority,
-                status="Pending",
-                isread=False
-            )
+            new_aktivitas = self.aktivitas_schema.load({
+                "userid": user_id,
+                "nama_aktivitas": title,
+                "deskripsi": description,
+                "tenggat": date,
+                "waktu": time,
+                "kategori": category,
+                "prioritas": priority,
+                "status": "Pending",
+                "isread": False
+            })
             
             self.db.add(new_aktivitas)
             self.db.commit()
@@ -33,9 +35,14 @@ class ScheduleController:
 
             return True
             
-        except Exception as e:
+        except ValidationError as error:
             self.db.rollback()
-            print(f"Error add schedule: {e}")
+            print(f"Validasi Schema Gagal (Add): {error.messages}")
+            return False
+        
+        except Exception as error:
+            self.db.rollback()
+            print(f"Error add schedule: {error}")
             return False
 
     # Cari Aktivitas
@@ -73,6 +80,12 @@ class ScheduleController:
     # Update Status
     def update_status(self, schedule_id: int, status: str) -> bool:
         try:
+            
+            errors = self.aktivitas_schema.validate({"status": status}, partial=True)
+
+            if errors:
+                return False
+
             aktivitas = self.db.query(Aktivitas).filter_by(aktivitasid=schedule_id).first()
             if aktivitas:
                 aktivitas.status = status
@@ -80,20 +93,34 @@ class ScheduleController:
                 self.db.commit()
 
                 cache.delete_memoized(self.get_schedule_summary, user_id)
-
                 return True
             
             return False
             
-        except Exception as e:
+        except Exception as error:
             self.db.rollback()
-            print(f"Error update status: {e}")
+            print(f"Error update status: {error}")
             return False
 
     # Edit Aktivitas
     def edit_schedule(self, schedule_id: int, title: str, description: str, date: str, time: str, category: str, priority: str) -> bool:
         try:
+            
+            errors = self.aktivitas_schema.validate({
+                "nama_aktivitas": title,
+                "deskripsi": description,
+                "tenggat": date,
+                "waktu": time,
+                "kategori": category,
+                "prioritas": priority
+            }, partial=True)
+
+            if errors:
+                print(f"Validasi Schema Gagal (Edit): {errors}")
+                return False
+
             aktivitas = self.db.query(Aktivitas).filter_by(aktivitasid=schedule_id).first()
+
             if aktivitas:
                 aktivitas.nama_aktivitas = title
                 aktivitas.deskripsi = description
@@ -103,19 +130,17 @@ class ScheduleController:
                 aktivitas.prioritas = priority
                 
                 user_id = aktivitas.userid
-
                 self.db.commit()
 
                 cache.delete_memoized(self.get_categories, user_id)
                 cache.delete_memoized(self.get_schedule_summary, user_id)
-
                 return True
             
             return False
             
-        except Exception as e:
+        except Exception as error:
             self.db.rollback()
-            print(f"Error edit schedule: {e}")
+            print(f"Error edit schedule: {error}")
             return False
 
     # Hapus Aktivitas
@@ -134,9 +159,9 @@ class ScheduleController:
             
             return False
             
-        except Exception as e:
+        except Exception as error:
             self.db.rollback()
-            print(f"Error delete schedule: {e}")
+            print(f"Error delete schedule: {error}")
             return False
 
     # Cari Kategori

@@ -10,6 +10,7 @@ from Utils.cache import cache
 from Utils.limiter import limiter
 from Utils.error_handler import error_handlers
 from Utils.talisman import init_talisman
+from Utils.marshmallow import marshmallow
 
 from Controller.notificationController import NotificationController
 
@@ -35,8 +36,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SUPABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
+marshmallow.init_app(app)
 cache.init_app(app)
 limiter.init_app(app)
+
 error_handlers(app)
 init_talisman(app)
 

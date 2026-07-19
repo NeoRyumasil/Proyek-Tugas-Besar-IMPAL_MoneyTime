@@ -3,10 +3,12 @@ flask-sqlalchemy
 flask-caching
 flask-limiter
 flask-talisman
+flask-marshmallow
 requests
 python-dotenv
 groq
 supabase
 markupsafe
+marshmallow-sqlalchemy
 psycopg2-binary
 redis

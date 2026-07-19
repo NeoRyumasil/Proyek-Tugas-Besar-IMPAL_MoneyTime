@@ -10,28 +10,42 @@ from Database.orm import db
 from Controller.finansialController import FinansialController
 from Controller.scheduleController import ScheduleController
 
+from Schema.schema import ChatlogSchema
+from marshmallow import ValidationError
+
 class AssistantController:
     def __init__(self, finansial_controller: FinansialController, schedule_controller : ScheduleController, user_id):
         self.client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         self.model_name = "llama-3.3-70b-versatile"
 
         self.db = db.session
+        self.chatlog_schema = ChatlogSchema()
 
         self.finansial_controller = finansial_controller
         self.schedule_controller = schedule_controller
 
-    # Buat Log
+    # Buat Log dengan Proteksi Marshmallow
     def create_log(self, user_id: str, message: str, role: str):
         try:
-            new_log = Chatlog(userid=user_id, message=message, role=role, timestamp=datetime.now())
+            new_log = self.chatlog_schema.load({
+                "userid": user_id,
+                "message": message,
+                "role": role,
+                "timestamp": str(datetime.now())
+            })
+            
             self.db.add(new_log)
             self.db.commit()
 
-        except Exception as e:
+        except ValidationError as error:
             self.db.rollback()
-            print(f"Error logging chat: {e}")
+            print(f"Format Chatlog Salah (Token/Spam Protection): {error.messages}")
 
-    # Untuk Chatbot
+        except Exception as error:
+            self.db.rollback()
+            print(f"Error logging chat: {error}")
+
+    # Untuk Chatbot (Logika Prompt tetap sama)
     def process_chat(self, user_id : str, user_message : str) -> str :
         try:
             history = self.get_chat_history(user_id)
@@ -168,6 +182,7 @@ class AssistantController:
 
                     self.create_log(user_id, final_response, "assistant")
                     return final_response
+                
             else:
                 chat_reply = response_message.content
 
@@ -193,6 +208,7 @@ class AssistantController:
             
             if raw_date == "hari ini":
                 tanggal_final = datetime.now().strftime('%Y-%m-%d')
+
             else:
                 tanggal_final = raw_date
 
@@ -214,6 +230,7 @@ class AssistantController:
                         arguments.get("nominal", 0), 
                         tanggal_final
                     )
+
                 elif trans_type in ["expense", "pengeluaran"]:
                     trigger = self.finansial_controller.add_pengeluaran(
                         finansial_id, 

@@ -1,5 +1,7 @@
 from Database.models import User
 from Database.orm import db    
+from Schema.schema import UserSchema
+from marshmallow import ValidationError
 
 import os
 import smtplib
@@ -15,6 +17,7 @@ from sqlalchemy import or_
 class UserController:
     def __init__(self):
         self.db = db.session
+        self.user_schema = UserSchema()
 
     # Autentikasi
     def authenticate(self, username_input, password_input):
@@ -25,15 +28,27 @@ class UserController:
         
         return None
     
-    # Validasi Registrasi
+    # Validasi Registrasi dengan Marshmallow
     def validate_registration(self, username, email, password, confirm_password):
         if password != confirm_password:
-            return {'success' : False, 'message' : "Password Gak Cocok"}
+            return {'success' : False, 'message' : "Password Not Match"}
         
+        errors = self.user_schema.validate({
+            "username": username,
+            "email": email,
+            "password": password,
+            "role": "user"
+        })
+
+        if errors:
+            first_error_field = list(errors.keys())[0]
+            first_error_msg = errors[first_error_field][0]
+            return {'success' : False, 'message' : f"Format {first_error_field} salah: {first_error_msg}"}
+
         existing_user = self.db.query(User).filter(or_(User.username == username, User.email == email)).first()
         
         if existing_user:
-            return {'success' : False, 'message' : "Username atau Email sudah ada"}
+            return {'success' : False, 'message' : "Username atau Email already used"}
     
         return {'success' : True}
     
@@ -59,6 +74,10 @@ class UserController:
     # Update Password
     def update_password(self, email, password):
         try:
+            errors = self.user_schema.validate({"password": password}, partial=True)
+            if errors:
+                return False
+
             user = self.db.query(User).filter_by(email=email).first()
 
             if user:
@@ -73,7 +92,7 @@ class UserController:
             print(f"Error Update Password: {error}")
             return False
     
-    # Kirm OTP ke Email
+    # Kirim OTP ke Email
     def send_otp_email(self, target_email, subject, template):
         email_sender = os.getenv('EMAIL_SENDER')
         email_password = os.getenv('EMAIL_PASSWORD')
@@ -93,13 +112,13 @@ class UserController:
         try:
             css_path = os.path.join('View', 'static', 'styleForgotPasswordEmail.css')
             with open(css_path, 'r') as f: css_content = f.read()
-        
         except:
             pass
 
         # Load HTML
         try:
             html_content = render_template(template, otp_code=otp_code, css_style=css_content)
+            
         except Exception:
             html_content = f"Kode OTP Anda: {otp_code}"
         
@@ -113,7 +132,6 @@ class UserController:
                 image.add_header('Content-ID', '<logo_image>')
                 image.add_header('Content-Disposition', 'inline', filename='avatarHeader.png')
                 message.attach(image)
-        
         except:
             pass
 

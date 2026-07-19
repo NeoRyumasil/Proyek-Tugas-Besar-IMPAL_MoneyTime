@@ -5,9 +5,15 @@ from Database.models import Finansial, Pemasukkan, Pengeluaran
 from Database.orm import db
 from Utils.cache import cache
 
+from Schema.schema import FinansialSchema, PemasukkanSchema, PengeluaranSchema
+from marshmallow import ValidationError
+
 class FinansialController:
     def __init__(self):
         self.db = db.session
+        self.finansial_schema = FinansialSchema()
+        self.pemasukkan_schema = PemasukkanSchema()
+        self.pengeluaran_schema = PengeluaranSchema()
 
     # Ambil atau tambah Finansial
     def get_or_create_finansial(self, user_id: str, kategori: str, budget: int = 0, status: str = 'active') -> Optional[int]:
@@ -17,21 +23,25 @@ class FinansialController:
             if finansial:
                 return finansial.finansialid
             
-            new_finansial = Finansial(
-                userid=user_id, 
-                kategori=kategori, 
-                budget=budget, 
-                status=status, 
-                date=datetime.now().date()
-            )
+            new_finansial = self.finansial_schema.load({
+                "userid": user_id, 
+                "kategori": kategori, 
+                "budget": budget, 
+                "status": status, 
+                "date": str(datetime.now().date())
+            })
 
             self.db.add(new_finansial)
             self.db.commit()
 
             cache.delete_memoized(self.get_categories, user_id)
-
             return new_finansial.finansialid
             
+        except ValidationError as err:
+            self.db.rollback()
+            print(f"Validasi Finansial Gagal: {err.messages}")
+            return None
+        
         except Exception as e:
             self.db.rollback()
             print(f"Error get_or_create_finansial: {e}")
@@ -40,14 +50,12 @@ class FinansialController:
     # Tambah Pemasukkan
     def add_pemasukan(self, finansial_id: int, deskripsi: str, nominal: int, tanggal: str) -> bool:
         try:
-            tanggal_obj = datetime.strptime(tanggal, '%Y-%m-%d').date()
-            
-            new_pemasukkan = Pemasukkan(
-                finansialid=finansial_id, 
-                deskripsi=deskripsi, 
-                nominal=nominal, 
-                tanggal=tanggal_obj
-            )
+            new_pemasukkan = self.pemasukkan_schema.load({
+                "finansialid": finansial_id, 
+                "deskripsi": deskripsi, 
+                "nominal": nominal, 
+                "tanggal": tanggal
+            })
 
             self.db.add(new_pemasukkan)
             self.db.commit()
@@ -60,6 +68,11 @@ class FinansialController:
             
             return True
         
+        except ValidationError as err:
+            self.db.rollback()
+            print(f"Validasi Pemasukkan Gagal: {err.messages}")
+            return False
+        
         except Exception as e:
             self.db.rollback()
             print(f"Error add_pemasukan: {e}")
@@ -68,17 +81,16 @@ class FinansialController:
     # Tambah Pengeluaran
     def add_pengeluaran(self, finansial_id: int, deskripsi: str, nominal: int, tanggal: str) -> bool:
         try:
-            tanggal_obj = datetime.strptime(tanggal, '%Y-%m-%d').date()
-            
-            new_pengeluaran = Pengeluaran(
-                finansialid=finansial_id, 
-                deskripsi=deskripsi, 
-                nominal=nominal, 
-                tanggal=tanggal_obj
-            )
+            new_pengeluaran = self.pengeluaran_schema.load({
+                "finansialid": finansial_id, 
+                "deskripsi": deskripsi, 
+                "nominal": nominal, 
+                "tanggal": tanggal
+            })
 
             self.db.add(new_pengeluaran)
             self.db.commit()
+
             finansial = self.db.query(Finansial).filter_by(finansialid=finansial_id).first()
 
             if finansial:
@@ -87,15 +99,19 @@ class FinansialController:
 
             return True
         
-        except Exception as e:
+        except ValidationError as error:
             self.db.rollback()
-            print(f"Error add_pengeluaran: {e}")
+            print(f"Validasi Pengeluaran Gagal: {error.messages}")
+            return False
+        
+        except Exception as error:
+            self.db.rollback()
+            print(f"Error add_pengeluaran: {error}")
             return False
 
     # Ambil data transaksi
     def get_transactions(self, user_id: str, keyword: str = None, is_paginate: bool = False, page: int = 1, per_page: int = 10) -> List[Dict[str, Any]]:
         result = []
-        
         try:
             # Ambil Income
             incomes = self.db.query(Pemasukkan, Finansial).join(Finansial).filter(Finansial.userid == user_id).all()
@@ -123,7 +139,6 @@ class FinansialController:
                         'kategori': finansial.kategori
                     })
 
-            # Sorting 
             result.sort(key=lambda r: r.get('tanggal') or '', reverse=True)
 
             if not is_paginate:
@@ -131,14 +146,11 @@ class FinansialController:
             
             total_items = len(result)
             total_pages = (total_items + per_page - 1) // per_page
-
             start = (page - 1) * per_page
             end = start + per_page
 
-            paginated_result = result[start:end]
-
             return {
-                'data': paginated_result,
+                'data': result[start:end],
                 'total_items': total_items,
                 'total_pages': total_pages,
                 'current_page': page,
@@ -148,40 +160,26 @@ class FinansialController:
             
         except Exception as e:
             print(f"Error get_transactions: {e}")
-
             if not is_paginate:
                 return []
             
-            return {
-                'data': [], 'total_items': 0, 'total_pages': 0, 
-                'current_page': 1, 'has_next': False, 'has_prev': False
-            }
+            return {'data': [], 'total_items': 0, 'total_pages': 0, 'current_page': 1, 'has_next': False, 'has_prev': False}
 
     # Hapus Transaksi
     def delete_transaction(self, user_id: str, transaction_id: int, transaction_type: str) -> bool:
         try:
             if transaction_type.lower() == 'income':
-                item = self.db.query(Pemasukkan).join(Finansial).filter(
-                    Pemasukkan.pemasukkanid == transaction_id, 
-                    Finansial.userid == user_id
-                ).first()
-
+                item = self.db.query(Pemasukkan).join(Finansial).filter(Pemasukkan.pemasukkanid == transaction_id, Finansial.userid == user_id).first()
             elif transaction_type.lower() == 'expense':
-                item = self.db.query(Pengeluaran).join(Finansial).filter(
-                    Pengeluaran.pengeluaranid == transaction_id, 
-                    Finansial.userid == user_id
-                ).first()
-
+                item = self.db.query(Pengeluaran).join(Finansial).filter(Pengeluaran.pengeluaranid == transaction_id, Finansial.userid == user_id).first()
             else:
                 return False
 
             if item:
                 self.db.delete(item)
                 self.db.commit()
-
                 cache.delete_memoized(self.get_categories, user_id)
                 cache.delete_memoized(self.get_financial_summary, user_id)
-
                 return True
                 
             return False
@@ -193,42 +191,36 @@ class FinansialController:
 
     # Edit Transaksi
     def edit_transaction(self, user_id: str, transaction_id: int, transaction_type: str, deskripsi: str, nominal: int, tanggal: str, kategori: str) -> bool:
-
         status_type = 'Pemasukkan' if transaction_type.lower() == 'income' else 'Pengeluaran'
-    
         finansial_id = self.get_or_create_finansial(user_id, kategori, status=status_type)
 
         if not finansial_id:
             return False
         
         try:
-            tanggal_obj = datetime.strptime(tanggal, '%Y-%m-%d').date()
             
             if transaction_type.lower() == 'income':
-                item = self.db.query(Pemasukkan).join(Finansial).filter(
-                    Pemasukkan.pemasukkanid == transaction_id, 
-                    Finansial.userid == user_id
-                ).first()
+                errors = self.pemasukkan_schema.validate({"deskripsi": deskripsi, "nominal": nominal, "tanggal": tanggal}, partial=True)
+                if errors: return False
+                item = self.db.query(Pemasukkan).join(Finansial).filter(Pemasukkan.pemasukkanid == transaction_id, Finansial.userid == user_id).first()
 
             elif transaction_type.lower() == 'expense':
-                item = self.db.query(Pengeluaran).join(Finansial).filter(
-                    Pengeluaran.pengeluaranid == transaction_id, 
-                    Finansial.userid == user_id
-                ).first()
-
+                errors = self.pengeluaran_schema.validate({"deskripsi": deskripsi, "nominal": nominal, "tanggal": tanggal}, partial=True)
+                if errors: return False
+                item = self.db.query(Pengeluaran).join(Finansial).filter(Pengeluaran.pengeluaranid == transaction_id, Finansial.userid == user_id).first()
+                
             else:
                 return False
 
             if item:
                 item.deskripsi = deskripsi
                 item.nominal = nominal
-                item.tanggal = tanggal_obj
+                item.tanggal = datetime.strptime(tanggal, '%Y-%m-%d').date()
                 item.finansialid = finansial_id
                 self.db.commit()
 
                 cache.delete_memoized(self.get_categories, user_id)
                 cache.delete_memoized(self.get_financial_summary, user_id)
-
                 return True
                 
             return False
@@ -254,31 +246,22 @@ class FinansialController:
             if not kategori_expense:
                 kategori_expense = ["Pendidikan", "Kebutuhan Sehari-hari", "Pajak", "Hiburan"]
 
-            return {
-                "Income" : kategori_income,
-                "Expense" : kategori_expense
-            }
+            return {"Income" : kategori_income, "Expense" : kategori_expense}
         
         except Exception as e:
             print(f"Error get_categories: {e}")
-
-            return {
-                "Income" : ["Gaji", "Return Investasi", "Penjualan", "Lainnya"],
-                "Expense" : ["Pendidikan", "Kebutuhan Sehari-hari", "Pajak", "Hiburan"]
-            }
+            return {"Income" : ["Gaji", "Return Investasi", "Penjualan", "Lainnya"], "Expense" : ["Pendidikan", "Kebutuhan Sehari-hari", "Pajak", "Hiburan"]}
     
     # Ringkasan finansial untuk AI
     @cache.memoize(timeout=300)
     def get_financial_summary(self, user_id: str) -> str:
         transactions = self.get_transactions(user_id)
-
         total_income = sum(t['nominal'] for t in transactions if t['type'] == 'Income')
         total_expense = sum(t['nominal'] for t in transactions if t['type'] == "Expense")
         balance = total_income - total_expense
 
         recent_transaction = transactions[:30]
         recent_transaction_str = ""
-
         for transaction in recent_transaction:
             recent_transaction_str += f"{transaction['deskripsi']} ({transaction['type']}): Rp. {transaction['nominal']:,}\n"
 
@@ -291,5 +274,4 @@ class FinansialController:
             f"[INSTRUKSI KHUSUS : Gunakan data di atas untuk memberikan saran keuangan gunakan sisa saldo dan Total Pengeluaran sebagai acuan utama.]"
             f"Jika saldo minus atau tipis, marahi user"
         )
-
         return summary
