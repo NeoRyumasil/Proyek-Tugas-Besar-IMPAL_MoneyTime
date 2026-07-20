@@ -35,13 +35,13 @@
                 </div>
             </div>
             <nav class="page-switch" id="mainNav">
-                <a href="{{ url_for('dashboard') }}" class="page-link">
+                <a href="{{ url_for('page.dashboard') }}" class="page-link">
                     <div class="page-1"><b class="page-text">Dashboard</b></div>
                 </a>
-                <a href="{{ url_for('money') }}" class="page-link">
+                <a href="{{ url_for('page.money') }}" class="page-link">
                     <div class="page-1"><b class="page-text">Money</b></div>
                 </a>
-                <a href="{{ url_for('time') }}" class="page-link active">
+                <a href="{{ url_for('page.time') }}" class="page-link active">
                     <div class="page-1"><b class="page-text">Time</b></div>
                 </a>
             </nav>
@@ -118,7 +118,7 @@
                             <p style="font-size: 12px;">No new notifications</p>
                         </div>
                         {% endif %}
-                        <a href="{{ url_for('notification') }}" class="notif-view-all">
+                        <a href="{{ url_for('page.notification') }}" class="notif-view-all">
                             View All
                             <div class="notif-view-all-spacer"></div>
                         </a>
@@ -145,7 +145,7 @@
                     </div>
 
                     <div class="profile-dropdown" id="profileDropdown">
-                        <a href="{{ url_for('logout') }}" class="dropdown-item logout" id="logoutBtn">
+                        <a href="{{ url_for('auth.logout') }}" class="dropdown-item logout" id="logoutBtn">
                             <div class="icon-logout">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
                                     xmlns="http://www.w3.org/2000/svg">

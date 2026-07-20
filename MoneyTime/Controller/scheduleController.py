@@ -46,36 +46,32 @@ class ScheduleController:
             return False
 
     # Cari Aktivitas
-    def get_schedules(self, user_id: str, page: int = 1, per_page: int = 10) -> List[Dict[str, Any]]:
-        query = self.db.query(Aktivitas).filter_by(userid=user_id)
-        rows = db.paginate(query, page=page, per_page=per_page, error_out=False)
-        results = []
+    def get_schedules(self, user_id: str) -> List[Dict[str, Any]]:
+        try:
+            rows = self.db.query(Aktivitas).filter_by(userid=user_id).all()
+            results = []
 
-        for row in rows:
-            tenggat = row.tenggat.strftime('%d-%m-%Y') if row.tenggat else ""
-            time = row.waktu if row.waktu else "23:59"
+            for row in rows:
+                tenggat = row.tenggat.strftime('%d-%m-%Y') if row.tenggat else ""
+                time = row.waktu if row.waktu else "23:59"
 
-            results.append({
-                'id': row.aktivitasid,
-                'title': row.nama_aktivitas or "No Activity",
-                'description': row.deskripsi or "",
-                'date': tenggat,
-                'time': time,
-                'category': row.kategori or "Other",
-                'priority': row.prioritas or "None",
-                'status': row.status or "Pending"
-            }) 
+                results.append({
+                    'id': row.aktivitasid,
+                    'title': row.nama_aktivitas or "No Activity",
+                    'description': row.deskripsi or "",
+                    'date': tenggat,
+                    'time': time,
+                    'category': row.kategori or "Other",
+                    'priority': row.prioritas or "None",
+                    'status': row.status or "Pending"
+                }) 
 
-        results.sort(key=lambda x: datetime.strptime(x['date'], '%d-%m-%Y') if x['date'] else datetime.max)
-        
-        return {
-            'data': results,
-            'total_items': rows.total,
-            'total_pages': rows.pages,
-            'current_page': rows.page,
-            'has_next': rows.has_next,
-            'has_prev': rows.has_prev
-        }
+            results.sort(key=lambda x: datetime.strptime(x['date'], '%d-%m-%Y') if x['date'] else datetime.max)
+            return results
+            
+        except Exception as e:
+            print(f"Error get_schedules: {e}")
+            return []
 
     # Update Status
     def update_status(self, schedule_id: int, status: str) -> bool:

@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, session
 from Controller.finansialController import FinansialController
+from datetime import date, datetime
 
 transaction = Blueprint('transaction', __name__)
 
@@ -16,12 +17,36 @@ def api_transaction() :
     user_id = session['user'].get('id')
     keyword = request.args.get('q', '')
 
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 10, type=int)
+    # Langsung ambil data mentah array list tanpa argumen paginasi
+    raw_transactions = finansial_controller.get_transactions(user_id, keyword)
 
-    transactions = finansial_controller.get_transactions(user_id, keyword, is_paginate=True, page=page, per_page=per_page)
+    items = raw_transactions if isinstance(raw_transactions, list) else []
 
-    return jsonify({'success': True, 'transactions': transactions})
+    formatted_items = []
+    for t in items:
+        t_type = str(t.get('type') or t.get('status') or '').lower()
+        final_type = 'Income' if t_type in ['pemasukan', 'income', 'pemasukkan'] else 'Expense'
+
+        raw_date = t.get('tanggal') or t.get('date')
+        if isinstance(raw_date, (date, datetime)):
+            formatted_date = raw_date.strftime('%Y-%m-%d')
+        else:
+            formatted_date = str(raw_date) if raw_date else None
+
+        formatted_items.append({
+            'id': t.get('id') or t.get('pemasukkanid') or t.get('pengeluaranid') or t.get('transaction_id'),
+            'tanggal': formatted_date,
+            'type': final_type,
+            'nominal': float(t.get('nominal') or t.get('amount') or 0),
+            'deskripsi': t.get('deskripsi') or t.get('description') or '-',
+            'kategori': t.get('kategori') or t.get('kategorialokasi') or '-'
+        })
+
+    # Kembalikan murni array saja, tanpa dicampur info meta halaman
+    return jsonify({
+        'success': True, 
+        'transactions': formatted_items
+    })
 
 # Get Categories Route
 @transaction.route('/api/categories', methods=['GET'])
@@ -68,7 +93,7 @@ def add_transaction() :
     except :
         return jsonify({'success': False, 'message': 'Invalid amount'}), 400
 
-    if str(type).lower == 'income' :
+    if str(type).lower() == 'income' :
         success = finansial_controller.add_pemasukan(finansial_id, description, nominal, date)
     else :
         success = finansial_controller.add_pengeluaran(finansial_id, description, nominal, date)

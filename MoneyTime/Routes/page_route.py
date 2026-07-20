@@ -21,7 +21,23 @@ def dashboard() :
     if 'user' not in session :
         return redirect(url_for('page.auth'))
     
-    return render_template('dashboard.html', user=session['user'])
+    user_id = session['user']['id']
+    
+    notifications_data = notification_controller.get_notifications(user_id) or []
+    
+    unread_count = 0
+    for item in notifications_data:
+        # Cek tipe data jika object atau dict
+        is_read = item.is_read if hasattr(item, 'is_read') else item.get('is_read', False)
+        if not is_read:
+            unread_count += 1
+
+    return render_template(
+        'dashboard.html', 
+        user=session['user'], 
+        notifications=notifications_data, 
+        unread_count=unread_count
+    )
 
 # Money Page
 @page.route('/money')

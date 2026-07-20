@@ -15,10 +15,8 @@ def get_schedules() :
     
     user_id = session['user'].get('id')
 
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 10, type=int)
-
-    schedules = schedule_controller.get_schedules(user_id, page=page, per_page=per_page)
+    # Paginasi dihapus total, langsung ambil datanya
+    schedules = schedule_controller.get_schedules(user_id)
     
     return jsonify({'success': True, 'schedules': schedules})
 

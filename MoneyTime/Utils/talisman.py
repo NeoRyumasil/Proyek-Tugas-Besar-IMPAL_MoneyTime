@@ -5,10 +5,20 @@ talisman = Talisman()
 def init_talisman(app):
     csp = {
         'default-src': [
-            '\'self\'',           
-            '\'unsafe-inline\'',  
+            '\'self\'',
+            '\'unsafe-inline\'',
             'https://cdn.jsdelivr.net',
             'https://cdn.tailwindcss.com',
+            'https://fonts.googleapis.com',
+            'https://fonts.gstatic.com',
+            'https://cdnjs.cloudflare.com',
+            'https://fonts.cdnfonts.com'
+        ],
+        'font-src': [
+            '\'self\'',
+            'https://fonts.gstatic.com',
+            'https://cdnjs.cloudflare.com',
+            'https://fonts.cdnfonts.com'
         ]
     }
 
