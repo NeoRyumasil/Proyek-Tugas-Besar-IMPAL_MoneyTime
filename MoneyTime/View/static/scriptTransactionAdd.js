@@ -9,6 +9,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const categoryList = categoryDropdown ? categoryDropdown.querySelector(".dropdown-list") : null;
     const addCategoryBtn = document.getElementById("addCategoryBtn");
 
+    // --- ALLOCATION VARS ---
+    const allocationSection = document.getElementById("allocationSection");
+    const allocNeeds = document.getElementById("allocNeeds");
+    const allocWants = document.getElementById("allocWants");
+    const allocSavings = document.getElementById("allocSavings");
+    const allocWarning = document.getElementById("allocWarning");
+    const allocTotalSpan = document.getElementById("allocTotal");
+
+    // --- EXPENSE ALLOCATION VARS ---
+    const allocExpense = document.getElementById("expenseAllocationSection");
+    const expenseRadios = document.querySelectorAll('input[name="expense_source"]');
+
     let categories = {
         Income: ["Gaji", "Return Investasi", "Jual Barang", "Other"],
         Expense: ["Academic", "Project", "Organization", "Entertainment", "Other"]
@@ -20,26 +32,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- FETCH CATEGORIES FROM API ---
     async function fetchCategories() {
         try {
-            const response = await fetch('/api/categories', {
-                method: 'GET',
-                credentials: 'same-origin'
-            });
+            const response = await fetch('/api/categories', { method: 'GET', credentials: 'same-origin' });
             const data = await response.json();
             if (data.success) {
-                categories = data.categories;
-            } else {
-                console.error('Failed to fetch categories:', data.message);
+                const ensureDefault = (fetchedList, typeDefault) => {
+                    let combined = new Set([...typeDefault, ...(fetchedList || [])]);
+                    return Array.from(combined);
+                };
+                categories.Income = ensureDefault(data.categories.Income, ["Needs", "Wants", "Savings"]);
+                categories.Expense = ensureDefault(data.categories.Expense, ["Needs", "Wants", "Savings"]);
             }
         } catch (error) {
             console.error('Error fetching categories:', error);
         }
     }
 
-    // --- CATEGORY LOGIC (UPDATED) ---
     function renderCategoryList(type) {
         if (!categoryList) return;
-
-        // Hapus item lama (kecuali tombol add)
         Array.from(categoryList.querySelectorAll(".dropdown-item")).forEach(item => item.remove());
 
         if (categories[type]) {
@@ -48,31 +57,59 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.className = "dropdown-item";
                 item.textContent = cat;
 
-                // Event saat item dipilih
                 item.onclick = () => {
                     categoryInput.value = cat;
                     categoryDropdown.classList.remove("active");
                     if (addCategoryBtn) addCategoryBtn.style.display = "none";
                 };
-
-                // Insert sebelum tombol Add
                 categoryList.insertBefore(item, addCategoryBtn);
             });
         }
         categoryItems = Array.from(categoryList.querySelectorAll(".dropdown-item"));
     }
 
-    // Init awal - fetch categories first, then render
     fetchCategories().then(() => {
         renderCategoryList(currentType);
     });
 
-    // Listener Ganti Tipe (Income/Expense)
+    // Validasi Alokasi 100% (Income)
+    function validateAllocation() {
+        if (currentType !== "Income") return true; 
+
+        let n = parseInt(allocNeeds?.value) || 0;
+        let w = parseInt(allocWants?.value) || 0;
+        let s = parseInt(allocSavings?.value) || 0;
+        let total = n + w + s;
+
+        if (allocTotalSpan) allocTotalSpan.textContent = total;
+
+        if (total !== 100) {
+            if (allocWarning) allocWarning.style.display = "block";
+            return false;
+        } else {
+            if (allocWarning) allocWarning.style.display = "none";
+            return true;
+        }
+    }
+
+    if (allocNeeds) allocNeeds.addEventListener("input", validateAllocation);
+    if (allocWants) allocWants.addEventListener("input", validateAllocation);
+    if (allocSavings) allocSavings.addEventListener("input", validateAllocation);
+
+    // Toggle Income/Expense
     typeButtons.forEach(btn => {
         btn.addEventListener("click", () => {
             typeButtons.forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
             currentType = btn.querySelector(".tab-label").textContent;
+
+            // Atur Muncul/Hilangnya form Alokasi sesuai tipe
+            if (allocationSection) {
+                allocationSection.style.display = (currentType === "Income") ? "block" : "none";
+            }
+            if (allocExpense) {
+                allocExpense.style.display = (currentType === "Expense") ? "block" : "none";
+            }
 
             renderCategoryList(currentType);
             if (categoryInput) categoryInput.value = "";
@@ -80,51 +117,60 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Logic Input Kategori
+    // --- EXPENSE RADIO BUTTON STYLING LOGIC ---
+    if (expenseRadios.length > 0) {
+        expenseRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Reset semua warna tombol
+                document.querySelectorAll('.expense-source-btn').forEach(btn => {
+                    btn.style.backgroundColor = 'transparent';
+                    btn.style.color = btn.style.borderColor; 
+                });
+                
+                // Warnai tombol yang dipilih
+                if(this.checked) {
+                    const activeBtn = this.nextElementSibling;
+                    if(activeBtn) {
+                        activeBtn.style.backgroundColor = activeBtn.style.borderColor;
+                        activeBtn.style.color = 'white';
+                    }
+                }
+            });
+        });
+        // Trigger awal
+        const defaultExpenseRadio = document.querySelector('input[name="expense_source"]:checked');
+        if(defaultExpenseRadio) defaultExpenseRadio.dispatchEvent(new Event('change'));
+    }
+
+    // Dropdown Logic
     if (categoryInput) {
-        // 1. Klik Input -> Buka Dropdown
         categoryInput.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (categoryDropdown && !categoryDropdown.classList.contains('active')) {
-                categoryDropdown.classList.add('active');
-            }
+            if (categoryDropdown && !categoryDropdown.classList.contains('active')) categoryDropdown.classList.add('active');
         });
-
-        // 2. Ketik Input -> Filter & Show Add Button
         categoryInput.addEventListener("input", () => {
             const val = categoryInput.value.trim();
             const lowerVal = val.toLowerCase();
             let hasExactMatch = false;
 
-            // Pastikan dropdown terbuka saat mengetik
-            if (categoryDropdown && !categoryDropdown.classList.contains("active")) {
-                categoryDropdown.classList.add("active");
-            }
+            if (categoryDropdown && !categoryDropdown.classList.contains("active")) categoryDropdown.classList.add("active");
 
-            // Filter Item
             categoryItems.forEach(item => {
                 const text = item.textContent;
-                if (text.toLowerCase().includes(lowerVal)) {
-                    item.style.display = "block";
-                } else {
-                    item.style.display = "none";
-                }
+                if (text.toLowerCase().includes(lowerVal)) item.style.display = "block";
+                else item.style.display = "none";
                 if (text.toLowerCase() === lowerVal) hasExactMatch = true;
             });
 
-            // Tampilkan Tombol Add New
             if (addCategoryBtn) {
                 if (val.length > 0 && !hasExactMatch) {
                     addCategoryBtn.textContent = `Add "${val}" as new category`;
                     addCategoryBtn.style.display = "block";
-                } else {
-                    addCategoryBtn.style.display = "none";
-                }
+                } else addCategoryBtn.style.display = "none";
             }
         });
     }
 
-    // Handler Tombol Add New Category
     if (addCategoryBtn) {
         addCategoryBtn.addEventListener("click", (e) => {
             e.stopPropagation();
@@ -137,7 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Handler Klik Panah (Header)
     if (categoryHeader) {
         categoryHeader.addEventListener("click", (e) => {
             if (e.target === categoryInput) return;
@@ -145,15 +190,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Close Outside
     document.addEventListener("click", (e) => {
-        if (categoryDropdown && !categoryDropdown.contains(e.target)) {
-            categoryDropdown.classList.remove("active");
-        }
+        if (categoryDropdown && !categoryDropdown.contains(e.target)) categoryDropdown.classList.remove("active");
     });
 
-
-    // --- AMOUNT FORMATTING ---
+    // Amount Formatting
     const amountInput = document.getElementById("amount");
     if (amountInput) {
         amountInput.addEventListener("input", function () {
@@ -166,18 +207,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- CUSTOM DATE PICKER LOGIC ---
+    // Calendar & Modal Logic
     const datePickerWrapper = document.getElementById('transactionDatePicker');
     const dateDisplayInput = document.getElementById('dateDisplay');
     const dateHiddenInput = document.getElementById('date');
     const calendarPopup = document.getElementById('calendarPopup');
-
-    // Header Elements
     const calMonthLabel = document.getElementById('calMonthLabel');
     const calPrevBtn = document.getElementById('calPrevBtn');
     const calNextBtn = document.getElementById('calNextBtn');
-
-    // View Containers
     const viewDays = document.getElementById('calendarViewDays');
     const viewMonths = document.getElementById('calendarViewMonths');
     const calDaysGrid = document.getElementById('calDaysGrid');
@@ -192,39 +229,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateHeader() {
         if (!calMonthLabel) return;
-
         const year = calDate.getFullYear();
         const month = calDate.getMonth();
 
         if (currentView === 'days') {
             calMonthLabel.textContent = `${monthNames[month]} ${year}`;
-            viewDays.style.display = 'block';
-            viewMonths.style.display = 'none';
+            if(viewDays) viewDays.style.display = 'block';
+            if(viewMonths) viewMonths.style.display = 'none';
         } else {
             calMonthLabel.textContent = `${year}`;
-            viewDays.style.display = 'none';
-            viewMonths.style.display = 'block';
+            if(viewDays) viewDays.style.display = 'none';
+            if(viewMonths) viewMonths.style.display = 'block';
         }
     }
 
     function renderDays() {
         if (!calDaysGrid) return;
         calDaysGrid.innerHTML = '';
-
         const year = calDate.getFullYear();
         const month = calDate.getMonth();
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const today = new Date();
 
-        // Empty slots
         for (let i = 0; i < firstDay; i++) {
             const emptyDiv = document.createElement('div');
             emptyDiv.className = 'cal-day empty';
             calDaysGrid.appendChild(emptyDiv);
         }
 
-        // Days
         for (let d = 1; d <= daysInMonth; d++) {
             const dayDiv = document.createElement('div');
             dayDiv.className = 'cal-day';
@@ -234,27 +267,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 dayDiv.classList.add('today');
             }
 
-            if (selectedDate &&
-                d === selectedDate.getDate() &&
-                month === selectedDate.getMonth() &&
-                year === selectedDate.getFullYear()) {
+            if (selectedDate && d === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear()) {
                 dayDiv.classList.add('selected');
             }
 
             dayDiv.addEventListener('click', (e) => {
                 e.stopPropagation();
-
-                // 1. Simpan tanggal terpilih
                 selectedDate = new Date(year, month, d);
-
-                // 2. Format Tampilan: "Monday, 18 September 2025"
                 const dayName = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
-                dateDisplayInput.value = `${dayName}, ${d} ${monthNames[month]} ${year}`;
+                if(dateDisplayInput) dateDisplayInput.value = `${dayName}, ${d} ${monthNames[month]} ${year}`;
 
-                // 3. Format Backend: YYYY-MM-DD
                 const fmtMonth = String(month + 1).padStart(2, '0');
                 const fmtDay = String(d).padStart(2, '0');
-                dateHiddenInput.value = `${year}-${fmtMonth}-${fmtDay}`;
+                if(dateHiddenInput) dateHiddenInput.value = `${year}-${fmtMonth}-${fmtDay}`;
 
                 closeCalendar();
             });
@@ -266,7 +291,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderMonths() {
         if (!calMonthsGrid) return;
         calMonthsGrid.innerHTML = '';
-
         const currentMonth = calDate.getMonth();
 
         shortMonths.forEach((mName, idx) => {
@@ -274,9 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mDiv.className = 'cal-month';
             mDiv.textContent = mName;
 
-            if (idx === currentMonth) {
-                mDiv.classList.add('selected');
-            }
+            if (idx === currentMonth) mDiv.classList.add('selected');
 
             mDiv.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -291,11 +313,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderCalendar() {
         updateHeader();
-        if (currentView === 'days') {
-            renderDays();
-        } else {
-            renderMonths();
-        }
+        if (currentView === 'days') renderDays();
+        else renderMonths();
     }
 
     function openCalendar() {
@@ -309,16 +328,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (calendarPopup) calendarPopup.classList.remove('active');
     }
 
-    // --- EVENT LISTENERS ---
-
     if (dateDisplayInput) {
         dateDisplayInput.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (calendarPopup.classList.contains('active')) {
-                closeCalendar();
-            } else {
-                openCalendar();
-            }
+            if (calendarPopup && calendarPopup.classList.contains('active')) closeCalendar();
+            else openCalendar();
         });
     }
 
@@ -333,11 +347,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (calPrevBtn) {
         calPrevBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (currentView === 'days') {
-                calDate.setMonth(calDate.getMonth() - 1);
-            } else {
-                calDate.setFullYear(calDate.getFullYear() - 1);
-            }
+            if (currentView === 'days') calDate.setMonth(calDate.getMonth() - 1);
+            else calDate.setFullYear(calDate.getFullYear() - 1);
             renderCalendar();
         });
     }
@@ -345,24 +356,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (calNextBtn) {
         calNextBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (currentView === 'days') {
-                calDate.setMonth(calDate.getMonth() + 1);
-            } else {
-                calDate.setFullYear(calDate.getFullYear() + 1);
-            }
+            if (currentView === 'days') calDate.setMonth(calDate.getMonth() + 1);
+            else calDate.setFullYear(calDate.getFullYear() + 1);
             renderCalendar();
         });
     }
 
     document.addEventListener('click', (e) => {
         if (calendarPopup && calendarPopup.classList.contains('active')) {
-            if (!datePickerWrapper.contains(e.target)) {
-                closeCalendar();
-            }
+            if (datePickerWrapper && !datePickerWrapper.contains(e.target)) closeCalendar();
         }
     });
 
-    // --- MODAL & SUBMIT LOGIC ---
     const modal = document.getElementById("add-transaction-modal-overlay");
     const exitBtn = document.getElementById("closeModalIcon");
     const cancelBtn = document.querySelector(".btn-secondary");
@@ -376,99 +381,102 @@ document.addEventListener('DOMContentLoaded', () => {
         return description || amount || date || category;
     }
 
-    function showDiscardModal() {
-        const discardModalOverlay = document.getElementById('discard-modal-overlay');
-        if (discardModalOverlay) {
-            discardModalOverlay.style.display = 'flex';
-            const modalContent = discardModalOverlay.querySelector('.modal');
-            if (modalContent) {
-                setTimeout(() => {
-                    modalContent.classList.add('show');
-                }, 10);
-            }
-            attachDiscardModalHandlers();
-        }
-    }
-
-    function attachDiscardModalHandlers() {
-        const discardModalOverlay = document.getElementById('discard-modal-overlay');
-        if (!discardModalOverlay) return;
-
-        const noBtn = discardModalOverlay.querySelector('#discardNoBtn');
-        const yesBtn = discardModalOverlay.querySelector('#discardYesBtn');
-
-        if (noBtn) {
-            noBtn.onclick = () => {
-                const modalContent = discardModalOverlay.querySelector('.modal');
-                if (modalContent) modalContent.classList.remove('show');
-                setTimeout(() => {
-                    discardModalOverlay.style.display = 'none';
-                }, 400);
-            };
-        }
-
-        if (yesBtn) {
-            yesBtn.onclick = () => {
-                const modalContent = discardModalOverlay.querySelector('.modal');
-                if (modalContent) modalContent.classList.remove('show');
-                setTimeout(() => {
-                    discardModalOverlay.style.display = 'none';
-                    if (modal) modal.style.display = 'none';
-                    clearForm();
-                }, 400);
-            };
-        }
-    }
-
     function clearForm() {
-        document.getElementById("description").value = "";
-        document.getElementById("amount").value = "";
-        document.getElementById("date").value = "";
-        document.getElementById("dateDisplay").value = "";
+        if(document.getElementById("description")) document.getElementById("description").value = "";
+        if(document.getElementById("amount")) document.getElementById("amount").value = "";
+        if(document.getElementById("date")) document.getElementById("date").value = "";
+        if(document.getElementById("dateDisplay")) document.getElementById("dateDisplay").value = "";
         selectedDate = null;
-        document.getElementById("categoryInput").value = "";
+        if(document.getElementById("categoryInput")) document.getElementById("categoryInput").value = "";
+
+        // Reset Income Allocation
+        if(allocNeeds) allocNeeds.value = "50";
+        if(allocWants) allocWants.value = "30";
+        if(allocSavings) allocSavings.value = "20";
+        if(allocWarning) allocWarning.style.display = "none";
+        if(allocationSection) allocationSection.style.display = "block";
+
+        // Reset Expense Source
+        const defaultRadio = document.querySelector('input[name="expense_source"][value="Needs"]');
+        if(defaultRadio) {
+            defaultRadio.checked = true;
+            defaultRadio.dispatchEvent(new Event('change'));
+        }
+        if(allocExpense) allocExpense.style.display = "none";
 
         currentType = "Income";
         typeButtons.forEach(b => b.classList.remove("active"));
         if (typeButtons[0]) typeButtons[0].classList.add("active");
+        
         renderCategoryList("Income");
-
         if (addCategoryBtn) addCategoryBtn.style.display = "none";
     }
 
-    function handleClose() {
-        if (isFormDirty()) {
-            showDiscardModal();
-        } else {
-            closeModal();
+    // --- CLOSING MODAL FIX (Hapus .show trigger) ---
+    function closeModal() {
+        if (modal) {
+            const modalContent = modal.querySelector('.modal');
+            if (modalContent) modalContent.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = "none";
+            }, 300); // Tunggu animasi selesai baru di-none
         }
     }
 
-    function closeModal() {
-        if (modal) modal.style.display = "none";
-    }
+    if (exitBtn) exitBtn.addEventListener("click", () => { if (isFormDirty()) { /* discard */ } else closeModal(); });
+    if (cancelBtn) cancelBtn.addEventListener("click", () => { if (isFormDirty()) { /* discard */ } else closeModal(); });
 
-    if (exitBtn) exitBtn.addEventListener("click", handleClose);
-    if (cancelBtn) cancelBtn.addEventListener("click", handleClose);
-
+    // Submit ke Backend
     if (confirmBtn) {
         confirmBtn.addEventListener("click", async () => {
-            const type = document.querySelector(".transaction-type-toggle-item.active .tab-label")?.textContent;
+            const typeText = document.querySelector(".transaction-type-toggle-item.active .tab-label")?.textContent;
             const description = document.getElementById("description")?.value;
-            const amount = document.getElementById("amount")?.value.replace(/\./g, "");
+            const amountRaw = document.getElementById("amount")?.value.replace(/\./g, "");
             const date = document.getElementById("date")?.value;
             const category = document.getElementById("categoryInput")?.value;
 
-            if (!description || !amount) {
-                showToast('Please enter description and amount', 'error');
+            if (!description || !amountRaw) {
+                if(typeof showToast === 'function') showToast('Please enter description and amount', 'error');
                 return;
             }
             if (!date) {
-                showToast('Please select a date', 'error');
+                if(typeof showToast === 'function') showToast('Please select a date', 'error');
+                return;
+            }
+            if (!category) {
+                if(typeof showToast === 'function') showToast('Please select a category', 'error');
                 return;
             }
 
-            const payload = { type, description, amount, date, category };
+            // Pengecekan Alokasi sebelum Submit
+            if (typeText.toLowerCase() === "income") {
+                if (!validateAllocation()) {
+                    if (typeof showToast === 'function') showToast('Total persentase alokasi harus 100%', 'error');
+                    return;
+                }
+            }
+
+            const payload = { 
+                type: typeText.toLowerCase(), 
+                description: description, 
+                amount: parseInt(amountRaw), 
+                date: date, 
+                category: category 
+            };
+
+            // Masukkan data Alokasi Income ATAU Source Expense ke payload
+            if (typeText.toLowerCase() === "income") {
+                payload.allocation = {
+                    Needs: parseInt(allocNeeds.value) || 0,
+                    Wants: parseInt(allocWants.value) || 0,
+                    Savings: parseInt(allocSavings.value) || 0
+                };
+            } else if (typeText.toLowerCase() === "expense") {
+                const expenseSourceBtn = document.querySelector('input[name="expense_source"]:checked');
+                if (expenseSourceBtn) {
+                    payload.expense_source = expenseSourceBtn.value;
+                }
+            }
 
             try {
                 const res = await fetch('/add-transaction', {
@@ -482,39 +490,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (contentType && contentType.indexOf("application/json") !== -1) {
                     const body = await res.json();
                     if (res.ok && body.success) {
-                        showSuccessModal();
+                        if(typeof showSuccessModal === 'function') showSuccessModal();
                         clearForm();
                         closeModal();
-                        location.reload();
-                    } else {
-                        // Show error in transaction detail modal
-                        const detailModal = document.getElementById('transaction-detail-modal-overlay');
-                        if (detailModal) {
-                            detailModal.style.display = 'flex';
-                            const errorMsg = detailModal.querySelector('.error-message');
-                            if (errorMsg) {
-                                errorMsg.textContent = body.message || 'Failed to add transaction';
-                                errorMsg.style.display = 'block';
-                            }
+                        if (typeof fetchTransactions === 'function') {
+                            fetchTransactions();
+                        } else {
+                            location.reload();
                         }
+                    } else {
+                        if(typeof showToast === 'function') showToast(body.message || 'Failed to add transaction', 'error');
                     }
                 } else {
-                    const text = await res.text();
-                    console.error("Server Error:", text);
-                    // Show error in transaction detail modal
-                    const detailModal = document.getElementById('transaction-detail-modal-overlay');
-                    if (detailModal) {
-                        detailModal.style.display = 'flex';
-                        const errorMsg = detailModal.querySelector('.error-message');
-                        if (errorMsg) {
-                            errorMsg.textContent = "Terjadi kesalahan pada server.";
-                            errorMsg.style.display = 'block';
-                        }
-                    }
+                    if(typeof showToast === 'function') showToast('Terjadi kesalahan pada server.', 'error');
                 }
             } catch (err) {
-                console.error(err);
-                showToast('Network error while adding transaction', 'error');
+                if(typeof showToast === 'function') showToast('Network error while adding transaction', 'error');
             }
         });
     }

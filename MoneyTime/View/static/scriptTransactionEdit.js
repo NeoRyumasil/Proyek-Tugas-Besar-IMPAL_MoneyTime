@@ -116,10 +116,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const editCatList = editCatDropdown ? editCatDropdown.querySelector(".edit-dropdown-list") : null;
     const editAddCatBtn = document.getElementById("editAddCategoryBtn");
 
-    const categories = {
-        Income: ["Gaji", "Return Investasi", "Jual Barang", "Other"],
-        Expense: ["Academic", "Project", "Organization", "Entertainment", "Other"]
+    let categories = {
+        Income: ["Needs", "Wants", "Savings", "Gaji", "Return Investasi", "Jual Barang", "Other"],
+        Expense: ["Needs", "Wants", "Savings", "Academic", "Project", "Organization", "Entertainment", "Other"]
     };
+
+    // Fetch API logic if categories change dynamically, similar to add modal
+    async function fetchEditCategories() {
+        try {
+            const response = await fetch('/api/categories', { method: 'GET' });
+            const data = await response.json();
+            if (data.success) {
+                const ensureDefault = (fetchedList, typeDefault) => {
+                    let combined = new Set([...typeDefault, ...(fetchedList || [])]);
+                    return Array.from(combined);
+                };
+                categories.Income = ensureDefault(data.categories.Income, ["Needs", "Wants", "Savings"]);
+                categories.Expense = ensureDefault(data.categories.Expense, ["Needs", "Wants", "Savings"]);
+            }
+        } catch (error) { console.error('Error fetching categories:', error); }
+    }
+    
+    fetchEditCategories();
 
     function loadEditCategories() {
         if (!editCatList) return;

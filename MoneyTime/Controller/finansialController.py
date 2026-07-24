@@ -1,7 +1,8 @@
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+import re 
 
-from Database.models import Finansial, Pemasukkan, Pengeluaran
+from Database.models import Finansial, Pemasukkan, Pengeluaran, Alokasi
 from Database.orm import db
 from Utils.cache import cache
 
@@ -48,7 +49,7 @@ class FinansialController:
             print(f"Error get_or_create_finansial: {e}")
             return None
 
-    # Tambah Pemasukkan
+    # Tambah Pemasukkan (Income)
     def add_pemasukan(self, finansial_id: int, deskripsi: str, nominal: int, tanggal: str, persentase_alokasi: dict = None) -> bool:
         
         if persentase_alokasi and sum(persentase_alokasi.values()) != 100:
@@ -96,9 +97,12 @@ class FinansialController:
             print(f"Error add_pemasukan: {e}")
             return False
     
-    # Tambah Pengeluaran
-    def add_pengeluaran(self, finansial_id: int, deskripsi: str, nominal: int, tanggal: str) -> bool:
+    # Tambah Pengeluaran (Expense)
+    def add_pengeluaran(self, finansial_id: int, deskripsi: str, nominal: int, tanggal: str, sumber_potongan: str = None) -> bool:
         try:
+            if sumber_potongan:
+                deskripsi = f"{deskripsi} |src:{sumber_potongan}|"
+
             new_pengeluaran = self.pengeluaran_schema.load({
                 "finansialid": finansial_id, 
                 "deskripsi": deskripsi, 
@@ -127,7 +131,7 @@ class FinansialController:
             print(f"Error add_pengeluaran: {error}")
             return False
 
-    # Ambil data transaksi (Non-Paginated)
+    # Ambil data transaksi - Dimodifikasi untuk ekstrak sumber_potongan pengeluaran
     def get_transactions(self, user_id: str, keyword: str = None) -> List[Dict[str, Any]]:
         result = []
         try:
@@ -135,26 +139,43 @@ class FinansialController:
             incomes = self.db.query(Pemasukkan, Finansial).join(Finansial).filter(Finansial.userid == user_id).all()
             for pemasukkan, finansial in incomes:
                 if not keyword or keyword.lower() in (pemasukkan.deskripsi or "").lower() or keyword.lower() in (finansial.kategori or "").lower():
+                    
+                    alokasi_db = self.db.query(Alokasi).filter(Alokasi.pemasukkanid == pemasukkan.pemasukkanid).all()
+                    alokasi_data = {al.kategori_alokasi: int(al.nominal_alokasi) for al in alokasi_db} if alokasi_db else None
+
                     result.append({
                         'id': pemasukkan.pemasukkanid,
                         'type': 'Income',
                         'deskripsi': pemasukkan.deskripsi,
                         'nominal': int(pemasukkan.nominal),
                         'tanggal': str(pemasukkan.tanggal) if pemasukkan.tanggal else None,
-                        'kategori': finansial.kategori
+                        'kategori': finansial.kategori,
+                        'alokasi_data': alokasi_data
                     })
 
             # Ambil Expenses
             expenses = self.db.query(Pengeluaran, Finansial).join(Finansial).filter(Finansial.userid == user_id).all()
             for pengeluaran, finansial in expenses:
                 if not keyword or keyword.lower() in (pengeluaran.deskripsi or "").lower() or keyword.lower() in (finansial.kategori or "").lower():
+                    
+                    desc = pengeluaran.deskripsi or ""
+                    alokasi_data = None
+                    
+                    # Deteksi tag sumber potongan rahasia
+                    match = re.search(r'\|src:(Needs|Wants|Savings)\|', desc)
+                    if match:
+                        source = match.group(1)
+                        alokasi_data = {source: -int(pengeluaran.nominal)}
+                        desc = desc.replace(match.group(0), '').strip()
+
                     result.append({
                         'id': pengeluaran.pengeluaranid,
                         'type': 'Expense',
-                        'deskripsi': pengeluaran.deskripsi,
+                        'deskripsi': desc,
                         'nominal': int(pengeluaran.nominal),
                         'tanggal': str(pengeluaran.tanggal) if pengeluaran.tanggal else None,
-                        'kategori': finansial.kategori
+                        'kategori': finansial.kategori,
+                        'alokasi_data': alokasi_data
                     })
 
             result.sort(key=lambda r: r.get('tanggal') or '', reverse=True)
@@ -197,7 +218,6 @@ class FinansialController:
             return False
         
         try:
-            
             if transaction_type.lower() == 'income':
                 errors = self.pemasukkan_schema.validate({"deskripsi": deskripsi, "nominal": nominal, "tanggal": tanggal}, partial=True)
                 if errors: return False

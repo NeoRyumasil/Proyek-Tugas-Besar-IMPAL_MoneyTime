@@ -1,115 +1,145 @@
 <div class="transaction-modal">
     <div class="transaction-modal-header">
-        <b class="modal-title">Add Transaction</b>
+        <div class="modal-title">Add Transaction</div>
         <div class="modal-close-btn" id="closeModalIcon">
             <i class="fa-solid fa-xmark"></i>
         </div>
     </div>
 
     <div class="transaction-type-toggle">
-        <div class="transaction-type-toggle-item active" id="typeIncomeBtn">
-            <b class="tab-label">Income</b>
+        <div class="transaction-type-toggle-item active">
+            <span class="tab-label">Income</span>
         </div>
-        <div class="transaction-type-toggle-item" id="typeExpenseBtn">
-            <b class="tab-label">Expense</b>
+        <div class="transaction-type-toggle-item">
+            <span class="tab-label">Expense</span>
         </div>
     </div>
 
     <div class="transaction-form">
         <div class="transaction-form-row">
+            <!-- Description -->
             <div class="transaction-form-field">
-                <label class="form-label" for="description">Description</label>
+                <div class="form-label">Description</div>
                 <div class="form-input">
-                    <div class="text-input">
-                        <input type="text" class="input-field" id="description" placeholder="Enter Description">
-                    </div>
+                    <input type="text" id="description" class="text-input" placeholder="Enter Description">
                 </div>
             </div>
 
+            <!-- Amount -->
             <div class="transaction-form-field">
-                <label class="form-label" for="amount">Amount</label>
+                <div class="form-label">Amount</div>
                 <div class="form-input">
-                    <div class="text-input amount-input">
+                    <div class="text-input amount-input" style="display: flex;">
                         <span class="currency-prefix">Rp</span>
                         <input type="text" id="amount" class="input-field" placeholder="0">
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="transaction-form-row">
+            <!-- Date -->
             <div class="transaction-form-field">
-                <label class="form-label" for="dateDisplay">Date</label>
-                <div class="form-input">
-                    <div class="custom-date-picker-wrapper" id="transactionDatePicker">
-                        <div class="date-input-display">
-                            <input type="text" class="input-field" id="dateDisplay" placeholder="Select Date" readonly
-                                style="cursor: pointer;">
-                            <input type="hidden" id="date" name="date">
-                            <i class="fa-regular fa-calendar" style="color: #1a3e7f; font-size: 18px;"></i>
+                <div class="form-label">Date</div>
+                <div class="form-input custom-date-picker-wrapper" id="transactionDatePicker">
+                    <div class="date-input-display" style="cursor: pointer; justify-content: space-between;">
+                        <input type="text" id="dateDisplay" class="input-field" placeholder="Select Date" readonly style="cursor: pointer;">
+                        <i class="fa-regular fa-calendar" style="color: #1a3e7f;"></i>
+                    </div>
+                    <input type="hidden" id="date">
+
+                    <!-- Calendar Popup -->
+                    <div class="custom-calendar-popup" id="calendarPopup">
+                        <div class="calendar-header">
+                            <button class="calendar-nav-btn" id="calPrevBtn"><i class="fa-solid fa-chevron-left"></i></button>
+                            <span class="calendar-month-label" id="calMonthLabel"></span>
+                            <button class="calendar-nav-btn" id="calNextBtn"><i class="fa-solid fa-chevron-right"></i></button>
                         </div>
-
-                        <div class="custom-calendar-popup" id="calendarPopup">
-                            <div class="calendar-header">
-                                <button type="button" class="calendar-nav-btn" id="calPrevBtn">
-                                    <i class="fa-solid fa-chevron-left"></i>
-                                </button>
-                                <span class="calendar-month-label" id="calMonthLabel"
-                                    style="cursor: pointer;">Loading...</span>
-                                <button type="button" class="calendar-nav-btn" id="calNextBtn">
-                                    <i class="fa-solid fa-chevron-right"></i>
-                                </button>
+                        <div id="calendarViewDays">
+                            <div class="calendar-weekdays">
+                                <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
                             </div>
-
-                            <div id="calendarViewDays">
-                                <div class="calendar-weekdays">
-                                    <div>Su</div>
-                                    <div>Mo</div>
-                                    <div>Tu</div>
-                                    <div>We</div>
-                                    <div>Th</div>
-                                    <div>Fr</div>
-                                    <div>Sa</div>
-                                </div>
-                                <div class="calendar-days-grid" id="calDaysGrid"></div>
-                            </div>
-
-                            <div id="calendarViewMonths" style="display: none;">
-                                <div class="calendar-months-grid" id="calMonthsGrid"></div>
-                            </div>
+                            <div class="calendar-days-grid" id="calDaysGrid"></div>
+                        </div>
+                        <div id="calendarViewMonths" style="display: none;">
+                            <div class="calendar-months-grid" id="calMonthsGrid"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Category -->
             <div class="transaction-form-field">
-                <label class="form-label" for="categoryInput">Category</label>
-                <div class="form-input">
-                    <div class="custom-dropdown" id="categoryDropdown">
-                        <div class="dropdown-header">
-                            <input type="text" id="categoryInput" class="dropdown-input"
-                                placeholder="Select or type category">
-                            <i class="fa-solid fa-chevron-down dropdown-arrow"
-                                style="color: #1a3e7f; font-size: 14px;"></i>
-                        </div>
-
-                        <div class="dropdown-list">
-                            <button type="button" class="dropdown-add-btn" id="addCategoryBtn" style="display:none;">
-                                Add new category
-                            </button>
-                        </div>
+                <div class="form-label">Category</div>
+                <div class="form-input custom-dropdown" id="categoryDropdown">
+                    <div class="dropdown-header">
+                        <input type="text" id="categoryInput" class="dropdown-input" placeholder="Select or type category" autocomplete="off">
+                        <i class="fa-solid fa-chevron-down dropdown-arrow" style="color: #64748b;"></i>
+                    </div>
+                    <div class="dropdown-list">
+                        <button class="dropdown-add-btn" id="addCategoryBtn" style="display: none;"></button>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="transaction-actions">
-        <div class="btn-secondary" id="cancelBtn">
-            <div class="btn-label">Cancel</div>
+        
+        <!-- ALOKASI PEMASUKAN (INCOME) -->
+        <div id="allocationSection" style="margin-top: 10px; padding: 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; display: block;">
+            <label style="font-weight: 700; font-size: 15px; margin-bottom: 16px; display: block; color: #0f172a;">
+                Alokasi Pemasukan (%)
+            </label>
+            <div style="display: flex; gap: 24px; align-items: center;">
+                <div style="flex: 1; display: flex; align-items: center; gap: 12px;">
+                    <label style="font-size: 14px; font-weight: 600; color: #475569; width: 60px;">Needs</label>
+                    <input type="number" id="allocNeeds" value="50" min="0" max="100" class="text-input" style="text-align: center; font-weight: bold; color: #1e7e00;">
+                </div>
+                <div style="flex: 1; display: flex; align-items: center; gap: 12px;">
+                    <label style="font-size: 14px; font-weight: 600; color: #475569; width: 60px;">Wants</label>
+                    <input type="number" id="allocWants" value="30" min="0" max="100" class="text-input" style="text-align: center; font-weight: bold; color: #9f0003;">
+                </div>
+                <div style="flex: 1; display: flex; align-items: center; gap: 12px;">
+                    <label style="font-size: 14px; font-weight: 600; color: #475569; width: 60px;">Savings</label>
+                    <input type="number" id="allocSavings" value="20" min="0" max="100" class="text-input" style="text-align: center; font-weight: bold; color: #2f80ed;">
+                </div>
+            </div>
+            <div id="allocWarning" style="color: #dc2626; font-size: 13px; font-weight: 600; margin-top: 15px; display: none; text-align: center; padding: 10px; background: #fee2e2; border-radius: 8px;">
+                <i class="fa-solid fa-triangle-exclamation"></i> Total alokasi saat ini: <span id="allocTotal">100</span>%. Harus tepat 100%.
+            </div>
         </div>
-        <div class="btn-primary" id="confirmBtn">
-            <div class="btn-label">Confirm</div>
+
+        <!-- ALOKASI PENGELUARAN (EXPENSE) -->
+        <div id="expenseAllocationSection" style="margin-top: 10px; padding: 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; display: none;">
+            <label style="font-weight: 700; font-size: 15px; margin-bottom: 16px; display: block; color: #0f172a;">
+                Potong Saldo Dari
+            </label>
+            <div style="display: flex; gap: 16px; align-items: center;">
+                
+                <label style="flex: 1; cursor: pointer;">
+                    <input type="radio" name="expense_source" value="Needs" checked style="display: none;">
+                    <div class="expense-source-btn" style="padding: 10px; text-align: center; border: 2px solid #1e7e00; border-radius: 8px; color: #1e7e00; font-weight: 600; transition: all 0.2s;">
+                        <i class="fa-solid fa-heart-circle-check"></i> Needs
+                    </div>
+                </label>
+
+                <label style="flex: 1; cursor: pointer;">
+                    <input type="radio" name="expense_source" value="Wants" style="display: none;">
+                    <div class="expense-source-btn" style="padding: 10px; text-align: center; border: 2px solid #9f0003; border-radius: 8px; color: #9f0003; font-weight: 600; transition: all 0.2s;">
+                        <i class="fa-solid fa-cart-shopping"></i> Wants
+                    </div>
+                </label>
+
+                <label style="flex: 1; cursor: pointer;">
+                    <input type="radio" name="expense_source" value="Savings" style="display: none;">
+                    <div class="expense-source-btn" style="padding: 10px; text-align: center; border: 2px solid #2f80ed; border-radius: 8px; color: #2f80ed; font-weight: 600; transition: all 0.2s;">
+                        <i class="fa-solid fa-piggy-bank"></i> Savings
+                    </div>
+                </label>
+
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="transaction-actions">
+            <button class="btn-secondary">Cancel</button>
+            <button class="btn-primary" id="confirmTransactionBtn">Confirm</button>
         </div>
     </div>
 </div>

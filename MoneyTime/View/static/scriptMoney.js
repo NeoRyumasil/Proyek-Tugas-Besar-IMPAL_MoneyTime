@@ -1,528 +1,366 @@
 document.addEventListener('DOMContentLoaded', function () {
-
-  // =========================================
-  // 1. NAVBAR & UI UTILS
-  // =========================================
-  const navToggle = document.getElementById('navToggle');
-  const header = document.querySelector('.header-guest');
-
-  if (navToggle) {
-    navToggle.addEventListener('click', () => {
-      const expanded = navToggle.getAttribute('aria-expanded') === 'true';
-      navToggle.setAttribute('aria-expanded', String(!expanded));
-      header.classList.toggle('menu-open');
-    });
-  }
-
-  document.querySelectorAll('.page-switch .page-link').forEach(a => {
-    a.addEventListener('click', () => {
-      if (header.classList.contains('menu-open')) {
-        header.classList.remove('menu-open');
-        navToggle.setAttribute('aria-expanded', 'false');
-      }
-    });
-  });
-
-  // --- PROFILE DROPDOWN LOGIC ---
-  const profilePill = document.getElementById('profilePill');
-  const profileContainer = document.querySelector('.profile-container');
-
-  if (profilePill && profileContainer) {
-    profilePill.addEventListener('click', (e) => {
-      // Close notif if open
-      if (notifWrapper) notifWrapper.classList.remove('active');
-      
-      profileContainer.classList.toggle('active');
-      e.stopPropagation();
-    });
-  }
-
-  // =========================================
-  // 2. CORE VARIABLES & HELPERS
-  // =========================================
   let allTransactions = [];
   let currentViewDate = new Date();
-  let chartInstance = null;
-  let currentStatsType = 'Expense';
+  
+  let chartIncExp = null;
+  let chartCategory = null;
+  let chartNWS = null;
 
-  // Elements
   const prevBtn = document.getElementById('prevMonthBtn');
   const nextBtn = document.getElementById('nextMonthBtn');
   const monthLabel = document.getElementById('currentMonthLabel');
   const searchInput = document.getElementById('searchInput');
-  const statsIncomeBtn = document.getElementById('statsIncomeBtn');
-  const statsExpenseBtn = document.getElementById('statsExpenseBtn');
-  
-  // Dashboard UI Elements
   const listContainer = document.getElementById('transactionListContainer');
-  const incomeEl = document.getElementById('monthly-income');
-  const expenseEl = document.getElementById('monthly-expenses');
+  
+  const needsEl = document.getElementById('total-needs');
+  const wantsEl = document.getElementById('total-wants');
+  const savingsEl = document.getElementById('total-savings');
   const balanceEl = document.getElementById('total-balance');
-  const legendContainer = document.getElementById('statsLegend');
-  const chartCanvas = document.getElementById('moneyPieChart');
 
-  // Date Picker
-  const pickerContainer = document.getElementById('datePickerContainer');
-  const pickerYearLabel = document.getElementById('pickerYearLabel');
-  const pickerMonthsGrid = document.getElementById('pickerMonthsGrid');
-  const pickerPrevYear = document.getElementById('pickerPrevYear');
-  const pickerNextYear = document.getElementById('pickerNextYear');
-  let pickerYearView = currentViewDate.getFullYear();
-  const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-  // Helper: Format Rupiah
   const formatRupiah = (num) => new Intl.NumberFormat('id-ID', {
     style: 'currency', currency: 'IDR', minimumFractionDigits: 0
   }).format(num);
 
-  // --- 30 Distinct Colors Palette ---
   const distinctColors = [
       "#FF0000", "#0000FF", "#008000", "#FFD700", "#800080", 
       "#00FFFF", "#FF00FF", "#FF4500", "#00CED1", "#2E8B57", 
-      "#8B4513", "#4682B4", "#D2691E", "#9ACD32", "#4B0082", 
-      "#DC143C", "#000080", "#DAA520", "#808000", "#708090", 
-      "#FF1493", "#7B68EE", "#00FA9A", "#C71585", "#191970", 
-      "#556B2F", "#FF6347", "#40E0D0", "#8B0000", "#9932CC"
+      "#8B4513", "#4682B4", "#D2691E", "#9ACD32", "#4B0082"
   ];
 
   let categoryColorMap = {}; 
-
-  function assignColorsToCategories(transactions) {
-      categoryColorMap = {}; 
-      const uniqueCategories = [...new Set(transactions.map(t => t.kategori))]; 
-      
-      uniqueCategories.forEach((cat, index) => {
-          const colorIndex = index % distinctColors.length;
-          categoryColorMap[cat] = distinctColors[colorIndex];
-      });
-  }
-
   function getColor(cat) {
       if (!cat) return '#999999';
-      return categoryColorMap[cat] || '#999999';
-  }
-
-  // =========================================
-  // 3. DATE PICKER LOGIC
-  // =========================================
-
-  function togglePicker() {
-    pickerContainer.classList.contains('active') ? closePicker() : openPicker();
-  }
-
-  function openPicker() {
-    pickerYearView = currentViewDate.getFullYear();
-    renderPicker();
-    pickerContainer.classList.add('active');
-  }
-
-  function closePicker() {
-    pickerContainer.classList.remove('active');
-  }
-
-  function renderPicker() {
-    if (!pickerYearLabel || !pickerMonthsGrid) return;
-    pickerYearLabel.textContent = pickerYearView;
-    pickerMonthsGrid.innerHTML = '';
-
-    shortMonths.forEach((mName, index) => {
-      const monthDiv = document.createElement('div');
-      monthDiv.classList.add('month-item');
-      monthDiv.textContent = mName;
-      if (pickerYearView === currentViewDate.getFullYear() && index === currentViewDate.getMonth()) {
-        monthDiv.classList.add('selected');
+      if (!categoryColorMap[cat]) {
+          categoryColorMap[cat] = distinctColors[Object.keys(categoryColorMap).length % distinctColors.length];
       }
-      monthDiv.addEventListener('click', (e) => {
-        e.stopPropagation();
-        currentViewDate.setFullYear(pickerYearView);
-        currentViewDate.setMonth(index);
-        currentViewDate.setDate(1);
-        
-        if (searchInput) searchInput.value = '';
-        updateDashboard();
-        closePicker();
-      });
-      pickerMonthsGrid.appendChild(monthDiv);
-    });
+      return categoryColorMap[cat];
   }
 
-  if (pickerContainer) {
-    pickerContainer.addEventListener('click', (e) => {
-      if (!e.target.closest('.custom-date-popup')) togglePicker();
-    });
-  }
-  if (pickerPrevYear) pickerPrevYear.addEventListener('click', (e) => { e.stopPropagation(); pickerYearView--; renderPicker(); });
-  if (pickerNextYear) pickerNextYear.addEventListener('click', (e) => { e.stopPropagation(); pickerYearView++; renderPicker(); });
-  
-  document.addEventListener('click', (e) => {
-    if (pickerContainer && !pickerContainer.contains(e.target)) closePicker();
-  });
-
-  if (prevBtn) prevBtn.addEventListener('click', () => {
-    currentViewDate.setMonth(currentViewDate.getMonth() - 1);
-    if(searchInput) searchInput.value = '';
-    updateDashboard();
-  });
-
-  if (nextBtn) nextBtn.addEventListener('click', () => {
-    currentViewDate.setMonth(currentViewDate.getMonth() + 1);
-    if(searchInput) searchInput.value = '';
-    updateDashboard();
-  });
-
-  // =========================================
-  // 4. TRANSACTION LOGIC
-  // =========================================
-  
-  // --- FETCH DATA ---
   async function fetchTransactions() {
     try {
       const response = await fetch('/api/transactions');
       const data = await response.json();
       if (data.success) {
         allTransactions = data.transactions;
-        assignColorsToCategories(allTransactions);
         updateDashboard();
       } else {
         if (listContainer) listContainer.innerHTML = '<div style="text-align:center;">Failed to load data.</div>';
       }
     } catch (error) {
       console.error('Error:', error);
-      if (listContainer) listContainer.innerHTML = '<div style="text-align:center;">Connection error.</div>';
     }
   }
 
-  // --- SEARCH HANDLER ---
-  if (searchInput) {
-    let timeout = null;
-    searchInput.addEventListener('input', (e) => {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        updateDashboard();
-      }, 300);
-    });
-  }
-
-  // --- UPDATE DASHBOARD ---
   function updateDashboard() {
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-    const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-    let displayData = [];
+    if (monthLabel) monthLabel.textContent = `${monthNames[month]} ${year}`;
 
-    // Reset Container
-    if (listContainer) listContainer.innerHTML = '';
-
-    // [LOGIC FILTERING]
-    if (query.length > 0) {
-        // Mode Pencarian: Global (Abaikan filter bulan)
-        if (monthLabel) monthLabel.textContent = `Search: "${searchInput.value}"`;
-        
-        displayData = allTransactions.filter(t => 
-            t.deskripsi.toLowerCase().includes(query) ||
-            t.kategori.toLowerCase().includes(query) ||
-            t.type.toLowerCase().includes(query)
-        );
-
-        if (displayData.length === 0) {
-            listContainer.innerHTML = `
-                <div style="text-align:center; padding:40px; color:#888;">
-                    <i class="fa-solid fa-magnifying-glass" style="font-size: 24px; margin-bottom: 10px;"></i><br>
-                    Data "${searchInput.value}" not found.
-                </div>`;
-        }
-
-    } else {
-        // Mode Normal: Filter Bulan
-        if (monthLabel) monthLabel.textContent = `${monthNames[month]} ${year}`;
-
-        displayData = allTransactions.filter(t => {
-            if (!t.tanggal) return false;
-            const d = new Date(t.tanggal);
-            return d.getFullYear() === year && d.getMonth() === month;
-        });
-
-        if (displayData.length === 0) {
-            listContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No transactions found this month.</div>';
-        }
-    }
-
-    // [LOGIC SUMMARY]
-    let displayedIncome = 0;
-    let displayedExpense = 0;
-
-    displayData.forEach(t => {
-      if (t.type === 'Income') displayedIncome += t.nominal;
-      else displayedExpense += t.nominal;
+    const displayData = allTransactions.filter(t => {
+        if (!t.tanggal) return false;
+        const d = new Date(t.tanggal);
+        return d.getFullYear() === year && d.getMonth() === month;
     });
 
-    let globalBalance = allTransactions.reduce((acc, t) => {
-        return t.type === 'Income' ? acc + t.nominal : acc - t.nominal;
-    }, 0);
-
-    // Update Kartu UI
-    if (incomeEl) incomeEl.textContent = formatRupiah(displayedIncome);
-    if (expenseEl) expenseEl.textContent = formatRupiah(displayedExpense);
-    
-    // Balance menggunakan Global Balance
-    if (balanceEl) balanceEl.textContent = formatRupiah(globalBalance);
-
-    // Render Konten
-    if (displayData.length > 0) {
+    if (displayData.length === 0 && listContainer) {
+        listContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No transactions found this month.</div>';
+    } else if (listContainer) {
         renderList(displayData);
     }
-    renderChart(displayData);
-  }
 
-  // --- RENDER LIST ---
-  function renderList(transactions) {
-    if (!listContainer) return;
-
-    const grouped = {};
-    transactions.forEach(t => {
-      const dateKey = t.tanggal || 'No Date';
-      if (!grouped[dateKey]) grouped[dateKey] = [];
-      grouped[dateKey].push(t);
-    });
-
-    const sortedDates = Object.keys(grouped).sort((a, b) => {
-        if (a === 'No Date') return 1;
-        if (b === 'No Date') return -1;
-        return new Date(b) - new Date(a);
-    });
-
-    sortedDates.forEach(dateStr => {
-      let dateDisplay = dateStr;
-      let dateNum = '';
-      if(dateStr !== 'No Date'){
-          const dateObj = new Date(dateStr);
-          dateNum = dateObj.getDate();
-          dateDisplay = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
-      }
-
-      let dInc = 0, dExp = 0;
-      let itemsHtml = '';
-
-      grouped[dateStr].forEach(t => {
-        if (t.type === 'Income') dInc += t.nominal;
-        else dExp += t.nominal;
-
-        const color = getColor(t.kategori);
-        const isInc = t.type === 'Income';
-        const sign = isInc ? '+' : '-';
-        const valClass = isInc ? 'val-green' : 'val-red';
-        const transactionString = encodeURIComponent(JSON.stringify(t));
-        const safeDesc = t.deskripsi.replace(/"/g, '&quot;');
-
-        // Data Attributes untuk Tooltip
-        itemsHtml += `
-            <div class="t-item" 
-                 onclick="openTransactionDetail(JSON.parse(decodeURIComponent('${transactionString}')))"
-                 data-desc="${safeDesc}"
-                 data-date="${t.tanggal || '-'}"
-                 data-nominal="${formatRupiah(t.nominal)}"
-                 data-type="${t.type}"
-                 data-category="${t.kategori}">
-                 
-                <span class="t-desc">${t.deskripsi}</span>
-                <span class="t-badge" style="background-color: ${color}">${t.kategori}</span>
-                <span class="t-val ${valClass}">${sign} ${formatRupiah(t.nominal)}</span>
-            </div>
-        `;
-      });
-
-      const cardHtml = `
-                <div class="day-card">
-                    <div class="day-header">
-                        <div class="dh-left">
-                            <div class="date-box">${dateNum}</div>
-                            <span class="day-name">${dateDisplay}</span>
-                        </div>
-                        <div class="dh-right">
-                            <span class="val-green"><i class="fa-solid fa-arrow-trend-up"></i> ${formatRupiah(dInc)}</span>
-                            <span class="val-red"><i class="fa-solid fa-arrow-trend-down"></i> ${formatRupiah(dExp)}</span>
-                        </div>
-                    </div>
-                    <div class="trans-items">${itemsHtml}</div>
-                </div>
-            `;
-      listContainer.innerHTML += cardHtml;
-    });
-  }
-
-  // --- RENDER CHART ---
-  function renderChart(transactions) {
-    if (!chartCanvas) return;
-
-    const filteredTrans = transactions.filter(t => t.type === currentStatsType);
-    const catTotals = {};
-    let totalAmount = 0;
-
-    filteredTrans.forEach(t => {
-      const catName = t.kategori || 'Uncategorized';
-      if (!catTotals[catName]) catTotals[catName] = 0;
-      catTotals[catName] += t.nominal;
-      totalAmount += t.nominal;
-    });
-
-    const labels = Object.keys(catTotals);
-    const dataVal = Object.values(catTotals);
-    const colors = labels.map(l => getColor(l));
-
-    if (legendContainer) {
-      legendContainer.innerHTML = '';
-      if (labels.length === 0) {
-        legendContainer.innerHTML = '<div style="text-align:center; color:#888; font-size:14px;">No data available</div>';
-      } else {
+    let totalNeeds = 0, totalWants = 0, totalSavings = 0;
+    let globalBalance = 0; 
+    
+    allTransactions.forEach(t => {
+        if (t.type === 'Income') globalBalance += t.nominal;
+        else globalBalance -= t.nominal;
         
-        // --- PERBAIKAN DI SINI ---
-        // Class CSS yang benar adalah 'val-green-stats' (bukan l-val-green)
-        // 'l-val' adalah class dasar (merah), 'val-green-stats' menimpanya jadi hijau
-        const valClass = currentStatsType === 'Income' ? 'l-val val-green-stats' : 'l-val';
-
-        labels.forEach((cat, idx) => {
-          const pct = totalAmount > 0 ? ((dataVal[idx] / totalAmount) * 100).toFixed(2) + '%' : '0%';
-          
-          legendContainer.innerHTML += `
-              <div class="l-item">
-                  <div class="l-left">
-                      <span class="l-pct" style="background-color: ${colors[idx]}">${pct}</span>
-                      <span class="l-name">${cat}</span>
-                  </div>
-                  <span class="${valClass}">${formatRupiah(dataVal[idx])}</span>
-              </div>
-          `;
-        });
-
-      }
-    }
-
-    if (chartInstance) chartInstance.destroy();
-
-    if (labels.length > 0) {
-      chartInstance = new Chart(chartCanvas, {
-        type: 'pie',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: dataVal,
-            backgroundColor: colors,
-            borderWidth: 0,
-            hoverOffset: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: function (context) {
-                  let label = context.label || '';
-                  if (label) label += ': ';
-                  if (context.parsed !== null) label += formatRupiah(context.parsed);
-                  return label;
-                }
-              }
-            }
-          },
-          cutout: '0%'
+        if (t.alokasi_data) {
+           totalNeeds += t.alokasi_data['Needs'] || 0;
+           totalWants += t.alokasi_data['Wants'] || 0;
+           totalSavings += t.alokasi_data['Savings'] || 0;
+        } else if (t.kategori) {
+           if(t.kategori.toLowerCase() === 'needs') totalNeeds += t.nominal;
+           else if(t.kategori.toLowerCase() === 'wants') totalWants += t.nominal;
+           else if(t.kategori.toLowerCase() === 'savings') totalSavings += t.nominal;
         }
+    });
+    
+    if (needsEl) needsEl.textContent = formatRupiah(totalNeeds);
+    if (wantsEl) wantsEl.textContent = formatRupiah(totalWants);
+    if (savingsEl) savingsEl.textContent = formatRupiah(totalSavings);
+    if (balanceEl) balanceEl.textContent = formatRupiah(globalBalance);
+
+    updateChartsByRange(parseInt(document.getElementById('filter-inc-exp').value || 3), 'inc-exp');
+    updateChartsByRange(parseInt(document.getElementById('filter-category').value || 3), 'category');
+    updateChartsByRange(parseInt(document.getElementById('filter-nws').value || 3), 'nws');
+  }
+
+  function renderList(transactions) {
+      listContainer.innerHTML = '';
+
+      if (transactions.length === 0) {
+          listContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No transactions found this month.</div>';
+          return;
+      }
+
+      // 1. Kelompokkan transaksi berdasarkan Tanggal
+      const grouped = {};
+      transactions.forEach(t => {
+          if (!t.tanggal) return;
+          const dateString = t.tanggal; 
+          
+          if (!grouped[dateString]) {
+              const d = new Date(t.tanggal);
+              grouped[dateString] = {
+                  dateObj: d,
+                  dayDate: d.getDate(),
+                  dayName: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][d.getDay()],
+                  transactions: [],
+                  totalIncome: 0,
+                  totalExpense: 0
+              };
+          }
+          
+          grouped[dateString].transactions.push(t);
+          if (t.type === 'Income') {
+              grouped[dateString].totalIncome += t.nominal;
+          } else {
+              grouped[dateString].totalExpense += t.nominal;
+          }
       });
-    } else {
-      const ctx = chartCanvas.getContext('2d');
-      ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
-    }
-  }
 
-  // --- STATS TOGGLE ---
-  if (statsIncomeBtn && statsExpenseBtn) {
-    statsIncomeBtn.addEventListener('click', () => {
-      if (currentStatsType !== 'Income') {
-        currentStatsType = 'Income';
-        statsIncomeBtn.classList.add('active');
-        statsExpenseBtn.classList.remove('active');
-        updateDashboard();
-      }
-    });
+      // 2. Urutkan dari tanggal terbaru ke terlama
+      const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
 
-    statsExpenseBtn.addEventListener('click', () => {
-      if (currentStatsType !== 'Expense') {
-        currentStatsType = 'Expense';
-        statsExpenseBtn.classList.add('active');
-        statsIncomeBtn.classList.remove('active');
-        updateDashboard();
-      }
-    });
-  }
+      // 3. Render HTML untuk setiap grup hari
+      sortedDates.forEach(dateStr => {
+          const group = grouped[dateStr];
+          
+          // Generate baris untuk masing-masing transaksi di hari itu
+          let itemsHTML = '';
+          group.transactions.forEach(t => {
+              const isInc = t.type === 'Income';
+              const sign = isInc ? '+' : '-';
+              const valColor = isInc ? '#16a34a' : '#dc2626'; // Hijau untuk Income, Merah untuk Expense
+              const transactionString = encodeURIComponent(JSON.stringify(t));
+              
+              itemsHTML += `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; cursor: pointer; transition: background 0.2s; border-radius: 8px;"
+                       onclick="openTransactionDetail(JSON.parse(decodeURIComponent('${transactionString}')))"
+                       onmouseover="this.style.backgroundColor='#f8fafc'"
+                       onmouseout="this.style.backgroundColor='transparent'">
+                      <div style="flex: 1; font-weight: 500; font-size: 15px; color: #0f172a;">${t.deskripsi}</div>
+                      
+                      <div style="background-color: ${getColor(t.kategori)}; padding: 6px 16px; border-radius: 6px; color: white; font-size: 12px; font-weight: 600; text-align: center; min-width: 100px;">
+                          ${t.kategori}
+                      </div>
+                      
+                      <div style="flex: 1; text-align: right; font-weight: 700; font-size: 15px; color: ${valColor};">
+                          ${sign} ${formatRupiah(t.nominal)}
+                      </div>
+                  </div>
+              `;
+          });
 
-  // --- ADD TRANSACTION BUTTON ---
-  const addBtn = document.getElementById('openTransactionModalBtn');
-  const popup = document.getElementById('add-transaction-modal-overlay');
-  if (addBtn && popup) {
-    addBtn.addEventListener('click', () => { popup.style.display = 'flex'; });
-  }
-
-  // =========================================
-  // 5. TOOLTIP LOGIC (HOVER DETAIL)
-  // =========================================
-  const tooltipEl = document.createElement('div');
-  tooltipEl.className = 'transaction-tooltip';
-  document.body.appendChild(tooltipEl);
-
-  document.addEventListener('mouseover', (e) => {
-      const item = e.target.closest('.t-item');
-      // Pastikan item memiliki data-desc
-      if (item && item.hasAttribute('data-desc')) {
-          const desc = item.getAttribute('data-desc');
-          const date = item.getAttribute('data-date');
-          const nominal = item.getAttribute('data-nominal');
-          const type = item.getAttribute('data-type');
-          const category = item.getAttribute('data-category');
-
-          tooltipEl.innerHTML = `
-              <div class="tooltip-header">
-                  <span>${category}</span>
-                  <span style="font-weight:400; opacity:0.8; font-size:12px;">${type}</span>
-              </div>
-              <div class="tooltip-row">
-                  <span class="tooltip-label">Date:</span>
-                  <span class="tooltip-val">${date}</span>
-              </div>
-              <div class="tooltip-row">
-                  <span class="tooltip-label">Desc:</span>
-                  <span class="tooltip-val" style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${desc}</span>
-              </div>
-              <div class="tooltip-row" style="margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 4px;">
-                  <span class="tooltip-label">Amount:</span>
-                  <span class="tooltip-val" style="font-size: 14px;">${nominal}</span>
+          // Cetak format kartu untuk hari tersebut (Sesuai Gambar 1)
+          listContainer.innerHTML += `
+              <div style="background: white; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #f1f5f9;">
+                  
+                  <!-- Header Tanggal & Rekap Hari -->
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                      
+                      <div style="display: flex; align-items: center; gap: 16px;">
+                          <div style="background: #3b82f6; color: white; border-radius: 8px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px;">
+                              ${group.dayDate}
+                          </div>
+                          <div style="font-size: 18px; font-weight: 600; color: #1e293b;">
+                              ${group.dayName}
+                          </div>
+                      </div>
+                      
+                      <div style="display: flex; gap: 20px; font-weight: 600; font-size: 15px;">
+                          <div style="color: #16a34a; display: flex; align-items: center; gap: 6px;">
+                              <i class="fa-solid fa-arrow-trend-up"></i> ${formatRupiah(group.totalIncome)}
+                          </div>
+                          <div style="color: #dc2626; display: flex; align-items: center; gap: 6px;">
+                              <i class="fa-solid fa-arrow-trend-down"></i> ${formatRupiah(group.totalExpense)}
+                          </div>
+                      </div>
+                  </div>
+                  
+                  <!-- Garis Pembatas -->
+                  <div style="height: 1px; background: #e2e8f0; margin-bottom: 12px;"></div>
+                  
+                  <!-- List Item Transaksi -->
+                  <div>
+                      ${itemsHTML}
+                  </div>
               </div>
           `;
-          tooltipEl.style.display = 'block';
-      }
-  });
+      });
+  }
 
-  document.addEventListener('mousemove', (e) => {
-      if (tooltipEl.style.display === 'block') {
-          let top = e.clientY + 15;
-          let left = e.clientX + 15;
+  function getLastXMonths(x) {
+        let result = [];
+        let currDate = new Date();
+        for(let i=x-1; i>=0; i--) {
+            let d = new Date(currDate.getFullYear(), currDate.getMonth() - i, 1);
+            result.push({
+                label: d.toLocaleString('en-US', { month: 'short', year: 'numeric' }),
+                month: d.getMonth(),
+                year: d.getFullYear()
+            });
+        }
+        return result;
+  }
+
+  function updateChartsByRange(months, chartType) {
+      const pastDate = new Date();
+      pastDate.setMonth(new Date().getMonth() - months);
+      pastDate.setDate(1);
+
+      const filteredTrans = allTransactions.filter(t => {
+          if (!t.tanggal) return false;
+          const d = new Date(t.tanggal);
+          return d >= pastDate && d <= new Date();
+      });
+
+      const monthLabels = getLastXMonths(months);
+
+      if (chartType === 'inc-exp') {
+          const incData = new Array(months).fill(0);
+          const expData = new Array(months).fill(0);
           
-          if (left + 220 > window.innerWidth) left = e.clientX - 230;
-          if (top + 150 > window.innerHeight) top = e.clientY - 160;
-          
-          tooltipEl.style.top = `${top}px`;
-          tooltipEl.style.left = `${left}px`;
+          filteredTrans.forEach(t => {
+             const d = new Date(t.tanggal);
+             const idx = monthLabels.findIndex(m => m.month === d.getMonth() && m.year === d.getFullYear());
+             if(idx !== -1) {
+                 if(t.type === 'Income') incData[idx] += t.nominal;
+                 else expData[idx] += t.nominal;
+             }
+          });
+
+          if (chartIncExp) chartIncExp.destroy();
+          const ctx = document.getElementById('chart-inc-exp');
+          if (!ctx) return;
+          chartIncExp = new Chart(ctx.getContext('2d'), {
+              type: 'bar',
+              data: {
+                  labels: monthLabels.map(m => m.label),
+                  datasets: [
+                      { label: 'Income', data: incData, backgroundColor: '#166534' },
+                      { label: 'Expense', data: expData, backgroundColor: '#dc2626' }
+                  ]
+              },
+              options: { responsive: true, maintainAspectRatio: false }
+          });
       }
+      else if (chartType === 'category') {
+          const catTotals = {};
+          filteredTrans.forEach(t => {
+              const cat = t.kategori || 'Other';
+              catTotals[cat] = (catTotals[cat] || 0) + t.nominal;
+          });
+
+          const labels = Object.keys(catTotals);
+          const dataVal = Object.values(catTotals);
+          const colors = labels.map(l => getColor(l));
+
+          if (chartCategory) chartCategory.destroy();
+          const ctx = document.getElementById('chart-category');
+          if (!ctx) return;
+          chartCategory = new Chart(ctx.getContext('2d'), {
+              type: 'doughnut',
+              data: {
+                  labels: labels,
+                  datasets: [{ data: dataVal, backgroundColor: colors }]
+              },
+              options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+          });
+          
+          const legendBox = document.getElementById('categoryLegend');
+          if (legendBox) {
+              legendBox.innerHTML = '';
+              labels.forEach((cat, idx) => {
+                  legendBox.innerHTML += `<div class="l-item"><div class="l-left"><span class="l-pct" style="background-color: ${colors[idx]}">&nbsp;&nbsp;</span><span class="l-name">${cat}</span></div><span class="l-val">${formatRupiah(dataVal[idx])}</span></div>`;
+              });
+          }
+      }
+      else if (chartType === 'nws') {
+          const needsData = new Array(months).fill(0);
+          const wantsData = new Array(months).fill(0);
+          const savingsData = new Array(months).fill(0);
+          
+          filteredTrans.forEach(t => {
+             const d = new Date(t.tanggal);
+             const idx = monthLabels.findIndex(m => m.month === d.getMonth() && m.year === d.getFullYear());
+             if(idx !== -1) {
+                 if (t.alokasi_data) {
+                     needsData[idx] += t.alokasi_data['Needs'] || 0;
+                     wantsData[idx] += t.alokasi_data['Wants'] || 0;
+                     savingsData[idx] += t.alokasi_data['Savings'] || 0;
+                 } else if (t.kategori) {
+                     if(t.kategori.toLowerCase() === 'needs') needsData[idx] += t.nominal;
+                     else if(t.kategori.toLowerCase() === 'wants') wantsData[idx] += t.nominal;
+                     else if(t.kategori.toLowerCase() === 'savings') savingsData[idx] += t.nominal;
+                 }
+             }
+          });
+
+          if (chartNWS) chartNWS.destroy();
+          const ctx = document.getElementById('chart-nws');
+          if (!ctx) return;
+          chartNWS = new Chart(ctx.getContext('2d'), {
+              type: 'bar',
+              data: {
+                  labels: monthLabels.map(m => m.label),
+                  datasets: [
+                      { label: 'Needs', data: needsData, backgroundColor: '#1e7e00' },
+                      { label: 'Wants', data: wantsData, backgroundColor: '#9f0003' },
+                      { label: 'Savings', data: savingsData, backgroundColor: '#2f80ed' }
+                  ]
+              },
+              options: { responsive: true, maintainAspectRatio: false }
+          });
+      }
+  }
+
+  const filterIncExp = document.getElementById('filter-inc-exp');
+  if (filterIncExp) filterIncExp.addEventListener('change', function() { updateChartsByRange(parseInt(this.value), 'inc-exp'); });
+  
+  const filterCategory = document.getElementById('filter-category');
+  if (filterCategory) filterCategory.addEventListener('change', function() { updateChartsByRange(parseInt(this.value), 'category'); });
+  
+  const filterNws = document.getElementById('filter-nws');
+  if (filterNws) filterNws.addEventListener('change', function() { updateChartsByRange(parseInt(this.value), 'nws'); });
+
+  if (prevBtn) prevBtn.addEventListener('click', () => {
+    currentViewDate.setMonth(currentViewDate.getMonth() - 1);
+    updateDashboard();
+  });
+  
+  if (nextBtn) nextBtn.addEventListener('click', () => {
+    currentViewDate.setMonth(currentViewDate.getMonth() + 1);
+    updateDashboard();
   });
 
-  document.addEventListener('mouseout', (e) => {
-      const item = e.target.closest('.t-item');
-      if (item) tooltipEl.style.display = 'none';
-  });
+  // --- OPEN ADD TRANSACTION MODAL FIX (.show trigger) ---
+  const addBtn = document.getElementById('openTransactionModalBtn');
+  const addModalOverlay = document.getElementById('add-transaction-modal-overlay');
 
-  // Init Data
+  if (addBtn && addModalOverlay) {
+      addBtn.addEventListener('click', () => {
+          addModalOverlay.style.display = 'flex';
+          // Tambahkan class show agar modalnya pop-up
+          setTimeout(() => {
+              const modalContent = addModalOverlay.querySelector('.modal');
+              if (modalContent) modalContent.classList.add('show');
+          }, 10);
+      });
+  }
+
   fetchTransactions();
 });

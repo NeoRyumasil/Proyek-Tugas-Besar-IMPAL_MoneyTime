@@ -39,7 +39,8 @@ def api_transaction() :
             'type': final_type,
             'nominal': float(t.get('nominal') or t.get('amount') or 0),
             'deskripsi': t.get('deskripsi') or t.get('description') or '-',
-            'kategori': t.get('kategori') or t.get('kategorialokasi') or '-'
+            'kategori': t.get('kategori') or t.get('kategorialokasi') or '-',
+            'alokasi_data': t.get('alokasi_data') or None 
         })
 
     # Kembalikan murni array saja, tanpa dicampur info meta halaman
@@ -70,17 +71,22 @@ def add_transaction() :
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
     
     data = request.get_json() or {}
-    type = data.get('type')
+    trans_type = data.get('type')
     description = data.get('description')
     amount = data.get('amount')
-    date = data.get('date')
+    trans_date = data.get('date')
     category = data.get('category') or 'Other'
+    
+    allocation = data.get('allocation')
+    
+    # Tangkap pilihan potong saldo (Needs/Wants/Savings)
+    expense_source = data.get('expense_source')
 
-    if not type or not description or not amount or not date :
+    if not trans_type or not description or not amount or not trans_date :
         return jsonify({'success': False, 'message': 'Missing fields'}), 400
     
     user_id = session['user'].get('id')
-    status = 'Pemasukan' if str(type).lower() == 'income' else 'Pengeluaran'
+    status = 'Pemasukkan' if str(trans_type).lower() == 'income' else 'Pengeluaran'
 
     finansial_id = finansial_controller.get_or_create_finansial(user_id, category, status=status)
 
@@ -93,10 +99,10 @@ def add_transaction() :
     except :
         return jsonify({'success': False, 'message': 'Invalid amount'}), 400
 
-    if str(type).lower() == 'income' :
-        success = finansial_controller.add_pemasukan(finansial_id, description, nominal, date)
+    if str(trans_type).lower() == 'income' :
+        success = finansial_controller.add_pemasukan(finansial_id, description, nominal, trans_date, persentase_alokasi=allocation)
     else :
-        success = finansial_controller.add_pengeluaran(finansial_id, description, nominal, date)
+        success = finansial_controller.add_pengeluaran(finansial_id, description, nominal, trans_date, sumber_potongan=expense_source)
     
     if success :
         return jsonify({'success': True, 'message': 'Transaction added'})
