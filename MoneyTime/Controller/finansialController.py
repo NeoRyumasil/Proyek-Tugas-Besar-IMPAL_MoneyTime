@@ -5,7 +5,7 @@ from Database.models import Finansial, Pemasukkan, Pengeluaran
 from Database.orm import db
 from Utils.cache import cache
 
-from Schema.schema import FinansialSchema, PemasukkanSchema, PengeluaranSchema
+from Schema.schema import FinansialSchema, PemasukkanSchema, PengeluaranSchema, AlokasiSchema
 from marshmallow import ValidationError
 
 class FinansialController:
@@ -14,6 +14,7 @@ class FinansialController:
         self.finansial_schema = FinansialSchema()
         self.pemasukkan_schema = PemasukkanSchema()
         self.pengeluaran_schema = PengeluaranSchema()
+        self.alokasi_schema = AlokasiSchema()
 
     # Ambil atau tambah Finansial
     def get_or_create_finansial(self, user_id: str, kategori: str, budget: int = 0, status: str = 'active') -> Optional[int]:
@@ -48,7 +49,12 @@ class FinansialController:
             return None
 
     # Tambah Pemasukkan
-    def add_pemasukan(self, finansial_id: int, deskripsi: str, nominal: int, tanggal: str) -> bool:
+    def add_pemasukan(self, finansial_id: int, deskripsi: str, nominal: int, tanggal: str, persentase_alokasi: dict = None) -> bool:
+        
+        if persentase_alokasi and sum(persentase_alokasi.values()) != 100:
+            print("Error: Total persentase alokasi harus tepat 100%")
+            return False
+
         try:
             new_pemasukkan = self.pemasukkan_schema.load({
                 "finansialid": finansial_id, 
@@ -58,10 +64,22 @@ class FinansialController:
             })
 
             self.db.add(new_pemasukkan)
+            self.db.flush() 
+
+            if persentase_alokasi:
+                for kategori, persen in persentase_alokasi.items():
+                    kalkulasi_nominal = (nominal * persen) / 100
+                    
+                    new_alokasi = self.alokasi_schema.load({
+                        "pemasukkanid": new_pemasukkan.pemasukkanid,
+                        "kategori_alokasi": kategori,
+                        "nominal_alokasi": kalkulasi_nominal
+                    })
+                    self.db.add(new_alokasi)
+
             self.db.commit()
 
             finansial = self.db.query(Finansial).filter_by(finansialid=finansial_id).first()
-
             if finansial:
                 cache.delete_memoized(self.get_categories, finansial.userid)
                 cache.delete_memoized(self.get_financial_summary, finansial.userid)
@@ -70,7 +88,7 @@ class FinansialController:
         
         except ValidationError as err:
             self.db.rollback()
-            print(f"Validasi Pemasukkan Gagal: {err.messages}")
+            print(f"Validasi Pemasukkan/Alokasi Gagal: {err.messages}")
             return False
         
         except Exception as e:
